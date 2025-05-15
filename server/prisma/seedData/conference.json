@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "name": "TechX 2025",
+    "description": "Annual technology and innovation conference.",
+    "startDate": "2025-08-15T00:00:00Z",
+    "endDate": "2025-08-18T00:00:00Z",
+    "location": "Accra, Ghana",
+    "createdById": 2
+  }
+]

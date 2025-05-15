@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "cognitoId": "817b3540-a061-707b-742a-a28391181149",
+    "name": "Alice Admin",
+    "email": "alice@conf.com",
+    "password": "hashedpassword123",
+    "role": "admin"
+  },
+  {
+    "id": 2,
+    "cognitoId": "us-east-2:87654321-90ab-cdef-1234-567890abcdef",
+    "name": "Oliver Organizer",
+    "email": "oliver@conf.com",
+    "password": "hashedpassword456",
+    "role": "organizer"
+  },
+  {
+    "id": 3,
+    "cognitoId": "us-east-2:98765432-90ab-cdef-1234-567890abcdef",
+    "name": "Anita Attendee",
+    "email": "anita@conf.com",
+    "password": "hashedpassword789",
+    "role": "attendee"
+  }
+]

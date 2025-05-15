@@ -1,0 +1,319 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Custom dark mode variant */
+@custom-variant dark (&:is(.dark *));
+
+/* Box-sizing reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root,
+.app {
+  height: 100%;
+  width: 100%;
+  @apply text-sm;
+  @apply bg-white dark:bg-black;
+}
+
+
+@theme inline {
+  /* Core Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono: var(--font-geist-mono);
+
+  /* Sidebar */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  /* Chart Colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* UI Elements */
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Primary Colors */
+  --color-primary-50: #fcfcfc;
+  --color-primary-100: #f1f1f2;
+  --color-primary-200: #e0e0e2;
+  --color-primary-300: #c7c7cc;
+  --color-primary-400: #a8a8af;
+  --color-primary-500: #82828b;
+  --color-primary-600: #57575f;
+  --color-primary-700: #27272a;
+  --color-primary-800: #111113;
+  --color-primary-900: #040405;
+  --color-primary-950: #000000;
+
+  /* Secondary Colors */
+  --color-secondary-50: #fefcfc;
+  --color-secondary-100: #fdf2f2;
+  --color-secondary-200: #fae1e1;
+  --color-secondary-300: #f6c9c9;
+  --color-secondary-400: #f1abab;
+  --color-secondary-500: #eb8686;
+  --color-secondary-600: #e45a5a;
+  --color-secondary-700: #dc2828;
+  --color-secondary-800: #7c1414;
+  --color-secondary-900: #400a0a;
+  --color-secondary-950: #2c0707;
+}
+
+/* Light Theme */
+:root {
+  --radius: 0.625rem;
+  --background: 0 0% 98%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 88%;
+  --ring: 221.2 83.2% 53.3%;
+
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+/* Dark Theme */
+.dark {
+  --background: 222.2 84% 3.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 15.5%;
+  --ring: 224.3 76.3% 48%;
+  --sidebar-background: 240 5.9% 10%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 224.3 76.3% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 240 4.8% 95.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+/* Apply base styling from design tokens */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Dashboard Padding Utility */
+.dashboard-container {
+  @apply pt-8 pb-5 px-8;
+}
+
+/* Mapbox Custom Popups */
+/* .mapboxgl-popup-content {
+  @apply !bg-primary-700 !rounded-lg !py-2 !px-3;
+}
+
+.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  @apply !border-b-primary-700;
+}
+
+.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  @apply !border-t-primary-700;
+}
+
+.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  @apply !border-r-primary-700;
+}
+
+.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  @apply !border-l-primary-700;
+}
+
+.marker-popup {
+  @apply bg-primary-700 text-white p-0 m-0 !flex justify-between items-center gap-3;
+}
+
+.marker-popup-image {
+  @apply w-10 h-10 object-cover bg-white rounded-lg;
+}
+
+.marker-popup-price {
+  @apply text-sm font-semibold text-primary-200;
+}
+
+.marker-popup-title {
+  @apply hover:underline hover:text-blue-300 cursor-pointer focus:outline-none;
+}
+
+.marker-popup-price-unit {
+  @apply text-xs text-primary-500 font-normal;
+} */
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-200 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-300;
+}
+
+/* Amplify Authenticator Overrides */
+[data-amplify-authenticator] {
+  --amplify-components-button-primary-background-color: hsl(var(--primary));
+  --amplify-components-button-primary-hover-background-color: hsl(var(--primary) / 0.9);
+  --amplify-components-button-border-radius: var(--radius);
+  --amplify-components-fieldcontrol-border-radius: var(--radius);
+}
+
+[data-amplify-authenticator][data-variation="default"] {
+  height: 100%;
+  padding: 2rem !important;
+}
+
+[data-amplify-authenticator] [data-amplify-router] {
+  border: none !important;
+  box-shadow: none !important;
+  max-width: 400px !important;
+  margin: 0 auto;
+}
+
+[data-amplify-authenticator] [data-amplify-container] {
+  border-radius: var(--radius);
+  padding: 2rem !important;
+  border: 1px solid hsl(var(--border));
+}
+
+[data-amplify-authenticator] [data-amplify-form] {
+  padding: 0 !important;
+}
+
+[data-amplify-authenticator] .amplify-tabs__list {
+  display: none;
+}
+
+[data-amplify-authenticator] .amplify-button--primary {
+  width: 100%;
+  height: 2.75rem;
+  margin-top: 1rem;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  @apply font-medium text-sm;
+}
+
+[data-amplify-authenticator] .amplify-button--primary:hover {
+  background-color: hsl(var(--primary) / 0.8) !important;
+}
+
+[data-amplify-authenticator] .amplify-field-group__control {
+  border-color: hsl(var(--input));
+}
+
+[data-amplify-authenticator] .amplify-field-group__control:focus-within {
+  border-color: hsl(var(--ring)) !important;
+  box-shadow: 0 0 0 1px hsl(var(--ring)) !important;
+}
+
+[data-amplify-authenticator] .amplify-field__show-password {
+  color: hsl(var(--muted-foreground));
+}
+
+[data-amplify-authenticator] .amplify-label {
+  @apply text-sm font-medium;
+  color: hsl(var(--foreground));
+}
+
+[data-amplify-authenticator] .amplify-select {
+  border-color: hsl(var(--input));
+  border-radius: var(--radius);
+  height: 2.5rem;
+  @apply text-sm;
+}
+
+[data-amplify-authenticator] .amplify-text--error {
+  color: #ff0000;
+}
+
+/* Sonner Toast Styles */
+[data-close-button="true"] {
+  @apply bg-background border-border text-foreground hover:bg-muted;
+}
+
+

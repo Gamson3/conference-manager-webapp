@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "sectionId": 1,
+    "title": "AI in 2025",
+    "abstract": "Exploring upcoming trends in artificial intelligence.",
+    "affiliations": ["OpenAI", "MIT"],
+    "keywords": ["AI", "ML", "Neural Networks", "Ethics", "Futurism"],
+    "status": "submitted",
+    "submissionType": "internal",
+    "lockedById": 2
+  },
+  {
+    "id": 2,
+    "sectionId": 2,
+    "title": "Blockchain Beyond Currency",
+    "abstract": "The future of blockchain in other industries.",
+    "affiliations": ["Blockchain Hub"],
+    "keywords": ["Blockchain", "Smart Contracts", "Decentralization", "Security", "Innovation"],
+    "status": "draft",
+    "submissionType": "external",
+    "lockedById": 2
+  }
+]

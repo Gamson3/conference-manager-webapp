@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../src/generated/prisma"
+  // output   = "../node_modules/@prisma/client"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+
+enum Role {
+  attendee
+  organizer
+  admin
+}
+
+enum PresentationStatus {
+  draft
+  submitted
+  scheduled
+  locked
+}
+
+enum SubmissionType {
+  internal
+  external
+}
+ 
+model User {
+  id                 Int                  @id @default(autoincrement())
+  cognitoId          String               @unique  // Cognito ID for authentication
+  name               String
+  email              String               @unique
+  password           String
+  role               Role
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  conferences        Conference[]         @relation("OrganizerConferences")
+  authorAssignments  AuthorAssignment[]   @relation("InternalAuthor")
+  assignedAuthors    AuthorAssignment[]   @relation("AssignedBy")
+  impersonations     ImpersonationLog[]   @relation("Impersonator")
+  impersonatedBy     ImpersonationLog[]   @relation("ImpersonatedUser")
+  attendances        Attendance[]
+  favorites          Favorite[]
+  lockedPresentations Presentation[]      @relation("LockedByUser")
+}
+
+model Conference {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  location    String?
+  createdById Int
+  createdBy   User         @relation("OrganizerConferences", fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+
+  sections    Section[]
+  attendances Attendance[]
+}
+
+model Section {
+  id           Int           @id @default(autoincrement())
+  name         String
+  startTime    DateTime?
+  endTime      DateTime?
+  conferenceId Int
+  conference   Conference    @relation(fields: [conferenceId], references: [id])
+
+  presentations Presentation[]
+}
+
+model Presentation {
+  id              Int                @id @default(autoincrement())
+  title           String
+  abstract        String?
+  affiliations    String[]           // Stored as array of text
+  keywords        String[]           // Ensure 5+ in application logic
+  status          PresentationStatus
+  submissionType  SubmissionType
+  sectionId       Int
+  section         Section            @relation(fields: [sectionId], references: [id])
+  createdAt       DateTime           @default(now())
+  lockedById      Int?
+  lockedBy        User?              @relation("LockedByUser", fields: [lockedById], references: [id])
+
+  authorAssignments AuthorAssignment[]
+  favorites         Favorite[]
+  impersonationLogs ImpersonationLog[]
+}
+
+model AuthorAssignment {
+  id                    Int       @id @default(autoincrement())
+  userId                Int?      // Internal author
+  externalEmail         String?   // External author
+  presentationId        Int
+  assignedById          Int
+  secureSubmissionLink  String    @unique
+
+  internalAuthor   User?         @relation("InternalAuthor", fields: [userId], references: [id])
+  assignedBy       User          @relation("AssignedBy", fields: [assignedById], references: [id])
+  presentation     Presentation  @relation(fields: [presentationId], references: [id])
+}
+
+model Attendance {
+  id            Int        @id @default(autoincrement())
+  userId        Int
+  conferenceId  Int
+  checkInTime   DateTime   @default(now())
+
+  user          User       @relation(fields: [userId], references: [id])
+  conference    Conference @relation(fields: [conferenceId], references: [id])
+}
+
+model Favorite {
+  id              Int          @id @default(autoincrement())
+  userId          Int
+  presentationId  Int
+  createdAt       DateTime     @default(now())
+
+  user            User         @relation(fields: [userId], references: [id])
+  presentation    Presentation @relation(fields: [presentationId], references: [id])
+}
+
+model ImpersonationLog {
+  id                  Int       @id @default(autoincrement())
+  impersonatorId      Int
+  impersonatedUserId  Int
+  actionTaken         String
+  timestamp           DateTime  @default(now())
+  presentationId      Int?
+
+  impersonator        User      @relation("Impersonator", fields: [impersonatorId], references: [id])
+  impersonatedUser    User      @relation("ImpersonatedUser", fields: [impersonatedUserId], references: [id])
+  presentation        Presentation? @relation(fields: [presentationId], references: [id])
+}

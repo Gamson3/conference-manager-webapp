@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 1,
+    "name": "Morning Keynote",
+    "startTime": "2025-08-15T09:00:00Z",
+    "endTime": "2025-08-15T11:00:00Z"
+  },
+  {
+    "id": 2,
+    "conferenceId": 1,
+    "name": "Afternoon Breakouts",
+    "startTime": "2025-08-15T13:00:00Z",
+    "endTime": "2025-08-15T15:00:00Z"
+  }
+]
