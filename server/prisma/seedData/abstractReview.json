@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "abstractId": 1,
+    "reviewerId": 1,
+    "score": 5,
+    "comments": "Excellent proposal with strong research backing and clear practical applications. Highly recommend acceptance.",
+    "recommendation": "accept"
+  },
+  {
+    "id": 2,
+    "abstractId": 2,
+    "reviewerId": 1,
+    "score": 3,
+    "comments": "Interesting topic but needs more focus on implementation details. The proposal is somewhat vague about methodology.",
+    "recommendation": "revise"
+  },
+  {
+    "id": 3,
+    "abstractId": 2,
+    "reviewerId": 2,
+    "score": 4,
+    "comments": "Timely topic with good potential. Would suggest more emphasis on case studies as mentioned.",
+    "recommendation": "accept"
+  },
+  {
+    "id": 4,
+    "abstractId": 3,
+    "reviewerId": 1,
+    "score": 2,
+    "comments": "While quantum computing is relevant, this proposal doesn't offer anything novel beyond what's already covered at previous conferences.",
+    "recommendation": "reject"
+  },
+  {
+    "id": 5,
+    "abstractId": 5,
+    "reviewerId": 2,
+    "score": 5,
+    "comments": "Very timely given the expansion of telehealth. The security and integration aspects are particularly valuable.",
+    "recommendation": "accept"
+  }
+]

@@ -27,13 +27,19 @@ const InviteUsersPage = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <Button type="submit">Send Invite</Button>
+        <Button 
+         type="submit"
+         className="bg-primary-700 hover:bg-primary-700 text-white cursor-pointer"
+        >
+          Send Invite
+
+        </Button>
       </form>
       {status === "success" && (
         <p className="text-green-600">Invitation sent successfully!</p>
       )}
       {/* TODO: List invited users and their status */}
-      <p>Invite attendees or co-organizers to your events by email. They will receive an invitation to join.</p>
+      <p>You can invite co-organizers or authors and grant them access to your conferences and events. They will receive an invitation to join.</p>
     </div>
   );
 };

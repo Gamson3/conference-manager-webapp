@@ -1,16 +1,22 @@
 [
   {
     "id": 1,
+    "name": "Opening Keynote",
+    "description": "Welcome address and future technology trends",
+    "startTime": "2025-06-15T09:00:00Z",
+    "endTime": "2025-06-15T11:00:00Z",
     "conferenceId": 1,
-    "name": "Morning Keynote",
-    "startTime": "2025-08-15T09:00:00Z",
-    "endTime": "2025-08-15T11:00:00Z"
+    "room": "Main Hall",
+    "capacity": 500
   },
   {
     "id": 2,
+    "name": "Blockchain Workshop",
+    "description": "Hands-on session exploring blockchain applications",
+    "startTime": "2025-06-15T13:00:00Z",
+    "endTime": "2025-06-15T15:00:00Z",
     "conferenceId": 1,
-    "name": "Afternoon Breakouts",
-    "startTime": "2025-08-15T13:00:00Z",
-    "endTime": "2025-08-15T15:00:00Z"
+    "room": "Workshop Room B",
+    "capacity": 100
   }
 ]

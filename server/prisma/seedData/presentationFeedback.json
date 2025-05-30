@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "presentationId": 1,
+    "userId": 3,
+    "rating": 5,
+    "comments": "Fascinating insights into the future of AI. The speaker was engaging and the content was cutting-edge. Excellent visuals and examples.",
+    "submittedAt": "2025-06-15T12:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "presentationId": 2,
+    "userId": 3,
+    "rating": 4,
+    "comments": "Good overview of blockchain applications beyond finance. Would have liked more technical details, but the case studies were valuable.",
+    "submittedAt": "2025-06-15T16:15:00.000Z"
+  },
+  {
+    "id": 3,
+    "presentationId": 1,
+    "userId": 2,
+    "rating": 3,
+    "comments": "Interesting topic but the presentation felt rushed. Some complex concepts needed more explanation.",
+    "submittedAt": "2025-06-15T12:45:00.000Z"
+  },
+  {
+    "id": 4,
+    "presentationId": 2,
+    "userId": 2,
+    "rating": 5,
+    "comments": "Excellent presentation on blockchain applications! The real-world examples were particularly insightful. Great Q&A session too.",
+    "submittedAt": "2025-06-15T16:30:00.000Z"
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 1,
+    "title": "Tech Summit 2025 Program Guide",
+    "description": "Complete schedule and information about all sessions, speakers, and events.",
+    "fileUrl": "https://storage.example.com/conferences/1/program_guide.pdf",
+    "fileType": "pdf",
+    "uploadedAt": "2025-05-20T10:00:00.000Z",
+    "isPublic": true
+  },
+  {
+    "id": 2,
+    "conferenceId": 1,
+    "title": "Venue Map & Logistics",
+    "description": "Detailed maps of the convention center, parking information, and nearby amenities.",
+    "fileUrl": "https://storage.example.com/conferences/1/venue_map.pdf",
+    "fileType": "pdf",
+    "uploadedAt": "2025-05-25T14:30:00.000Z",
+    "isPublic": true
+  },
+  {
+    "id": 3,
+    "conferenceId": 1,
+    "title": "Sponsor Prospectus",
+    "description": "Information for potential sponsors, including packages and benefits.",
+    "fileUrl": "https://storage.example.com/conferences/1/sponsor_info.pdf",
+    "fileType": "pdf",
+    "uploadedAt": "2024-12-10T09:15:00.000Z",
+    "isPublic": false
+  },
+  {
+    "id": 4,
+    "conferenceId": 3,
+    "title": "Web Development Summit Program",
+    "description": "Complete schedule of all web development sessions and workshops.",
+    "fileUrl": "https://storage.example.com/conferences/3/program.pdf",
+    "fileType": "pdf",
+    "uploadedAt": "2024-12-15T11:30:00.000Z",
+    "isPublic": true
+  },
+  {
+    "id": 5,
+    "conferenceId": 3,
+    "title": "Code of Conduct",
+    "description": "Guidelines for respectful and inclusive participation in the conference.",
+    "fileUrl": "https://storage.example.com/conferences/3/code_of_conduct.pdf",
+    "fileType": "pdf",
+    "uploadedAt": "2024-12-01T08:45:00.000Z",
+    "isPublic": true
+  }
+]

@@ -9,6 +9,15 @@ import {
   Attendance,
   Favorite,
   ImpersonationLog,
+  // Add new model imports
+  Ticket,
+  TicketPurchase,
+  ConferenceFeedback,
+  PresentationFeedback,
+  ConferenceMaterial,
+  PresentationMaterial,
+  Notification,
+  SessionAttendance
 } from "./prismaTypes"; // this file will be generated after running prisma:generate
 
 declare module "framer-motion" {

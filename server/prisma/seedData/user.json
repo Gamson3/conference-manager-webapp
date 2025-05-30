@@ -5,7 +5,17 @@
     "name": "Alice Admin",
     "email": "alice@conf.com",
     "password": "hashedpassword123",
-    "role": "admin"
+    "role": "admin",
+    "bio": "Conference management professional with 10+ years experience in the tech industry. Specialized in large-scale technical events.",
+    "profileImage": "https://storage.example.com/profiles/alice.jpg",
+    "phoneNumber": "+1-555-123-4567",
+    "address": "123 Admin St, San Francisco, CA 94105",
+    "organization": "TechConf Inc.",
+    "jobTitle": "Chief Events Officer",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/aliceadmin",
+      "twitter": "https://twitter.com/aliceadmin"
+    }
   },
   {
     "id": 2,
@@ -13,7 +23,17 @@
     "name": "Oliver Organizer",
     "email": "oliver@conf.com",
     "password": "hashedpassword456",
-    "role": "organizer"
+    "role": "organizer",
+    "bio": "Event coordinator and content creator focused on innovative conference experiences. Background in computer science and UX design.",
+    "profileImage": "https://storage.example.com/profiles/oliver.jpg",
+    "phoneNumber": "+1-555-987-6543",
+    "address": "456 Organizer Ave, Boston, MA 02115",
+    "organization": "EventPro Solutions",
+    "jobTitle": "Senior Event Coordinator",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/oliverorg",
+      "github": "https://github.com/oliverorg"
+    }
   },
   {
     "id": 3,
@@ -21,6 +41,54 @@
     "name": "Anita Attendee",
     "email": "anita@conf.com",
     "password": "hashedpassword789",
-    "role": "attendee"
+    "role": "attendee",
+    "bio": "Software developer specializing in AI and machine learning applications. Regular conference attendee seeking to network and learn.",
+    "profileImage": "https://storage.example.com/profiles/anita.jpg",
+    "phoneNumber": "+1-555-234-5678",
+    "address": "789 Attendee Blvd, Seattle, WA 98101",
+    "organization": "TechInnovate LLC",
+    "jobTitle": "Senior Developer",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/anitadev",
+      "github": "https://github.com/anitadev",
+      "twitter": "https://twitter.com/anitadev"
+    }
+  },
+  {
+    "id": 4,
+    "cognitoId": "us-east-2:12345678-abcd-efgh-ijkl-123456789012",
+    "name": "Peter Presenter",
+    "email": "peter@conf.com",
+    "password": "hashedpassword101",
+    "role": "attendee",
+    "bio": "Data scientist and frequent speaker on big data analytics. Published author with expertise in predictive modeling.",
+    "profileImage": "https://storage.example.com/profiles/peter.jpg",
+    "phoneNumber": "+1-555-345-6789",
+    "address": "101 Speaker St, New York, NY 10001",
+    "organization": "DataInsight Corp",
+    "jobTitle": "Lead Data Scientist",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/peterpresenter",
+      "github": "https://github.com/peterpresenter",
+      "website": "https://peterpresenter.com"
+    }
+  },
+  {
+    "id": 5,
+    "cognitoId": "us-east-2:abcdef12-3456-7890-abcd-ef1234567890",
+    "name": "Rachel Reviewer",
+    "email": "rachel@conf.com",
+    "password": "hashedpassword202",
+    "role": "organizer",
+    "bio": "Academic researcher and journal editor specializing in computer science education. Experienced in peer review processes.",
+    "profileImage": "https://storage.example.com/profiles/rachel.jpg",
+    "phoneNumber": "+1-555-456-7890",
+    "address": "202 Review Rd, Chicago, IL 60607",
+    "organization": "Tech University",
+    "jobTitle": "Associate Professor",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/rachelreviewer",
+      "googleScholar": "https://scholar.google.com/citations?user=rachelr"
+    }
   }
 ]

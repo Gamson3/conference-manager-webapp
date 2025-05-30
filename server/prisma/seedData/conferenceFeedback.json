@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 5,
+    "userId": 3,
+    "rating": 5,
+    "comments": "Excellent conference! The keynote speakers were inspirational and the workshops provided practical skills I can immediately apply. The venue was perfect and staff were very helpful.",
+    "submittedAt": "2024-03-08T10:15:00.000Z"
+  },
+  {
+    "id": 2,
+    "conferenceId": 5,
+    "userId": 2,
+    "rating": 4,
+    "comments": "Very good content and organization. Some sessions were too crowded, but overall a worthwhile experience. Networking opportunities were excellent.",
+    "submittedAt": "2024-03-07T18:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "conferenceId": 3,
+    "userId": 3,
+    "rating": 4,
+    "comments": "Great content focused on modern web development techniques. Would have appreciated more advanced sessions, but the fundamentals were well covered.",
+    "submittedAt": "2025-01-08T09:45:00.000Z"
+  },
+  {
+    "id": 4,
+    "conferenceId": 3,
+    "userId": 2,
+    "rating": 3,
+    "comments": "Content was good but the WiFi was spotty which impacted some of the hands-on workshop experiences. Otherwise well organized.",
+    "submittedAt": "2025-01-08T14:20:00.000Z"
+  }
+]

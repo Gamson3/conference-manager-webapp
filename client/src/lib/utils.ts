@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { toast } from "sonner";
+import { fetchAuthSession } from "aws-amplify/auth";
+import axios from "axios";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -72,3 +74,22 @@ export const createNewUserInDatabase = async (
 
   return createUserResponse;
 };
+
+// Create an axios instance with auth
+export const createAuthenticatedApi = async () => {
+  const session = await fetchAuthSession();
+  const idToken = session.tokens?.idToken?.toString();
+  
+  return axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    headers: {
+      Authorization: idToken ? `Bearer ${idToken}` : ''
+    }
+  });
+};
+
+// Helper to get just the token
+export async function getIdToken() {
+  const session = await fetchAuthSession();
+  return session.tokens?.idToken?.toString();
+}

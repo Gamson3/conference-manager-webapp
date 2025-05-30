@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "presentationId": 1,
+    "title": "AI in 2025 Slides",
+    "description": "Slide deck for the 'AI in 2025' keynote presentation.",
+    "fileUrl": "https://storage.example.com/presentations/1/slides.pptx",
+    "fileType": "pptx",
+    "uploadedAt": "2025-06-10T15:30:00.000Z",
+    "isPublic": true
+  },
+  {
+    "id": 2,
+    "presentationId": 1,
+    "title": "AI Research Paper",
+    "description": "Full research paper with detailed methodology and findings.",
+    "fileUrl": "https://storage.example.com/presentations/1/research_paper.pdf",
+    "fileType": "pdf",
+    "uploadedAt": "2025-06-10T15:35:00.000Z",
+    "isPublic": true
+  },
+  {
+    "id": 3,
+    "presentationId": 1,
+    "title": "Demo Code Repository",
+    "description": "GitHub repository with code samples from the presentation.",
+    "fileUrl": "https://github.com/example/ai-demo-2025",
+    "fileType": "url",
+    "uploadedAt": "2025-06-11T09:20:00.000Z",
+    "isPublic": true
+  },
+  {
+    "id": 4,
+    "presentationId": 2,
+    "title": "Blockchain Beyond Currency Slides",
+    "description": "Presentation slides for the blockchain session.",
+    "fileUrl": "https://storage.example.com/presentations/2/blockchain_slides.pdf",
+    "fileType": "pdf",
+    "uploadedAt": "2025-06-12T14:15:00.000Z",
+    "isPublic": true
+  },
+  {
+    "id": 5,
+    "presentationId": 2,
+    "title": "Case Study Dataset",
+    "description": "CSV data used in the blockchain implementation case studies.",
+    "fileUrl": "https://storage.example.com/presentations/2/case_study_data.csv",
+    "fileType": "csv",
+    "uploadedAt": "2025-06-12T14:20:00.000Z",
+    "isPublic": false
+  }
+]

@@ -75,22 +75,22 @@ export const api = createApi({
       User, // The returned type (adjust if you have a more specific Organizer type)
       { cognitoId: string } & Partial<User>
     >
-    ({
-      query: ({ cognitoId, ...updatedFields }) => ({
-        url: `/users/cognito/${cognitoId}`,
-        method: "PUT",
-        body: updatedFields,
+      ({
+        query: ({ cognitoId, ...updatedFields }) => ({
+          url: `/users/cognito/${cognitoId}`,
+          method: "PUT",
+          body: updatedFields,
+        }),
+        // Optionally, you can invalidate tags or handle optimistic updates here
+        invalidatesTags: (result) => [{ type: "User", id: result?.id }],
+        // Optionally, add toast notifications here if you have a utility for it
+        async onQueryStarted(_, { queryFulfilled }) {
+          await withToast(queryFulfilled, {
+            success: "Settings updated successfully!",
+            error: "Failed to update settings.",
+          });
+        },
       }),
-      // Optionally, you can invalidate tags or handle optimistic updates here
-      invalidatesTags: (result) => [{ type: "User", id: result?.id }],
-      // Optionally, add toast notifications here if you have a utility for it
-      async onQueryStarted(_, { queryFulfilled }) {
-        await withToast(queryFulfilled, {
-          success: "Settings updated successfully!",
-          error: "Failed to update settings.",
-        });
-      },
-    }),
 
     getOrganizerEvents: build.query<Event[], { organizerId: number }>({
       query: ({ organizerId }) => `/events?organizerId=${organizerId}`,
@@ -117,14 +117,41 @@ export const api = createApi({
       }),
     }),
 
+    updateAttendee: build.mutation<
+      User, // Return type is User
+      { cognitoId: string } & Partial<User> & {
+        preferences?: {
+          emailNotifications?: boolean;
+          pushNotifications?: boolean;
+          marketingEmails?: boolean;
+          reminders?: boolean;
+        },
+        interests?: string[];
+      }
+    >({
+      query: ({ cognitoId, ...updatedFields }) => ({
+        url: `/users/cognito/${cognitoId}`,
+        method: "PUT",
+        body: updatedFields,
+      }),
+      invalidatesTags: (result) => [{ type: "User", id: result?.id }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        await withToast(queryFulfilled, {
+          success: "Profile updated successfully!",
+          error: "Failed to update profile.",
+        });
+      },
+    }),
+
   }),
 });
 
 export const {
-  useGetAuthUserQuery, 
+  useGetAuthUserQuery,
   useUpdateOrganizerSettingsMutation,
   useGetOrganizerEventsQuery,
   useCreateEventMutation,
   useUpdateEventMutation,
   useDeleteEventMutation,
+  useUpdateAttendeeMutation,
 } = api;

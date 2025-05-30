@@ -11,8 +11,12 @@ import { authMiddleware } from "./middleware/authMiddleware";
 
 /* ROUTE IMPORT */  
 //  route imports to be added when we have written them
+import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import eventRoutes from "./routes/eventRoutes";
+import conferenceRoutes from "./routes/conferenceRoutes";
+import sectionRoutes from "./routes/sectionRoutes";
+// import attendeeRoutes from "./routes/attendeeRoutes";
 
 
 
@@ -33,8 +37,11 @@ app.get("/", (req, res) => {
   res.send("This is home route");  // test for whether our home route works
 });
 // where our routes will be created
+app.use("/auth", authRoutes);
 app.use("/users", userRoutes); // universal user route
 app.use("/events", eventRoutes);
+app.use("/conferences", conferenceRoutes); // Public-facing routes
+app.use("/sections", sectionRoutes);
 
 
 

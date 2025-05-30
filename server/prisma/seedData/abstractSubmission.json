@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "Machine Learning for Medical Diagnostics",
+    "content": "This presentation explores the applications of machine learning algorithms in improving medical diagnostics accuracy. We'll cover recent advances in deep learning models that have shown promise in early disease detection, with a focus on practical implementation in clinical settings.",
+    "submitterId": 2,
+    "conferenceId": 1,
+    "status": "accepted"
+  },
+  {
+    "id": 2,
+    "title": "Blockchain in Supply Chain Management",
+    "content": "We propose a discussion on how blockchain technology is revolutionizing supply chain transparency and efficiency. The presentation will include case studies from major retailers and discuss implementation challenges.",
+    "submitterId": 3,
+    "conferenceId": 1,
+    "status": "under review"
+  },
+  {
+    "id": 3,
+    "title": "Quantum Computing: Practical Applications",
+    "content": "This session will demystify quantum computing and focus on near-term practical applications in cryptography, optimization problems, and drug discovery. We'll translate complex quantum concepts into business-relevant examples.",
+    "submitterId": 2,
+    "conferenceId": 3,
+    "status": "rejected"
+  },
+  {
+    "id": 4,
+    "title": "Sustainable Web Development Practices",
+    "content": "As digital carbon footprints grow, this presentation examines techniques for more sustainable web development. We'll cover server efficiency, optimized assets, and how to measure and reduce the environmental impact of web applications.",
+    "submitterId": 3,
+    "conferenceId": 3,
+    "status": "submitted"
+  },
+  {
+    "id": 5,
+    "title": "The Future of Remote Health Monitoring",
+    "content": "An exploration of IoT devices and wearable technology in remote patient monitoring. We'll discuss data security concerns, integration with electronic health records, and the potential for AI-powered early warning systems.",
+    "submitterId": 2,
+    "conferenceId": 2,
+    "status": "accepted"
+  }
+]

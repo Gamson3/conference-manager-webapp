@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { PrismaClient, Role } from "@prisma/client";
+import prisma from '../lib/prisma';
+import { Role } from "@prisma/client";
+import { getUserCognitoId } from "../utils/authHelper";
 
-const prisma = new PrismaClient();
 
 // GET /users/:id - Get user by ID
 export const getUser = async (req: Request, res: Response) => {
@@ -16,6 +17,69 @@ export const getUser = async (req: Request, res: Response) => {
     }else {
       res.json(user);
     }
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET /users/me - Get current user profile
+export const getCurrentUser = async (req: Request, res: Response) => {
+  try {
+    const cognitoId = getUserCognitoId(req);  // Use cognitoId instead of id
+    
+    const user = await prisma.user.findUnique({
+      where: { cognitoId },
+    });
+    
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    
+    res.json(user);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// PUT /users/me - Update current user profile
+export const updateCurrentUser = async (req: Request, res: Response) => {
+  try {
+    const cognitoId = getUserCognitoId(req);
+    const { name, email } = req.body;
+    
+    const user = await prisma.user.update({
+      where: { cognitoId },
+      data: { name, email },
+    });
+    
+    res.json(user);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET /users - List all users (admin only)
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const users = await prisma.user.findMany();
+    res.json(users);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// POST /users/role - Change user role (admin only)
+export const changeUserRole = async (req: Request, res: Response) => {
+  try {
+    const { userId, role } = req.body;
+    
+    const user = await prisma.user.update({
+      where: { id: Number(userId) },
+      data: { role: role as Role },
+    });
+    
+    res.json(user);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

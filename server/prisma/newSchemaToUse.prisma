@@ -1,0 +1,147 @@
+// // Add these models to your existing schema
+
+// model Notification {
+//   id        Int      @id @default(autoincrement())
+//   userId    Int
+//   message   String
+//   type      String   // e.g., 'connection_request', 'event_reminder', etc.
+//   relatedId Int?     // Optional ID of related entity (e.g., connection request ID)
+//   read      Boolean  @default(false)
+//   createdAt DateTime @default(now())
+  
+//   user      User     @relation(fields: [userId], references: [id])
+// }
+
+// model Connection {
+//   id             Int      @id @default(autoincrement())
+//   userId         Int
+//   connectedUserId Int
+//   connectedAt    DateTime @default(now())
+  
+//   user           User     @relation("UserConnections", fields: [userId], references: [id])
+//   connectedUser  User     @relation("ConnectedToUser", fields: [connectedUserId], references: [id])
+// }
+
+// model ConnectionRequest {
+//   id              Int      @id @default(autoincrement())
+//   requesterId     Int
+//   requestedUserId Int
+//   status          String   // 'pending', 'accepted', 'rejected'
+//   requestedAt     DateTime @default(now())
+//   respondedAt     DateTime?
+  
+//   requester       User     @relation("RequestedConnections", fields: [requesterId], references: [id])
+//   requestedUser   User     @relation("ReceivedConnectionRequests", fields: [requestedUserId], references: [id])
+// }
+
+// model Session {
+//   id           Int      @id @default(autoincrement())
+//   title        String
+//   description  String?
+//   startTime    DateTime
+//   endTime      DateTime
+//   location     String?
+//   conferenceId Int
+//   speakerId    Int?
+  
+//   conference   Conference @relation(fields: [conferenceId], references: [id])
+//   speaker      Speaker?   @relation(fields: [speakerId], references: [id])
+//   feedbacks    SessionFeedback[]
+// }
+
+// model Speaker {
+//   id             Int      @id @default(autoincrement())
+//   name           String
+//   title          String?
+//   bio            String?
+//   profilePicture String?
+  
+//   sessions       Session[]
+// }
+
+// model Material {
+//   id           Int      @id @default(autoincrement())
+//   title        String
+//   description  String?
+//   type         String   // 'pdf', 'video', 'presentation', etc.
+//   url          String
+//   conferenceId Int
+//   uploadDate   DateTime @default(now())
+  
+//   conference   Conference     @relation(fields: [conferenceId], references: [id])
+//   viewedBy     ViewedMaterial[]
+// }
+
+// model ViewedMaterial {
+//   id         Int      @id @default(autoincrement())
+//   userId     Int
+//   materialId Int
+//   viewedAt   DateTime @default(now())
+  
+//   user       User     @relation(fields: [userId], references: [id])
+//   material   Material @relation(fields: [materialId], references: [id])
+  
+//   @@unique([userId, materialId])
+// }
+
+// model SessionFeedback {
+//   id           Int      @id @default(autoincrement())
+//   userId       Int
+//   sessionId    Int
+//   rating       Int      // 1-5 star rating
+//   comments     String?
+//   improvements String?
+//   submittedAt  DateTime @default(now())
+  
+//   user         User     @relation(fields: [userId], references: [id])
+//   session      Session  @relation(fields: [sessionId], references: [id])
+  
+//   @@unique([userId, sessionId])
+// }
+
+// // Updates to existing models
+// model User {
+//   // ... existing fields
+
+//   // Add these new fields
+//   avatarUrl    String?
+//   bio          String?
+//   jobTitle     String?
+//   organization String?
+//   phoneNumber  String?
+//   location     String?
+//   interests    String[]
+//   preferences  Json?    @default("{}")
+  
+//   // Add these new relations
+//   viewedMaterials    ViewedMaterial[]
+//   sessionFeedbacks   SessionFeedback[]
+//   notifications      Notification[]
+//   connections        Connection[]     @relation("UserConnections")
+//   connectedToUsers   Connection[]     @relation("ConnectedToUser")
+//   connectionRequests ConnectionRequest[] @relation("RequestedConnections")
+//   receivedRequests   ConnectionRequest[] @relation("ReceivedConnectionRequests")
+// }
+
+// model Conference {
+//   // ... existing fields
+  
+//   // Add these new fields
+//   organizer     String?
+//   venueName     String?
+//   venueAddress  String?
+//   venueRoom     String?
+//   topics        String[]
+  
+//   // Add these new relations
+//   sessions      Session[]
+//   materials     Material[]
+// }
+
+// model Attendance {
+//   // ... existing fields
+  
+//   // Add these new fields
+//   registrationId   String  @unique
+//   registrationDate DateTime @default(now())
+// }

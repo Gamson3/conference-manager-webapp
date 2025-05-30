@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "userId": 3,
+    "title": "Registration Confirmed",
+    "message": "Your registration for Tech Summit 2025 has been confirmed. We look forward to seeing you at the event!",
+    "isRead": true,
+    "createdAt": "2024-12-15T14:35:00.000Z"
+  },
+  {
+    "id": 2,
+    "userId": 3,
+    "title": "Session Change",
+    "message": "Please note that the 'AI in 2025' session has been moved to Ballroom A and will now start at 10:00 AM.",
+    "isRead": false,
+    "createdAt": "2025-06-10T09:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "userId": 2,
+    "title": "Abstract Accepted",
+    "message": "Congratulations! Your abstract 'Machine Learning for Medical Diagnostics' has been accepted for presentation at Tech Summit 2025.",
+    "isRead": true,
+    "createdAt": "2025-02-15T16:30:00.000Z"
+  },
+  {
+    "id": 4,
+    "userId": 2,
+    "title": "Presentation Materials Due",
+    "message": "Please submit your final presentation materials for 'Machine Learning for Medical Diagnostics' by June 1, 2025.",
+    "isRead": false,
+    "createdAt": "2025-05-15T08:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "userId": 3,
+    "title": "New Session Added",
+    "message": "A new workshop 'Hands-on with ChatGPT' has been added to the schedule. Limited seats available.",
+    "isRead": false,
+    "createdAt": "2025-06-01T10:15:00.000Z"
+  }
+]
