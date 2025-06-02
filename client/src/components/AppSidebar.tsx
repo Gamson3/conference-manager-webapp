@@ -22,8 +22,9 @@ const AppSidebar = ( { userType }: Appsidebarprops) => {
             ]
           : [
               { icon: LayoutDashboard, label: "Dashboard", href: "/attendee/dashboard" },
-              { icon: Heart, label: "Favorites", href: "/attendee/favourites" },
-              { icon: FileText, label: "Your Events", href: "/attendee/view-event" },
+              { icon: FileText, label: "Discover", href: "/attendee/discover" },
+              { icon: Heart, label: "Favorites", href: "/attendee/favorites" },
+              { icon: FileText, label: "My Events", href: "/attendee/view-event" },
               { icon: Settings, label: "Settings", href: "/attendee/settings" },
             ];
 

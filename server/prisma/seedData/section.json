@@ -1,22 +1,41 @@
 [
   {
     "id": 1,
-    "name": "Opening Keynote",
-    "description": "Welcome address and future technology trends",
-    "startTime": "2025-06-15T09:00:00Z",
-    "endTime": "2025-06-15T11:00:00Z",
+    "name": "Opening Ceremony",
+    "startTime": "2024-03-15T09:00:00Z",
+    "endTime": "2024-03-15T10:00:00Z",
     "conferenceId": 1,
-    "room": "Main Hall",
-    "capacity": 500
+    "dayId": 1,
+    "order": 1,
+    "room": "Main Auditorium",
+    "capacity": 500,
+    "description": "Welcome and opening remarks",
+    "type": "keynote"
   },
   {
     "id": 2,
-    "name": "Blockchain Workshop",
-    "description": "Hands-on session exploring blockchain applications",
-    "startTime": "2025-06-15T13:00:00Z",
-    "endTime": "2025-06-15T15:00:00Z",
+    "name": "Technical Session 1",
+    "startTime": "2024-03-15T10:30:00Z",
+    "endTime": "2024-03-15T12:00:00Z",
     "conferenceId": 1,
-    "room": "Workshop Room B",
-    "capacity": 100
+    "dayId": 1,
+    "order": 2,
+    "room": "Room A",
+    "capacity": 100,
+    "description": "Latest research in AI",
+    "type": "presentation"
+  },
+  {
+    "id": 3,
+    "name": "Coffee Break",
+    "startTime": "2024-03-15T12:00:00Z",
+    "endTime": "2024-03-15T12:30:00Z",
+    "conferenceId": 1,
+    "dayId": 1,
+    "order": 3,
+    "room": "Lobby",
+    "capacity": 200,
+    "description": "Networking break",
+    "type": "break"
   }
 ]

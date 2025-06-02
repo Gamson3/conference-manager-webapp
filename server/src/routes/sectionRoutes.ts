@@ -6,7 +6,10 @@ import {
   updateSection,
   deleteSection,
   getSectionPresentations,
-  getSectionAttendance
+  getSectionAttendance,
+  reorderSectionPresentations,
+  getSectionSummary,
+  updateSectionStatus
 } from "../controllers/sectionControllers";
 import { authMiddleware } from "../middleware/authMiddleware";
 
@@ -30,7 +33,16 @@ router.delete("/:id", authMiddleware(["organizer", "admin"]), deleteSection);
 // GET /sections/:id/presentations - Get presentations in section
 router.get("/:id/presentations", authMiddleware(["organizer", "admin"]), getSectionPresentations);
 
+// POST /sections/:id/presentations/reorder - Reorder presentations in section
+router.post("/:id/presentations/reorder", authMiddleware(["organizer", "admin"]), reorderSectionPresentations);
+
 // GET /sections/:id/attendance - Get section attendance
 router.get("/:id/attendance", authMiddleware(["organizer", "admin"]), getSectionAttendance);
+
+// GET /sections/:id/summary - Get section summary
+router.get("/:id/summary", authMiddleware(["organizer", "admin"]), getSectionSummary);
+
+// PUT /sections/:id/status - Update section status
+router.put("/:id/status", authMiddleware(["organizer", "admin"]), updateSectionStatus);
 
 export default router;

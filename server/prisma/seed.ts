@@ -9,14 +9,17 @@ const dataDir = path.join(__dirname, "seedData");
 const orderedModels = [
   "user",
   "conference",
+  "conferenceFavorite",
+  "day",
   "section",
   "abstractSubmission",
   "abstractReview",
   "presentation",
+  "presentationAuthor", // Add this
+  "presentationFavorite",
   "authorAssignment",
   "attendance",
   "sessionAttendance",
-  "favorite", 
   "conferenceMaterial",
   "presentationMaterial",
   "conferenceFeedback",
@@ -49,9 +52,9 @@ function prepareDataForPrisma(data: any, modelName: string) {
   
   // Handle date fields
   const dateFields = [
-    'startDate', 'endDate', 'createdAt', 'updatedAt', 
+    'startDate', 'endDate', 'createdAt', 'updatedAt', 'submissionDate',
     'startTime', 'endTime', 'checkInTime', 'checkinTime', 'timestamp',
-    'purchaseDate', 'availableFrom', 'availableTo',
+    'purchaseDate', 'availableFrom', 'availableTo', 'date',
     'submittedAt', 'registrationDeadline', 'uploadedAt'
   ];
   

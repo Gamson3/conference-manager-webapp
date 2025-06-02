@@ -1,24 +1,28 @@
 [
   {
     "id": 1,
-    "sectionId": 1,
-    "title": "AI in 2025",
-    "abstract": "Exploring upcoming trends in artificial intelligence.",
-    "affiliations": ["OpenAI", "MIT"],
-    "keywords": ["AI", "ML", "Neural Networks", "Ethics", "Futurism"],
-    "status": "submitted",
-    "submissionType": "internal",
-    "lockedById": 2
+    "title": "Advanced Machine Learning Techniques",
+    "abstract": "This presentation covers cutting-edge machine learning algorithms and their applications in real-world scenarios.",
+    "affiliations": ["MIT Computer Science", "Google Research"],
+    "keywords": ["machine learning", "AI", "algorithms", "deep learning", "neural networks"],
+    "duration": 45,
+    "order": 1,
+    "status": "scheduled",
+    "submissionType": "external",
+    "sectionId": 2,
+    "createdAt": "2024-01-10T10:00:00Z"
   },
   {
     "id": 2,
+    "title": "Future of Web Development",
+    "abstract": "Exploring the latest trends and technologies shaping the future of web development.",
+    "affiliations": ["Stanford University"],
+    "keywords": ["web development", "frontend", "backend", "frameworks", "technology trends"],
+    "duration": 30,
+    "order": 2,
+    "status": "scheduled",
+    "submissionType": "internal",
     "sectionId": 2,
-    "title": "Blockchain Beyond Currency",
-    "abstract": "The future of blockchain in other industries.",
-    "affiliations": ["Blockchain Hub"],
-    "keywords": ["Blockchain", "Smart Contracts", "Decentralization", "Security", "Innovation"],
-    "status": "draft",
-    "submissionType": "external",
-    "lockedById": 2
+    "createdAt": "2024-01-12T14:00:00Z"
   }
 ]

@@ -16,6 +16,9 @@ import userRoutes from "./routes/userRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import conferenceRoutes from "./routes/conferenceRoutes";
 import sectionRoutes from "./routes/sectionRoutes";
+import searchRoutes from "./routes/searchRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";
+import presentationRoutes from "./routes/presentationRoutes";
 // import attendeeRoutes from "./routes/attendeeRoutes";
 
 
@@ -42,6 +45,9 @@ app.use("/users", userRoutes); // universal user route
 app.use("/events", eventRoutes);
 app.use("/conferences", conferenceRoutes); // Public-facing routes
 app.use("/sections", sectionRoutes);
+app.use("/search", searchRoutes); 
+app.use("/favorites", favoriteRoutes);
+app.use("/api", presentationRoutes);
 
 
 

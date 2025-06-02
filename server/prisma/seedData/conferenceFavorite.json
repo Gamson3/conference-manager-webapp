@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "userId": 2,
+    "conferenceId": 1,
+    "createdAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "userId": 3,
+    "conferenceId": 1,
+    "createdAt": "2024-01-16T14:30:00Z"
+  }
+]

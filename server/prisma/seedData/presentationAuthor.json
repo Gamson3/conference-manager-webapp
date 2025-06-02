@@ -1,0 +1,33 @@
+[
+  {
+    "id": 1,
+    "presentationId": 1,
+    "authorName": "Dr. John Smith",
+    "authorEmail": "john.smith@university.edu",
+    "affiliation": "MIT Computer Science",
+    "isPresenter": true,
+    "isExternal": true,
+    "order": 1
+  },
+  {
+    "id": 2,
+    "presentationId": 1,
+    "authorName": "Dr. Jane Doe",
+    "authorEmail": "jane.doe@tech.com",
+    "affiliation": "Google Research",
+    "isPresenter": false,
+    "isExternal": true,
+    "order": 2
+  },
+  {
+    "id": 3,
+    "presentationId": 2,
+    "authorName": "Alice Johnson",
+    "authorEmail": "alice@example.com",
+    "affiliation": "Stanford University",
+    "isPresenter": true,
+    "isExternal": false,
+    "userId": 2,
+    "order": 1
+  }
+]

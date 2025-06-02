@@ -249,7 +249,7 @@ export default function SessionDetailPage() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Presentations</h2>
             <Button 
-              onClick={() => router.push(`/organizer/events/${id}/sessions/${sessionId}/presentations/new`)}
+              onClick={() => router.push(`/organizer/events/${id}/sessions/${sessionId}/presentations`)}
               className="bg-primary-700 text-white hover:bg-primary-800"
             >
               <UserPlus className="h-4 w-4 mr-2" />
@@ -268,7 +268,7 @@ export default function SessionDetailPage() {
                   Add presentations to this session to manage speakers and content.
                 </p>
                 <Button 
-                  onClick={() => router.push(`/organizer/events/${id}/sessions/${sessionId}/presentations/new`)}
+                  onClick={() => router.push(`/organizer/events/${id}/sessions/${sessionId}/presentations`)}
                   className="bg-primary-700 text-white hover:bg-primary-800"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
@@ -300,9 +300,9 @@ export default function SessionDetailPage() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => router.push(`/organizer/events/${id}/sessions/${sessionId}/presentations/${presentation.id}`)}
+                        onClick={() => router.push(`/organizer/events/${id}/sessions/${sessionId}/presentations`)}
                       >
-                        View
+                        Manage
                       </Button>
                     </div>
                     

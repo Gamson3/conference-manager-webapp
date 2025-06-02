@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 1,
+    "date": "2024-03-15T00:00:00Z",
+    "name": "Day 1 - Opening",
+    "order": 1
+  },
+  {
+    "id": 2,
+    "conferenceId": 1,
+    "date": "2024-03-16T00:00:00Z",
+    "name": "Day 2 - Main Sessions",
+    "order": 2
+  },
+  {
+    "id": 3,
+    "conferenceId": 2,
+    "date": "2024-04-20T00:00:00Z",
+    "name": "Day 1 - Workshop Day",
+    "order": 1
+  }
+]

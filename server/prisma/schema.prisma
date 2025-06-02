@@ -38,41 +38,53 @@ enum ConferenceStatus {
   completed
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  cognitoId String   @unique // Cognito ID for authentication
-  name      String
-  email     String   @unique
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum SectionType {
+  presentation
+  break
+  keynote
+  workshop
+  panel
+  networking
+}
 
-  conferences         Conference[]       @relation("OrganizerConferences")
-  authorAssignments   AuthorAssignment[] @relation("InternalAuthor")
-  assignedAuthors     AuthorAssignment[] @relation("AssignedBy")
-  impersonations      ImpersonationLog[] @relation("Impersonator")
-  impersonatedBy      ImpersonationLog[] @relation("ImpersonatedUser")
-  attendances         Attendance[]
-  favorites           Favorite[]
-  lockedPresentations Presentation[]     @relation("LockedByUser")
+
+model User {
+  id                  Int      @id @default(autoincrement())
+  cognitoId           String   @unique // Cognito ID for authentication
+  name                String
+  email               String   @unique
+  password            String
+  role                Role
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  conferences              Conference[]       @relation("OrganizerConferences")
+  authorAssignments        AuthorAssignment[] @relation("InternalAuthor")
+  assignedAuthors          AuthorAssignment[] @relation("AssignedBy")
+  impersonations           ImpersonationLog[] @relation("Impersonator")
+  impersonatedBy           ImpersonationLog[] @relation("ImpersonatedUser")
+  attendances              Attendance[]
+  conferenceFavorites      ConferenceFavorite[]
+  lockedPresentations      Presentation[]     @relation("LockedByUser")
+  presentationFavorites    PresentationFavorite[] // Opposite relation for PresentationFavorite
+  authoredPresentations PresentationAuthor[] @relation("InternalPresentationAuthor")
 
   // New fields
-  bio          String? @db.Text
-  profileImage String?
-  phoneNumber  String?
-  address      String?
-  organization String?
-  jobTitle     String?
-  socialLinks  Json? // Store social media links as JSON
+  bio                 String? @db.Text
+  profileImage        String?
+  phoneNumber         String?
+  address             String?
+  organization        String?
+  jobTitle            String?
+  socialLinks         Json? // Store social media links as JSON
 
   // New relations
-  conferenceFeedback   ConferenceFeedback[]
-  presentationFeedback PresentationFeedback[]
-  notifications        Notification[]
-  sessionAttendance    SessionAttendance[]
-  abstractSubmissions  AbstractSubmission[] // For submitter relation
-  abstractReviews      AbstractReview[]
+  conferenceFeedback       ConferenceFeedback[]
+  presentationFeedback     PresentationFeedback[]
+  notifications            Notification[]
+  sessionAttendance        SessionAttendance[]
+  abstractSubmissions      AbstractSubmission[] // For submitter relation
+  abstractReviews          AbstractReview[]
 }
 
 model Conference {
@@ -87,10 +99,14 @@ model Conference {
   createdById Int
   createdBy   User             @relation("OrganizerConferences", fields: [createdById], references: [id])
   createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt // Added this for better tracking
+  updatedAt   DateTime         @updatedAt @default(now()) // Added this for better tracking
 
   sections    Section[]
   attendances Attendance[]
+
+  // Add this relation for days
+  days        Day[]
+  favorites ConferenceFavorite[]
 
   // New fields
   capacity             Int?
@@ -107,6 +123,37 @@ model Conference {
   feedback            ConferenceFeedback[]
   materials           ConferenceMaterial[]
   abstractSubmissions AbstractSubmission[]
+
+  @@index([name])
+  @@index([topics])
+  @@index([status])
+  @@index([startDate])
+}
+
+model ConferenceFavorite {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  conferenceId Int
+  createdAt    DateTime @default(now())
+  
+  user       User       @relation(fields: [userId], references: [id])
+  conference Conference @relation(fields: [conferenceId], references: [id])
+  
+  @@unique([userId, conferenceId])
+}
+
+model Day {
+  id           Int      @id @default(autoincrement())
+  conferenceId Int
+  date         DateTime
+  name         String   // "Day 1", "Opening Day", etc.
+  order        Int      @default(0)
+  
+  conference Conference @relation(fields: [conferenceId], references: [id])
+  sections   Section[]
+  
+  @@unique([conferenceId, date])
+  @@index([conferenceId, date])
 }
 
 model Section {
@@ -115,6 +162,10 @@ model Section {
   startTime    DateTime?
   endTime      DateTime?
   conferenceId Int
+  dayId        Int?
+  day          Day?       @relation(fields: [dayId], references: [id])
+  order        Int        @default(0)
+
   conference   Conference @relation(fields: [conferenceId], references: [id])
 
   presentations Presentation[]
@@ -123,10 +174,14 @@ model Section {
   room        String?
   capacity    Int?
   description String?
-  type        String? // "keynote", "workshop", "panel", etc.
+  type        SectionType @default(presentation) // "keynote", "workshop", "panel", etc.
 
   // New relations
   attendees SessionAttendance[]
+
+  @@index([name])
+  @@index([startTime])
+  @@index([type])
 }
 
 model AbstractSubmission {
@@ -160,9 +215,12 @@ model AbstractReview {
 model Presentation {
   id             Int                @id @default(autoincrement())
   title          String
-  abstract       String?
+  abstract       String?            @db.Text
   affiliations   String[] // Stored as array of text
   keywords       String[] // Ensure 5+ in application logic
+  duration       Int?               // minutes
+  order          Int                @default(0)
+
   status         PresentationStatus
   submissionType SubmissionType
   sectionId      Int
@@ -171,11 +229,48 @@ model Presentation {
   lockedById     Int?
   lockedBy       User?              @relation("LockedByUser", fields: [lockedById], references: [id])
 
+  // Relations
+  authors        PresentationAuthor[]
+  favorites      PresentationFavorite[]
   authorAssignments AuthorAssignment[]
-  favorites         Favorite[]
   impersonationLogs ImpersonationLog[]
   materials         PresentationMaterial[]
   feedback          PresentationFeedback[]
+
+  @@index([title])
+  @@index([keywords])
+}
+
+model PresentationAuthor {
+  id             Int     @id @default(autoincrement())
+  presentationId Int
+  authorName     String
+  authorEmail    String?
+  affiliation    String?
+  isPresenter    Boolean @default(false)
+  isExternal     Boolean @default(true)  // Add this to distinguish external/internal
+  order          Int     @default(0)
+
+  // Optional link to internal user
+  userId         Int?
+  internalUser   User?   @relation("InternalPresentationAuthor", fields: [userId], references: [id])
+  
+  presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+
+  @@index([authorName])
+  @@index([authorEmail])
+}
+
+model PresentationFavorite {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  presentationId Int
+  createdAt      DateTime @default(now())
+  
+  user           User         @relation(fields: [userId], references: [id])
+  presentation   Presentation @relation(fields: [presentationId], references: [id])
+  
+  @@unique([userId, presentationId])
 }
 
 model AuthorAssignment {
@@ -186,9 +281,9 @@ model AuthorAssignment {
   assignedById         Int
   secureSubmissionLink String  @unique
 
-  internalAuthor User?        @relation("InternalAuthor", fields: [userId], references: [id])
-  assignedBy     User         @relation("AssignedBy", fields: [assignedById], references: [id])
-  presentation   Presentation @relation(fields: [presentationId], references: [id])
+  internalAuthor       User?        @relation("InternalAuthor", fields: [userId], references: [id])
+  assignedBy           User         @relation("AssignedBy", fields: [assignedById], references: [id])
+  presentation         Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
 }
 
 model Attendance {
@@ -199,32 +294,39 @@ model Attendance {
   status       String   @default("registered") // registered, attended, canceled
   registeredAt DateTime @default(now())
 
-  user       User       @relation(fields: [userId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+  conference   Conference @relation(fields: [conferenceId], references: [id])
+}
+
+// Many-to-many for session attendance
+model SessionAttendance {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  sectionId   Int
+  createdAt   DateTime @default(now())
+  checkedIn   Boolean   @default(false)
+  checkinTime DateTime?
+
+  user    User    @relation(fields: [userId], references: [id])
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sectionId])
+}
+
+// Conference materials (slides, documents, etc.)
+model ConferenceMaterial {
+  id           Int      @id @default(autoincrement())
+  conferenceId Int
+  title        String
+  description  String?
+  fileUrl      String
+  fileType     String
+  uploadedAt   DateTime @default(now())
+  isPublic     Boolean  @default(true)
+
   conference Conference @relation(fields: [conferenceId], references: [id])
 }
 
-model Favorite {
-  id             Int      @id @default(autoincrement())
-  userId         Int
-  presentationId Int
-  createdAt      DateTime @default(now())
-
-  user         User         @relation(fields: [userId], references: [id])
-  presentation Presentation @relation(fields: [presentationId], references: [id])
-}
-
-model ImpersonationLog {
-  id                 Int      @id @default(autoincrement())
-  impersonatorId     Int
-  impersonatedUserId Int
-  actionTaken        String
-  timestamp          DateTime @default(now())
-  presentationId     Int?
-
-  impersonator     User          @relation("Impersonator", fields: [impersonatorId], references: [id])
-  impersonatedUser User          @relation("ImpersonatedUser", fields: [impersonatedUserId], references: [id])
-  presentation     Presentation? @relation(fields: [presentationId], references: [id])
-}
 
 // Ticket types and pricing
 // model Ticket {
@@ -252,46 +354,6 @@ model ImpersonationLog {
 //   user   User   @relation(fields: [userId], references: [id])
 // }
 
-// Feedback for conferences
-model ConferenceFeedback {
-  id           Int      @id @default(autoincrement())
-  conferenceId Int
-  userId       Int
-  rating       Int // 1-5 stars
-  comments     String?  @db.Text
-  submittedAt  DateTime @default(now())
-
-  conference Conference @relation(fields: [conferenceId], references: [id])
-  user       User       @relation(fields: [userId], references: [id])
-}
-
-// Feedback for presentations
-model PresentationFeedback {
-  id             Int      @id @default(autoincrement())
-  presentationId Int
-  userId         Int
-  rating         Int // 1-5 stars
-  comments       String?  @db.Text
-  submittedAt    DateTime @default(now())
-
-  presentation Presentation @relation(fields: [presentationId], references: [id])
-  user         User         @relation(fields: [userId], references: [id])
-}
-
-// Conference materials (slides, documents, etc.)
-model ConferenceMaterial {
-  id           Int      @id @default(autoincrement())
-  conferenceId Int
-  title        String
-  description  String?
-  fileUrl      String
-  fileType     String
-  uploadedAt   DateTime @default(now())
-  isPublic     Boolean  @default(true)
-
-  conference Conference @relation(fields: [conferenceId], references: [id])
-}
-
 // Presentation materials
 model PresentationMaterial {
   id             Int      @id @default(autoincrement())
@@ -303,8 +365,35 @@ model PresentationMaterial {
   uploadedAt     DateTime @default(now())
   isPublic       Boolean  @default(true)
 
-  presentation Presentation @relation(fields: [presentationId], references: [id])
+  presentation Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
 }
+
+// Feedback for conferences
+model ConferenceFeedback {
+  id           Int      @id @default(autoincrement())
+  conferenceId Int
+  userId       Int
+  rating       Int 
+  comments     String?  @db.Text
+  submittedAt  DateTime @default(now())
+
+  conference   Conference @relation(fields: [conferenceId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+}
+
+// Feedback for presentations
+model PresentationFeedback {
+  id             Int      @id @default(autoincrement())
+  presentationId Int
+  userId         Int
+  rating         Int 
+  comments       String?  @db.Text
+  submittedAt    DateTime @default(now())
+
+  presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id])
+}
+
 
 // User notifications
 model Notification {
@@ -318,16 +407,15 @@ model Notification {
   user User @relation(fields: [userId], references: [id])
 }
 
-// Many-to-many for session attendance
-model SessionAttendance {
-  id          Int       @id @default(autoincrement())
-  userId      Int
-  sectionId   Int
-  checkedIn   Boolean   @default(false)
-  checkinTime DateTime?
+model ImpersonationLog {
+  id                 Int      @id @default(autoincrement())
+  impersonatorId     Int
+  impersonatedUserId Int
+  actionTaken        String
+  timestamp          DateTime @default(now())
+  presentationId     Int?
 
-  user    User    @relation(fields: [userId], references: [id])
-  section Section @relation(fields: [sectionId], references: [id])
-
-  @@unique([userId, sectionId])
+  impersonator       User          @relation("Impersonator", fields: [impersonatorId], references: [id])
+  impersonatedUser   User          @relation("ImpersonatedUser", fields: [impersonatedUserId], references: [id])
+  presentation       Presentation? @relation(fields: [presentationId], references: [id])
 }

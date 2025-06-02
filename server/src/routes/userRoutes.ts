@@ -29,7 +29,7 @@ router.post("/role", authMiddleware(["admin"]), changeUserRole);
 router.get("/:id", authMiddleware(["admin", "organizer", "attendee"]), getUser);
 
 // Protected: Get user by Cognito ID (for auth session)
-router.get("/cognito/:cognitoId", authMiddleware(["admin", "organizer", "attendee"]), getUserByCognitoId);
+router.get("/cognito/:cognitoId", getUserByCognitoId);
 
 // Protected: Update user
 router.put("/cognito/:cognitoId", authMiddleware(["admin", "organizer", "attendee"]), updateUser);
