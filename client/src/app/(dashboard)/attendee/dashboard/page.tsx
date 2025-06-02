@@ -27,6 +27,7 @@ import {
 import { motion } from 'framer-motion';
 import { createAuthenticatedApi } from '@/lib/utils';
 import { toast } from 'sonner';
+import FavoritesPanel from '@/components/FavoritesPanel';
 
 interface DashboardStats {
   upcomingConferences: number;
@@ -506,6 +507,15 @@ export default function AttendeeDashboard() {
           </motion.div>
         </div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+        className="lg:col-span-1"
+      >
+        <FavoritesPanel />
+      </motion.div>
     </div>
   );
 }

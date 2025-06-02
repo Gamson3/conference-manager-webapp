@@ -1,28 +1,54 @@
 [
   {
     "id": 1,
-    "title": "Advanced Machine Learning Techniques",
-    "abstract": "This presentation covers cutting-edge machine learning algorithms and their applications in real-world scenarios.",
-    "affiliations": ["MIT Computer Science", "Google Research"],
-    "keywords": ["machine learning", "AI", "algorithms", "deep learning", "neural networks"],
+    "title": "Revolutionizing Healthcare with AI: From Diagnosis to Treatment",
+    "abstract": "This presentation explores the transformative impact of artificial intelligence in healthcare, covering breakthrough applications in medical imaging, predictive diagnostics, personalized treatment plans, and drug discovery. We'll examine real-world case studies from leading hospitals and discuss the ethical considerations, regulatory challenges, and future prospects of AI-driven healthcare solutions.",
+    "affiliations": ["Stanford Medical School", "Google Health"],
+    "keywords": ["artificial intelligence", "healthcare", "medical imaging", "machine learning", "diagnostics", "personalized medicine"],
     "duration": 45,
     "order": 1,
     "status": "scheduled",
     "submissionType": "external",
-    "sectionId": 2,
+    "sectionId": 1,
     "createdAt": "2024-01-10T10:00:00Z"
   },
   {
     "id": 2,
-    "title": "Future of Web Development",
-    "abstract": "Exploring the latest trends and technologies shaping the future of web development.",
-    "affiliations": ["Stanford University"],
-    "keywords": ["web development", "frontend", "backend", "frameworks", "technology trends"],
-    "duration": 30,
+    "title": "Sustainable Urban Development: Smart Cities of Tomorrow",
+    "abstract": "As urbanization accelerates globally, this presentation examines innovative approaches to sustainable city planning. Topics include green infrastructure, renewable energy integration, smart transportation systems, waste management solutions, and community engagement strategies. Learn from successful case studies from Copenhagen, Singapore, and Medellín.",
+    "affiliations": ["MIT Urban Planning", "UN-Habitat"],
+    "keywords": ["smart cities", "sustainability", "urban planning", "green infrastructure", "renewable energy", "transportation"],
+    "duration": 50,
     "order": 2,
     "status": "scheduled",
-    "submissionType": "internal",
+    "submissionType": "external",
+    "sectionId": 1,
+    "createdAt": "2024-01-10T11:00:00Z"
+  },
+  {
+    "id": 3,
+    "title": "The Future of Work: Remote Collaboration and Digital Nomadism",
+    "abstract": "The pandemic has permanently changed how we work. This session explores the evolution of remote work, emerging collaboration technologies, the rise of digital nomadism, and strategies for building inclusive distributed teams. We'll discuss tools, best practices, and the socioeconomic implications of this global shift.",
+    "affiliations": ["Remote Work Institute", "Automattic"],
+    "keywords": ["remote work", "digital nomadism", "collaboration", "virtual teams", "work-life balance", "productivity"],
+    "duration": 40,
+    "order": 1,
+    "status": "scheduled",
+    "submissionType": "external",
     "sectionId": 2,
-    "createdAt": "2024-01-12T14:00:00Z"
+    "createdAt": "2024-01-10T14:00:00Z"
+  },
+  {
+    "id": 4,
+    "title": "Quantum Computing: Breaking the Classical Barriers",
+    "abstract": "Dive into the revolutionary world of quantum computing and its potential to solve previously impossible problems. This presentation covers quantum algorithms, current hardware developments, applications in cryptography, optimization, and scientific simulation. We'll also address the challenges and timeline for practical quantum advantage.",
+    "affiliations": ["IBM Quantum", "University of Oxford"],
+    "keywords": ["quantum computing", "quantum algorithms", "cryptography", "optimization", "quantum supremacy", "qubits"],
+    "duration": 55,
+    "order": 2,
+    "status": "scheduled",
+    "submissionType": "external",
+    "sectionId": 2,
+    "createdAt": "2024-01-10T15:00:00Z"
   }
 ]
