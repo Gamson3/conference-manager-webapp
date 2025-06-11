@@ -15,11 +15,11 @@ export function useFavorites() {
       const api = await createAuthenticatedApi();
 
       if (isFavorite) {
-        await api.delete(`/conferences/presentations/${presentationId}/favorite`);
+        await api.delete(`/api/presentations/${presentationId}/favorite`);
         toast.success('Removed from favorites');
         onUpdate(presentationId, false);
       } else {
-        await api.post(`/conferences/presentations/${presentationId}/favorite`);
+        await api.post(`/api/presentations/${presentationId}/favorite`);
         toast.success('Added to favorites');
         onUpdate(presentationId, true);
       }

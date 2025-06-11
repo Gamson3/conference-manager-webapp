@@ -7,6 +7,8 @@
     "start": "npm run build && node dist/index.js",
     "dev": "npm run build && concurrently \"npx tsc -w\" \"nodemon --exec ts-node src/index.ts\"",
     "seed": "ts-node prisma/seed.ts",
+    "clear:seed": "ts-node prisma/clear-seed.ts",
+    "seed:full": "ts-node prisma/seed-full-conference.ts",
     "prisma:generate": "prisma generate",
     "postprisma:generate": "shx cp -r node_modules/.prisma/client/index.d.ts ../client/src/types/prismaTypes.d.ts"
   },

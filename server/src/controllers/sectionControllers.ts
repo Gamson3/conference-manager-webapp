@@ -74,7 +74,9 @@ export const createSection = async (req: Request, res: Response): Promise<void> 
       where: { id: Number(conferenceId) },
       select: { 
         id: true,
-        createdById: true 
+        createdById: true,
+        startDate: true,
+        endDate: true
       }
     });
     
@@ -93,17 +95,70 @@ export const createSection = async (req: Request, res: Response): Promise<void> 
       });
       return;
     }
+
+    // NEW: Auto-create or find the appropriate Day
+    let dayId = null;
     
+    if (startTime) {
+      const sessionDate = new Date(startTime);
+      const sessionDateOnly = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate());
+      
+      // Try to find existing day for this date
+      let day = await prisma.day.findFirst({
+        where: {
+          conferenceId: Number(conferenceId),
+          date: sessionDateOnly
+        }
+      });
+
+      // If no day exists, create one
+      if (!day) {
+        // Calculate which day number this is
+        const conferenceStartDate = new Date(conference.startDate);
+        const conferenceStartDateOnly = new Date(conferenceStartDate.getFullYear(), conferenceStartDate.getMonth(), conferenceStartDate.getDate());
+        
+        const daysDiff = Math.floor((sessionDateOnly.getTime() - conferenceStartDateOnly.getTime()) / (1000 * 60 * 60 * 24));
+        const dayNumber = daysDiff + 1;
+        
+        // Create day name
+        const dayName = dayNumber === 1 ? "Day 1" : `Day ${dayNumber}`;
+        
+        day = await prisma.day.create({
+          data: {
+            conferenceId: Number(conferenceId),
+            date: sessionDateOnly,
+            name: dayName,
+            order: dayNumber
+          }
+        });
+        
+        console.log(`Created new day: ${dayName} for date ${sessionDateOnly.toISOString()}`);
+      }
+      
+      dayId = day.id;
+    }
+    
+    // Create the section with the day relationship
     const section = await prisma.section.create({
       data: {
         name,
         startTime: startTime ? new Date(startTime) : null,
         endTime: endTime ? new Date(endTime) : null,
         conferenceId: Number(conferenceId),
+        dayId: dayId, // ADDED: Link to the day
         room,
         capacity: capacity ? Number(capacity) : null,
         description,
         type
+      },
+      include: {
+        day: true, // Include day info in response
+        _count: {
+          select: {
+            presentations: true,
+            attendees: true
+          }
+        }
       }
     });
     
@@ -212,11 +267,21 @@ export const updateSection = async (req: Request, res: Response): Promise<void> 
 };
 
 // DELETE /sections/:id - Delete section
+// CHANGE: Update the deleteSection function to handle day relationships
+// Update the deleteSection function to handle cascade deletion
 export const deleteSection = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    const { force } = req.query; // Add force parameter from query
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
     
     // First fetch the section to check permissions
+    // Get section with day information and presentations
     const existingSection = await prisma.section.findUnique({
       where: { id: Number(id) },
       include: {
@@ -224,7 +289,23 @@ export const deleteSection = async (req: Request, res: Response): Promise<void> 
           select: {
             createdById: true
           }
-        }
+        },
+        day: {
+          select: {
+            id: true,
+            _count: {
+              select: {
+                sections: true
+              }
+            }
+          }
+        },
+        presentations: {
+          select: {
+            id: true,
+            title: true
+          }
+        } // Check if section has presentations
       }
     });
     
@@ -238,111 +319,152 @@ export const deleteSection = async (req: Request, res: Response): Promise<void> 
         res.status(403).json({ message: "Not authorized to delete this section" });
         return;
     }
-    
-    // Delete the section
-    await prisma.section.delete({
-      where: { id: Number(id) }
+
+    // Check if section has presentations
+    // If section has presentations and force=true is not provided, return info about presentations
+    if (existingSection.presentations && existingSection.presentations.length > 0 && force != "true") {
+      res.status(400).json({ 
+        message: "Section has presentations",
+        requiresConfirmation: true,
+        presentationCount: existingSection.presentations.length,
+        presentations: existingSection.presentations.map(p => ({ id: p.id, title: p.title }))
+      });
+      return;
+    }
+
+    // Start a transaction to handle both section and potentially day deletion
+    // Start a transaction to handle cascade deletion
+    await prisma.$transaction(async (tx) => {
+      // Delete all presentations in this section first (cascade will handle authors, materials, etc.)
+      if (existingSection.presentations.length > 0) {
+        await tx.presentation.deleteMany({
+          where: { sectionId: Number(id) }
+        });
+        console.log(`Deleted ${existingSection.presentations.length} presentations for section ${id}`);
+      }
+
+      // Delete the section
+      await tx.section.delete({
+        where: { id: Number(id) }
+      });
+
+      // If this was the only section in the day, delete the day too
+      if (existingSection.day && existingSection.day._count.sections === 1) {
+        await tx.day.delete({
+          where: { id: existingSection.day.id }
+        });
+        console.log(`Deleted day ${existingSection.day.id} as it had no remaining sections`);
+      }
     });
-    
-    res.json({ message: "Section deleted successfully" });
+
+    res.json({ 
+      message: "Section deleted successfully",
+      deletedPresentations: existingSection.presentations.length,
+      dayDeleted: existingSection.day && existingSection.day._count.sections === 1
+    });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    console.error("Error deleting section:", error);
+    res.status(500).json({ 
+      message: "Failed to delete section",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
+// This function repeats functionality from our getSessionPresentations in PresentationControllers file
 // GET /sections/:id/presentations - Get presentations in section
-export const getSectionPresentations = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
+// export const getSectionPresentations = async (req: Request, res: Response): Promise<void> => {
+//   try {
+//     const { id } = req.params;
     
-    // First fetch the section to check permissions
-    const existingSection = await prisma.section.findUnique({
-      where: { id: Number(id) },
-      include: {
-        conference: {
-          select: {
-            createdById: true
-          }
-        }
-      }
-    });
+//     // First fetch the section to check permissions
+//     const existingSection = await prisma.section.findUnique({
+//       where: { id: Number(id) },
+//       include: {
+//         conference: {
+//           select: {
+//             createdById: true
+//           }
+//         }
+//       }
+//     });
     
-    if (!existingSection) {
-       res.status(404).json({ message: "Section not found" });
-       return;
-    }
+//     if (!existingSection) {
+//        res.status(404).json({ message: "Section not found" });
+//        return;
+//     }
 
-    // For non-admin users, verify they are the conference creator
-    if (!isAdmin(req) && existingSection.conference.createdById !== getUserId(req)) {
-       res.status(403).json({ message: "Not authorized to view presentations for this section" });
-       return;
-    }
+//     // For non-admin users, verify they are the conference creator
+//     if (!isAdmin(req) && existingSection.conference.createdById !== getUserId(req)) {
+//        res.status(403).json({ message: "Not authorized to view presentations for this section" });
+//        return;
+//     }
     
-    const presentations = await prisma.presentation.findMany({
-      where: { sectionId: Number(id) },
-      include: {
-        authorAssignments: {
-          include: {
-            internalAuthor: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
-            }
-          }
-        },
-        materials: {
-          select: {
-            id: true,
-            title: true,        // Use correct field names from schema
-            fileType: true,
-            uploadedAt: true
-          }
-        },
-        _count: {
-          select: {
-            materials: true,
-            feedback: true
-          }
-        }
-      },
-      orderBy: {
-        order: 'asc'
-      }
-    });
+//     const presentations = await prisma.presentation.findMany({
+//       where: { sectionId: Number(id) },
+//       include: {
+//         authorAssignments: {
+//           include: {
+//             internalAuthor: {
+//               select: {
+//                 id: true,
+//                 name: true,
+//                 email: true
+//               }
+//             }
+//           }
+//         },
+//         materials: {
+//           select: {
+//             id: true,
+//             title: true,        // Use correct field names from schema
+//             fileType: true,
+//             uploadedAt: true
+//           }
+//         },
+//         _count: {
+//           select: {
+//             materials: true,
+//             feedback: true
+//           }
+//         }
+//       },
+//       orderBy: {
+//         order: 'asc'
+//       }
+//     });
 
-    // Transform the data to match the frontend interface
-    const transformedPresentations = presentations.map((p: any) => ({
-      id: p.id,
-      title: p.title,
-      abstract: p.abstract,
-      keywords: p.keywords,
-      duration: p.duration,
-      order: p.order,
-      status: p.status,
-      createdAt: p.createdAt,
-      authors: p.authorAssignments?.map((aa: any) => ({
-        id: aa.internalAuthor?.id || 0,
-        name: aa.internalAuthor?.name || aa.externalAuthorName || 'Unknown',
-        email: aa.internalAuthor?.email || aa.externalAuthorEmail || '',
-        affiliation: aa.externalAuthorAffiliation || '',
-        isPresenter: aa.isPresenter
-      })) || [],
-      materials: p.materials?.map((m: any) => ({
-        id: m.id,
-        name: m.title,      // Map 'title' to 'name' for frontend
-        type: m.fileType,   // Map 'fileType' to 'type' for frontend
-        uploadedAt: m.uploadedAt
-      })) || []
-    }));
+//     // Transform the data to match the frontend interface
+//     const transformedPresentations = presentations.map((p: any) => ({
+//       id: p.id,
+//       title: p.title,
+//       abstract: p.abstract,
+//       keywords: p.keywords,
+//       duration: p.duration,
+//       order: p.order,
+//       status: p.status,
+//       createdAt: p.createdAt,
+//       authors: p.authorAssignments?.map((aa: any) => ({
+//         id: aa.internalAuthor?.id || 0,
+//         name: aa.internalAuthor?.name || aa.externalAuthorName || 'Unknown',
+//         email: aa.internalAuthor?.email || aa.externalAuthorEmail || '',
+//         affiliation: aa.externalAuthorAffiliation || '',
+//         isPresenter: aa.isPresenter
+//       })) || [],
+//       materials: p.materials?.map((m: any) => ({
+//         id: m.id,
+//         name: m.title,      // Map 'title' to 'name' for frontend
+//         type: m.fileType,   // Map 'fileType' to 'type' for frontend
+//         uploadedAt: m.uploadedAt
+//       })) || []
+//     }));
     
-    res.json(transformedPresentations);
-  } catch (error: any) {
-    console.error("Error fetching section presentations:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
+//     res.json(transformedPresentations);
+//   } catch (error: any) {
+//     console.error("Error fetching section presentations:", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 
 // POST /sections/:id/presentations/reorder - Reorder presentations in section
 export const reorderSectionPresentations = async (req: Request, res: Response): Promise<void> => {

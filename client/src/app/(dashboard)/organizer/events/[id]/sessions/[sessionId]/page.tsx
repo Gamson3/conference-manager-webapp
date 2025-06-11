@@ -59,7 +59,8 @@ export default function SessionDetailPage() {
   const loadPresentations = async () => {
     try {
       const api = await createAuthenticatedApi();
-      const response = await api.get(`/sections/${sessionId}/presentations`);
+      // Use the /api prefix to get presentations with authors (PresentationAuthor)
+      const response = await api.get(`/api/sections/${sessionId}/presentations`);
       setPresentations(response.data);
     } catch (error) {
       console.error("Error fetching presentations:", error);
@@ -316,10 +317,10 @@ export default function SessionDetailPage() {
                       <div className="text-sm text-gray-600 flex justify-between">
                         <div>
                           <span className="font-medium">Authors: </span>
-                          {presentation.authorAssignments && presentation.authorAssignments.length > 0 ? (
-                            presentation.authorAssignments
-                              .map((assignment: any) => 
-                                assignment.internalAuthor?.name || assignment.externalEmail
+                          {presentation.authors && presentation.authors.length > 0 ? (
+                            presentation.authors
+                              .map((author: any) => 
+                                author.name
                               )
                               .join(', ')
                           ) : (

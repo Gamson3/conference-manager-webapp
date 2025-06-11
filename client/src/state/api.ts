@@ -143,6 +143,33 @@ export const api = createApi({
       },
     }),
 
+    // ADD: Attendee-specific mutations
+    updateAttendeeProfile: build.mutation<
+      User,
+      { cognitoId: string } & Partial<User>
+    >({
+      query: ({ cognitoId, ...updatedFields }) => ({
+        url: `/api/attendee/profile`,
+        method: "PUT", 
+        body: updatedFields,
+      }),
+      invalidatesTags: (result) => [{ type: "User", id: result?.id }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        await withToast(queryFulfilled, {
+          success: "Profile updated successfully!",
+          error: "Failed to update profile.",
+        });
+      },
+    }),
+
+    // ADD: Get attendee profile
+    getAttendeeProfile: build.query<User, void>({
+      query: () => ({
+        url: `/api/attendee/profile`,
+      }),
+      providesTags: ["User"],
+    }),
+
   }),
 });
 
@@ -154,4 +181,6 @@ export const {
   useUpdateEventMutation,
   useDeleteEventMutation,
   useUpdateAttendeeMutation,
+  useUpdateAttendeeProfileMutation,
+  useGetAttendeeProfileQuery,
 } = api;

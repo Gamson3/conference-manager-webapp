@@ -33,6 +33,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import PresentationDialog from "@/components/presentation/PresentationDialog";
+import AuthorAssignmentDialog from "@/components/presentation/AuthorAssignmentDialog";
 
 interface Presentation {
   id: number;
@@ -65,11 +66,13 @@ interface Material {
 function SortablePresentationItem({
   presentation,
   onEdit,
-  onDelete
+  onDelete,
+  onAssignAuthors
 }: {
   presentation: Presentation;
   onEdit: () => void;
   onDelete: () => void;
+  onAssignAuthors: () => void;
 }) {
   const {
     attributes,
@@ -168,6 +171,45 @@ function SortablePresentationItem({
               )}
             </div>
           </div>
+
+          {/* Add Author Info Section */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-sm text-gray-700 mb-1">Authors</h4>
+                {presentation.authors && presentation.authors.length > 0 ? (
+                  <div className="space-y-1">
+                    {presentation.authors.slice(0, 2).map((author, index) => (
+                      <div key={index} className="flex items-center text-sm text-gray-600">
+                        <span className="truncate">{author.name}</span>
+                        {author.isPresenter && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            Presenter
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                    {presentation.authors.length > 2 && (
+                      <p className="text-xs text-gray-500">
+                        +{presentation.authors.length - 2} more authors
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No authors assigned</p>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onAssignAuthors}
+                className="ml-4"
+              >
+                <Users className="h-4 w-4 mr-1" />
+                {presentation.authors?.length ? 'Manage' : 'Assign'}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
@@ -185,6 +227,8 @@ export default function PresentationsManagementPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showPresentationDialog, setShowPresentationDialog] = useState(false);
   const [editingPresentation, setEditingPresentation] = useState<Presentation | null>(null);
+  const [showAuthorDialog, setShowAuthorDialog] = useState(false);
+  const [selectedPresentation, setSelectedPresentation] = useState<Presentation | null>(null);
 
   // DnD sensors
   const sensors = useSensors(
@@ -208,7 +252,7 @@ export default function PresentationsManagementPage() {
       setSession(sessionResponse.data);
       
       // Get presentations
-      const presentationsResponse = await api.get(`/sections/${sessionId}/presentations`);
+      const presentationsResponse = await api.get(`/api/sections/${sessionId}/presentations`);
       setPresentations(presentationsResponse.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -262,6 +306,11 @@ export default function PresentationsManagementPage() {
       console.error("Error deleting presentation:", error);
       toast.error("Failed to delete presentation");
     }
+  };
+
+  const handleAssignAuthors = (presentation: Presentation) => {
+    setSelectedPresentation(presentation);
+    setShowAuthorDialog(true);
   };
 
   const filteredPresentations = presentations.filter(presentation => {
@@ -382,6 +431,7 @@ export default function PresentationsManagementPage() {
                     setShowPresentationDialog(true);
                   }}
                   onDelete={() => handleDeletePresentation(presentation.id)}
+                  onAssignAuthors={() => handleAssignAuthors(presentation)}
                 />
               ))}
             </div>
@@ -400,6 +450,20 @@ export default function PresentationsManagementPage() {
         presentation={editingPresentation}
         onSuccess={fetchData}
       />
+
+      {/* Add Author Assignment Dialog */}
+      {selectedPresentation && (
+        <AuthorAssignmentDialog
+          open={showAuthorDialog}
+          onClose={() => {
+            setShowAuthorDialog(false);
+            setSelectedPresentation(null);
+          }}
+          presentationId={selectedPresentation.id}
+          existingAuthors={selectedPresentation.authors || []}
+          onSuccess={fetchData}
+        />
+      )}
     </div>
   );
 }

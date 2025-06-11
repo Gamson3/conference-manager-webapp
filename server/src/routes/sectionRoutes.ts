@@ -5,7 +5,7 @@ import {
   getSectionById,
   updateSection,
   deleteSection,
-  getSectionPresentations,
+  // getSectionPresentations,
   getSectionAttendance,
   reorderSectionPresentations,
   getSectionSummary,
@@ -31,7 +31,7 @@ router.put("/:id", authMiddleware(["organizer", "admin"]), updateSection);
 router.delete("/:id", authMiddleware(["organizer", "admin"]), deleteSection);
 
 // GET /sections/:id/presentations - Get presentations in section
-router.get("/:id/presentations", authMiddleware(["organizer", "admin"]), getSectionPresentations);
+// router.get("/:id/presentations", authMiddleware(["organizer", "admin"]), getSectionPresentations);
 
 // POST /sections/:id/presentations/reorder - Reorder presentations in section
 router.post("/:id/presentations/reorder", authMiddleware(["organizer", "admin"]), reorderSectionPresentations);

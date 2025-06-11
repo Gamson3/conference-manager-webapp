@@ -48,7 +48,7 @@ export default function ViewEventsPage() {
       try {
         setIsLoading(true);
         const api = await createAuthenticatedApi();
-        const response = await api.get('/attendee/my-events');
+        const response = await api.get('/api/attendee/registered-conferences');
         setEvents(response.data);
       } catch (error: any) {
         console.error('Error fetching events:', error);
@@ -73,6 +73,12 @@ export default function ViewEventsPage() {
       event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.organizer.toLowerCase().includes(searchTerm.toLowerCase())
     );
+  
+  // const handleViewDetails = (event: Conference) (e: React.MouseEvent) => {
+  //   e.stopPropagation(); // Prevent card click
+  //   router.push(`/attendee/conferences/${event.id}`);
+  // };
+
 
   if (isLoading) {
     return (
@@ -98,6 +104,35 @@ export default function ViewEventsPage() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  // UPDATE: Better error handling
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="text-center py-16 px-6 bg-red-50 rounded-lg">
+          <h2 className="text-xl font-semibold text-red-600 mb-4">
+            {error}
+          </h2>
+          <p className="text-red-500 mb-6">
+            We couldn't load your registered events. Please try again.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="mr-4"
+          >
+            Try Again
+          </Button>
+          <Button 
+            onClick={() => router.push('/attendee/discover')}
+            className="bg-primary-700 text-white hover:bg-primary-800"
+          >
+            Discover Conferences
+          </Button>
         </div>
       </div>
     );
@@ -226,7 +261,7 @@ export default function ViewEventsPage() {
               <CardFooter className="px-6 py-4 bg-gray-50 flex justify-between">
                 <Button 
                   variant="outline"
-                  onClick={() => router.push(`/attendee/view-event/${event.id}`)}
+                  onClick={() => router.push(`/attendee/conferences/${event.id}`)}
                   className="flex items-center"
                 >
                   <ExternalLinkIcon className="h-4 w-4 mr-2" />

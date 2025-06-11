@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
-  Heart, User, Clock, MapPin, Calendar, BookOpen, Star, Eye, Share 
+  Heart, User, Clock, MapPin, Calendar, BookOpen, Star, Eye, Share, ExternalLink 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +19,11 @@ interface Author {
   isPresenter: boolean;
   isExternal: boolean;
   order: number;
+  title?: string;
+  department?: string;
+  country?: string;
+  bio?: string;
+  profileUrl?: string;
 }
 
 interface Presentation {
@@ -124,10 +129,10 @@ export default function PresentationCard({
             </CardTitle>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="outline" className="text-xs">
-                {presentation.section.type}
+                {presentation.section?.type || "Session"}
               </Badge>
               <Badge variant="secondary" className="text-xs">
-                {presentation.submissionType}
+                {presentation.submissionType || "Standard"}
               </Badge>
               {presentation.status === 'approved' && (
                 <Badge variant="default" className="text-xs bg-green-100 text-green-700">
@@ -176,28 +181,34 @@ export default function PresentationCard({
               <span>Speakers</span>
             </div>
             <div className="space-y-1">
-              {presentation.authors.slice(0, compact ? 1 : 2).map((author) => (
-                <div key={author.id} className="flex items-center space-x-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="text-xs">
-                      {author.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <span className="text-sm font-medium">{author.name}</span>
-                    {author.isPresenter && (
-                      <Badge variant="outline" className="ml-1 text-xs">
-                        Presenter
-                      </Badge>
-                    )}
+              {presentation.authors.map((author) => (
+                <div key={author.id} className="author-info">
+                  <div className="author-header">
+                    {author.title && <span className="title">{author.title} </span>}
+                    <span className="name">{author.name}</span>
+                    {author.isPresenter && <Badge>Presenter</Badge>}
                   </div>
+                  
+                  {author.affiliation && (
+                    <div className="affiliation">
+                      {author.department && `${author.department}, `}
+                      {author.affiliation}
+                      {author.country && `, ${author.country}`}
+                    </div>
+                  )}
+                  
+                  {author.bio && !author.internalUser && (
+                    <p className="bio">{author.bio}</p>
+                  )}
+                  
+                  {author.profileUrl && (
+                    <Button variant="link" size="sm">
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      Profile
+                    </Button>
+                  )}
                 </div>
               ))}
-              {presentation.authors.length > (compact ? 1 : 2) && (
-                <span className="text-xs text-gray-400">
-                  +{presentation.authors.length - (compact ? 1 : 2)} more
-                </span>
-              )}
             </div>
           </div>
         )}

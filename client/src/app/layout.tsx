@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Source_Sans_3 as FontSans } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const fontSans = FontSans({
   variable: "--font-sans",
@@ -25,6 +26,15 @@ export default function RootLayout({
         className={`${fontSans.variable} font-sans antialiased`}
       >
         <Providers>{children}</Providers>
+
+        <Toaster 
+          position="top-right"
+          richColors
+          closeButton
+          duration={2000}
+          expand={true}
+          visibleToasts={5}
+        />
         
       </body>
     </html>

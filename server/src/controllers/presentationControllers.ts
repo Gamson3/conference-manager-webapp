@@ -35,16 +35,19 @@ export const getSessionPresentations = async (req: Request, res: Response): Prom
         sectionId: Number(sessionId) 
       },
       include: {
-        authorAssignments: {
+        // Use PresentationAuthor instead of authorAssignments
+        authors: {
           include: {
-            internalAuthor: {
+            internalUser: {
               select: {
                 id: true,
                 name: true,
-                email: true
+                email: true,
+                organization: true
               }
             }
-          }
+          },
+          orderBy: { order: 'asc' }
         },
         materials: {
           select: {
@@ -73,12 +76,14 @@ export const getSessionPresentations = async (req: Request, res: Response): Prom
       order: p.order,
       status: p.status,
       createdAt: p.createdAt,
-      authors: p.authorAssignments?.map((aa: any) => ({
-        id: aa.internalAuthor?.id || 0,
-        name: aa.internalAuthor?.name || aa.externalAuthorName || 'Unknown',
-        email: aa.internalAuthor?.email || aa.externalAuthorEmail || '',
-        affiliation: aa.externalAuthorAffiliation || '',
-        isPresenter: aa.isPresenter
+      // Map from PresentationAuthor to the expected format
+      authors: p.authors?.map((author: any) => ({
+        id: author.userId || author.id, // Use userId for internal, id for external
+        name: author.authorName,
+        email: author.authorEmail,
+        affiliation: author.affiliation || author.internalUser?.organization || '',
+        isPresenter: author.isPresenter,
+        isInternal: !author.isExternal // Convert isExternal to isInternal
       })) || [],
       materials: p.materials?.map((m: any) => ({
         id: m.id,
@@ -148,16 +153,19 @@ export const createPresentation = async (req: Request, res: Response): Promise<v
         submissionType: 'internal'
       },
       include: {
-        authorAssignments: {
+        // Use 'authors' instead of 'authorAssignments' for new presentations
+        authors: {
           include: {
-            internalAuthor: {
+            internalUser: {
               select: {
                 id: true,
                 name: true,
-                email: true
+                email: true,
+                organization: true
               }
             }
-          }
+          },
+          orderBy: { order: 'asc' }
         },
         materials: {
           select: {
@@ -225,16 +233,19 @@ export const updatePresentation = async (req: Request, res: Response): Promise<v
         keywords: keywords || []
       },
       include: {
-        authorAssignments: {
+        // Use 'authors' instead of 'authorAssignments'
+        authors: {
           include: {
-            internalAuthor: {
+            internalUser: {
               select: {
                 id: true,
                 name: true,
-                email: true
+                email: true,
+                organization: true
               }
             }
-          }
+          },
+          orderBy: { order: 'asc' }
         },
         materials: {
           select: {
@@ -355,5 +366,127 @@ export const reorderPresentations = async (req: Request, res: Response): Promise
   } catch (error: any) {
     console.error("Error reordering presentations:", error);
     res.status(500).json({ message: "Failed to reorder presentations" });
+  }
+};
+
+// POST /api/presentations/:id/authors - Assign authors to presentation (SIMPLIFIED)
+export const assignAuthorsToPresentation = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { authors } = req.body;
+    const userId = getUserId(req);
+
+    console.log('Assigning authors to presentation:', id); // Debug log
+    console.log('Authors data:', authors); // Debug log
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    // Verify presentation exists and get conference info
+    const presentation = await prisma.presentation.findUnique({
+      where: { id: Number(id) },
+      include: {
+        section: {
+          include: {
+            conference: true  // Direct conference relation
+          }
+        }
+      }
+    });
+
+    if (!presentation) {
+      res.status(404).json({ message: "Presentation not found" });
+      return;
+    }
+
+    // Check permissions using direct conference relation
+    if (!isAdmin(req) && presentation.section.conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to assign authors to this presentation" });
+      return;
+    }
+
+    // Delete existing presentation authors
+    await prisma.presentationAuthor.deleteMany({
+      where: { presentationId: Number(id) }
+    });
+
+    console.log('Deleted existing authors for presentation:', id); // Debug log
+
+    // Create new presentation authors
+    const createdAuthors = await Promise.all(
+      authors.map(async (author: any, index: number) => {
+        console.log('Creating author:', author); // Debug log
+        
+        return prisma.presentationAuthor.create({
+          data: {
+            presentationId: Number(id),
+            authorName: author.authorName,
+            authorEmail: author.authorEmail,
+            affiliation: author.affiliation || '',
+            isPresenter: author.isPresenter,
+            isExternal: author.isExternal,
+            userId: author.isExternal ? null : author.internalUserId,
+            order: index + 1
+          }
+        });
+      })
+    );
+
+    console.log('Created authors:', createdAuthors); // Debug log
+
+    res.json({ message: 'Authors assigned successfully', authors: createdAuthors });
+  } catch (error: any) {
+    console.error('Error assigning authors:', error);
+    res.status(500).json({ message: 'Failed to assign authors', error: error.message });
+  }
+};
+
+// GET /api/users/search - Search internal users for author assignment
+export const searchUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || typeof q !== 'string') {
+      res.json([]);
+      return;
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        AND: [
+          // Search filter
+          {
+            OR: [
+              { name: { contains: q, mode: 'insensitive' } },
+              { email: { contains: q, mode: 'insensitive' } }
+            ]
+          },
+          // Role filter - only attendees and organizers
+          {
+            role: {
+              in: ['attendee', 'organizer']
+            }
+          }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        organization: true
+      },
+      take: 20,
+      orderBy: [
+        { role: 'asc' }, // Show organizers first, then attendees
+        { name: 'asc' }  // Then alphabetically by name
+      ]
+    });
+
+    res.json(users);
+  } catch (error: any) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ message: 'Failed to search users', error: error.message });
   }
 };

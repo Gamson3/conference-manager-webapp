@@ -2,46 +2,96 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+import { SearchIcon } from "lucide-react";
+import { createAuthenticatedApi } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import {
-  CalendarIcon,
-  MapPinIcon,
-  UserIcon,
-  SearchIcon,
-} from "lucide-react";
-import { createAuthenticatedApi } from "@/lib/utils";
-import ConferenceCard, { Conference } from "@/components/ConferenceCard";
+import ConferenceCard from "@/components/ConferenceCard";
 
-
+interface Conference {
+  id: number;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  venue?: string;
+  topics?: string[];
+  organizer: string;
+  attendeeCount: number;
+  capacity?: number;
+  websiteUrl?: string;
+  isRegistered?: boolean;
+}
 
 export default function DiscoverConferencesPage() {
   const router = useRouter();
   const [conferences, setConferences] = useState<Conference[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userContext, setUserContext] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchConferences = async () => {
       try {
         setIsLoading(true);
-        const api = await createAuthenticatedApi();
-        // Adjust endpoint as needed
-        const response = await api.get("/conferences");
-        setConferences(response.data);
+        
+        let response;
+        let isAuthenticatedRequest = false;
+        
+        // Try authenticated API first
+        try {
+          const api = await createAuthenticatedApi();
+          response = await api.get('/api/attendee/discover');
+          isAuthenticatedRequest = true;
+        } catch (authError) {
+          // Fallback to public API for guest users
+          const publicResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/attendee/discover`);
+          const data = await publicResponse.json();
+          response = { data };
+          isAuthenticatedRequest = false;
+        }
+        
+        // Handle different response structures
+        const conferenceData = response.data?.conferences || response.conferences || [];
+        const userContextData = response.data?.userContext || {
+          isAuthenticated: isAuthenticatedRequest,
+          userRole: isAuthenticatedRequest ? 'attendee' : 'guest'
+        };
+        
+        setConferences(conferenceData);
+        setUserContext(userContextData);
+        
+        console.log('[DEBUG] Discover page data:', {
+          conferencesCount: conferenceData.length,
+          userContext: userContextData,
+          firstConferenceRegistered: conferenceData[0]?.isRegistered,
+          authenticatedRequest: isAuthenticatedRequest
+        });
+        
       } catch (error: any) {
+        console.error("Error fetching conferences:", error);
         toast.error("Couldn't load conferences");
       } finally {
         setIsLoading(false);
       }
     };
+    
     fetchConferences();
   }, []);
+
+  // Handle registration changes from ConferenceCard
+  const handleRegistrationChange = (conferenceId: number, isRegistered: boolean) => {
+    setConferences(prev => 
+      prev.map(conf => 
+        conf.id === conferenceId 
+          ? { ...conf, isRegistered, attendeeCount: isRegistered ? conf.attendeeCount + 1 : conf.attendeeCount - 1 }
+          : conf
+      )
+    );
+  };
 
   const filtered = conferences.filter((conf) =>
     conf.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,7 +141,11 @@ export default function DiscoverConferencesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
-              <ConferenceCard conf={conf} />
+              <ConferenceCard 
+                conf={conf} 
+                userContext={userContext}
+                onRegistrationChange={handleRegistrationChange}
+              />
             </motion.div>
           ))}
         </div>

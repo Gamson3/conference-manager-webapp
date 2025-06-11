@@ -19,7 +19,8 @@ import sectionRoutes from "./routes/sectionRoutes";
 import searchRoutes from "./routes/searchRoutes";
 import favoriteRoutes from "./routes/favoriteRoutes";
 import presentationRoutes from "./routes/presentationRoutes";
-// import attendeeRoutes from "./routes/attendeeRoutes";
+import attendeeRoutes from "./routes/attendeeRoutes";
+import scheduleRoutes from "./routes/scheduleRoutes";
 
 
 
@@ -35,19 +36,22 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 
 
-/* ROUTES */
+// Health check
 app.get("/", (req, res) => {
   res.send("This is home route");  // test for whether our home route works
 });
+
 // where our routes will be created
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes); // universal user route
 app.use("/events", eventRoutes);
-app.use("/conferences", conferenceRoutes); // Public-facing routes
+app.use("/conferences", conferenceRoutes); // Public conference routes
+app.use("/api", scheduleRoutes);            // Schedule and favorites (protected)
 app.use("/sections", sectionRoutes);
 app.use("/search", searchRoutes); 
 app.use("/favorites", favoriteRoutes);
 app.use("/api", presentationRoutes);
+app.use("/api/attendee", attendeeRoutes);
 
 
 
@@ -56,3 +60,5 @@ const port = Number(process.env.PORT) || 3002;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+export default app;

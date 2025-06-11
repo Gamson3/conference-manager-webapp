@@ -11,6 +11,7 @@ import {
   changeUserRole
 } from "../controllers/userControllers";
 import { authMiddleware } from "../middleware/authMiddleware";
+import { searchUsers } from '../controllers/presentationControllers';
 
 const router = express.Router();
 
@@ -24,6 +25,9 @@ router.put("/me", authMiddleware(["admin", "organizer", "attendee"]), updateCurr
 // Admin endpoints
 router.get("/", authMiddleware(["admin"]), getAllUsers);
 router.post("/role", authMiddleware(["admin"]), changeUserRole);
+
+// Search users
+router.get("/search", authMiddleware(["organizer", "admin"]), searchUsers);
 
 // Protected: Get user by DB ID
 router.get("/:id", authMiddleware(["admin", "organizer", "attendee"]), getUser);

@@ -58,7 +58,7 @@ const NetworkingSection = () => {
         const api = await createAuthenticatedApi();
         
         // Fetch attendees
-        const attendeesResponse = await api.get('/attendee/networking');
+        const attendeesResponse = await api.get('/api/attendee/networking');
         setAttendees(attendeesResponse.data.attendees);
         setFilteredAttendees(attendeesResponse.data.attendees);
         
@@ -110,7 +110,7 @@ const NetworkingSection = () => {
   const handleConnect = async (attendeeId: number) => {
     try {
       const api = await createAuthenticatedApi();
-      await api.post(`/attendee/connect`, { attendeeId });
+      await api.post(`/api/attendee/connect`, { attendeeId });
       
       // Update local state
       setAttendees(attendees.map(attendee => 
@@ -127,7 +127,7 @@ const NetworkingSection = () => {
   };
 
   const handleMessage = (attendeeId: number) => {
-    router.push(`/attendee/messages?recipient=${attendeeId}`);
+    router.push(`/api/attendee/messages?recipient=${attendeeId}`);
   };
 
   if (loading) {

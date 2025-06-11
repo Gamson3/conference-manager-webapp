@@ -70,8 +70,8 @@ export function LoadingTree({ count = 3, className }: { count?: number; classNam
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-10 w-32" />
       </div>
-      {Array.from({ length: count }).map((i) => (
-        <Card key={i}>
+      {Array.from({ length: count }).map((_, index) => (
+        <Card key={index}>
           <CardHeader>
             <Skeleton className="h-6 w-40" />
           </CardHeader>
@@ -92,8 +92,8 @@ export function LoadingSearch({ className }: { className?: string }) {
   return (
     <div className={cn("space-y-4", className)}>
       <div className="space-y-3">
-        {[1, 2, 3, 4].map((i) => (
-          <Card key={i}>
+        {[1, 2, 3, 4].map((_, index) => (
+          <Card key={index}>
             <CardContent className="p-4">
               <div className="flex items-start gap-4">
                 <div className="flex-1 space-y-2">

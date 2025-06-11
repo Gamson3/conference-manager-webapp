@@ -4,7 +4,8 @@ import {
   createPresentation,
   updatePresentation,
   deletePresentation,
-  reorderPresentations
+  reorderPresentations,
+  assignAuthorsToPresentation
 } from "../controllers/presentationControllers";
 import { authMiddleware } from "../middleware/authMiddleware";
 
@@ -18,5 +19,8 @@ router.post("/sections/:sessionId/presentations/reorder", authMiddleware(["organ
 router.post("/presentations", authMiddleware(["organizer", "admin"]), createPresentation);
 router.put("/presentations/:id", authMiddleware(["organizer", "admin"]), updatePresentation);
 router.delete("/presentations/:id", authMiddleware(["organizer", "admin"]), deletePresentation);
+
+// Author management
+router.post("/presentations/:id/authors", authMiddleware(["organizer", "admin"]), assignAuthorsToPresentation);
 
 export default router;

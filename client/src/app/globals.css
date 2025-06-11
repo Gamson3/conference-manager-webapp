@@ -21,6 +21,46 @@ body,
   @apply bg-white dark:bg-black;
 }
 
+/* ADD: Add this section to your existing globals.css */
+
+/* ===== BUTTON CURSOR STYLING ===== */
+/* Make all buttons have pointer cursor by default */
+button,
+[type="button"],
+[type="submit"],
+[type="reset"],
+[role="button"],
+.btn,
+[data-slot="button"] {
+  cursor: pointer !important;
+}
+
+/* Override for disabled buttons */
+button:disabled,
+[type="button"]:disabled,
+[type="submit"]:disabled,
+[type="reset"]:disabled,
+[role="button"]:disabled,
+button[aria-disabled="true"],
+[role="button"][aria-disabled="true"],
+.btn:disabled,
+[data-slot="button"]:disabled {
+  cursor: not-allowed !important;
+}
+
+/* Dropdown menu items */
+[data-slot="dropdown-menu-item"],
+[data-slot="dropdown-menu-sub-trigger"] {
+  cursor: pointer !important;
+}
+
+/* Sidebar buttons */
+[data-sidebar="trigger"],
+[data-sidebar="menu-button"],
+[data-slot="sidebar-menu-button"] {
+  cursor: pointer !important;
+}
+
 
 @theme inline {
   /* Core Colors */

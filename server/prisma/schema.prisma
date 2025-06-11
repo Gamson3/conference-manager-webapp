@@ -77,6 +77,8 @@ model User {
   organization        String?
   jobTitle            String?
   socialLinks         Json? // Store social media links as JSON
+  interests     Json?     // ADD: For storing user interests
+  preferences   Json?     // ADD: For storing notification preferences
 
   // New relations
   conferenceFeedback       ConferenceFeedback[]
@@ -248,17 +250,25 @@ model PresentationAuthor {
   authorEmail    String?
   affiliation    String?
   isPresenter    Boolean @default(false)
-  isExternal     Boolean @default(true)  // Add this to distinguish external/internal
+  isExternal     Boolean @default(true)
   order          Int     @default(0)
-
-  // Optional link to internal user
+  
+  // NEW SUGGESTED FIELDS (all optional to avoid breaking changes)
+  title          String?  // Dr., Prof., Mr., Ms., etc.
+  bio            String?  @db.Text // Short bio for external authors
+  profileUrl     String?  // LinkedIn, personal website, etc.
+  orcidId        String?  // Academic identifier
+  department     String?  // Department within organization
+  country        String?  // Useful for international conferences
+  
+  // Existing fields
   userId         Int?
   internalUser   User?   @relation("InternalPresentationAuthor", fields: [userId], references: [id])
-  
   presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
 
   @@index([authorName])
   @@index([authorEmail])
+  @@index([country]) // NEW: for geographic filtering
 }
 
 model PresentationFavorite {

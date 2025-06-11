@@ -18,15 +18,15 @@ export default function ConferenceTreePage() {
       <div className="flex items-center gap-4 mb-6">
         <Button
           variant="outline"
-          size="sm"
+          // size="sm"
           onClick={() => router.back()}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">Conference Schedule</h1>
-          <p className="text-gray-600">Navigate through the complete conference program</p>
+          <h1 className="text-xl font-bold">Conference Schedule</h1>
+          <p className="text-gray-600 text-xs">Navigate through the complete conference program</p>
         </div>
       </div>
 

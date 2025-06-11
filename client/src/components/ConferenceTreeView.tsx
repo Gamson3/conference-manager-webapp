@@ -2,41 +2,21 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createAuthenticatedApi } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  ChevronRight,
-  ChevronDown,
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  Search,
-  Heart,
-  Star,
-  BookOpen,
-  Filter,
-  SortAsc,
-  Eye,
-  User,
-  X,
+  ChevronRight, ChevronDown, Calendar, Clock, MapPin, Users, Search, 
+  Heart, Star, BookOpen, Filter, SortAsc, Eye, User, X,
 } from "lucide-react";
-import { createAuthenticatedApi } from "@/lib/utils";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
+  DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
@@ -107,17 +87,25 @@ export default function ConferenceTreeView({
         const element = document.getElementById(`presentation-${highlight}`);
         if (element) {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Add highlight effect
+          element.classList.add("bg-yellow-100", "border-yellow-400");
+          setTimeout(() => {
+            element.classList.remove("bg-yellow-100", "border-yellow-400");
+          }, 3000);
         }
       }, 500);
     }
-  }, [searchParams]);
+  }, [searchParams, schedule]);
 
   // Fetch conference schedule
   const fetchSchedule = useCallback(async () => {
     try {
       setLoading(true);
       const api = await createAuthenticatedApi();
-      const response = await api.get(`/conferences/${conferenceId}/schedule`);
+      const response = await api.get(
+        `/api/conferences/${conferenceId}/schedule`
+      );
+      console.log("[DEBUG] Fetching schedule from:", response); // Add this debug log
       setSchedule(response.data);
 
       if (expandedByDefault && response.data.days.length > 0) {
@@ -841,7 +829,17 @@ export default function ConferenceTreeView({
                                             )}
                                           >
                                             <PresentationCard
-                                              presentation={presentation}
+                                              presentation={{
+                                                ...presentation,
+                                                section: {
+                                                  ...presentation.section,
+                                                  type: section.type, // Use the parent section's type
+                                                  name: section.name,
+                                                  room: section.room,
+                                                  startTime: section.startTime,
+                                                  endTime: section.endTime,
+                                                },
+                                              }}
                                               onFavoriteToggle={
                                                 handleFavoriteToggle
                                               }
@@ -854,7 +852,7 @@ export default function ConferenceTreeView({
                                               highlighted={
                                                 highlightPresentationId ===
                                                   presentation.id ||
-                                                (searchTerm &&
+                                                (!!searchTerm &&
                                                   searchResults.includes(
                                                     presentation.id
                                                   ))

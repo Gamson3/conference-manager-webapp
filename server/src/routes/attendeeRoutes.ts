@@ -1,60 +1,45 @@
-// import express from "express";
-// import { authMiddleware } from "../middleware/authMiddleware";
-// import {
-//   getAttendeeProfile,
-//   updateAttendeeProfile,
-//   getAttendeeNotifications,
-//   getUpcomingConferences,
-//   registerForConference,
-//   getAttendeeEvents,
-//   getEventDetails,
-//   cancelRegistration,
-//   getFavorites,
-//   addToFavorites,
-//   removeFromFavorites,
-//   getAttendedSessions,
-//   getConferenceSessions,
-//   submitFeedback,
-//   getMaterials,
-//   markMaterialViewed,
-//   getNetworkingOpportunities,
-//   sendConnectionRequest
-// } from "../controllers/attendeeControllers";
+import express from "express";
+import {
+  getAttendeeProfile,
+  updateAttendeeProfile,
+  getDashboardStats,
+  getRecentConferences,
+  registerForConference,
+  cancelConferenceRegistration,
+  getRegisteredConferences,
+  getFavoritesPresentations,
+  getFavoriteStatusBulk,
+  getConferenceWithPeople,
+  discoverConferences,
+  getNetworkingData
+} from "../controllers/attendeeControllers";
+import { authMiddleware } from "../middleware/authMiddleware";
+import { optionalAuthMiddleware } from "../middleware/optionalAuthMiddleware";
 
-// const router = express.Router();
+const router = express.Router();
 
-// // All routes are protected with attendee authentication
-// const attendeeAuth = authMiddleware(["attendee", "admin"]);
+// Profile routes
+router.get("/profile", authMiddleware(["attendee"]), getAttendeeProfile);
+router.put("/profile", authMiddleware(["attendee"]), updateAttendeeProfile);
 
-// // Profile routes
-// router.get("/profile", attendeeAuth, getAttendeeProfile);
-// router.put("/profile", attendeeAuth, updateAttendeeProfile);
+// Dashboard routes
+router.get("/dashboard-stats", authMiddleware(["attendee"]), getDashboardStats);
+router.get("/recent-conferences", authMiddleware(["attendee"]), getRecentConferences);
 
-// // Notification routes
-// router.get("/notifications", attendeeAuth, getAttendeeNotifications);
+// Conference registration
+router.post("/register-conference", authMiddleware(["attendee"]), registerForConference);
+router.get("/registered-conferences", authMiddleware(["attendee"]), getRegisteredConferences);
+router.delete("/unregister-conference/:conferenceId", authMiddleware(["attendee"]), cancelConferenceRegistration);
 
-// // Conference routes
-// router.get("/my-events", attendeeAuth, getAttendeeEvents);
-// router.get("/events/:id", attendeeAuth, getEventDetails);
-// router.post("/register-conference", attendeeAuth, registerForConference);
-// router.delete("/cancel-registration/:id", attendeeAuth, cancelRegistration);
+// Get and check multiple Favorites (ATTENDEE MANAGEMENT)
+router.get("/favorites", authMiddleware(["attendee"]), getFavoritesPresentations);
+router.post("/favorites/status", authMiddleware(["attendee"]), getFavoriteStatusBulk); // NEW
 
-// // Favorites routes
-// router.get("/favorites", attendeeAuth, getFavorites);
-// router.post("/favorites/:conferenceId", attendeeAuth, addToFavorites);
-// router.delete("/favorites/:conferenceId", attendeeAuth, removeFromFavorites);
+// Conference discovery and details: MODIFIED to Allow both authenticated and guest access
+router.get("/discover", optionalAuthMiddleware, discoverConferences); // Optional auth
+router.get("/conferences/:id/details", optionalAuthMiddleware, getConferenceWithPeople); // Optional auth
 
-// // Feedback routes
-// router.get("/attended-sessions", attendeeAuth, getAttendedSessions);
-// router.get("/conference/:conferenceId/sessions", attendeeAuth, getConferenceSessions);
-// router.post("/submit-feedback", attendeeAuth, submitFeedback);
+// Networking
+router.get("/networking", authMiddleware(["attendee"]), getNetworkingData);
 
-// // Materials routes
-// router.get("/materials", attendeeAuth, getMaterials);
-// router.post("/materials/:materialId/viewed", attendeeAuth, markMaterialViewed);
-
-// // Networking routes
-// router.get("/networking", attendeeAuth, getNetworkingOpportunities);
-// router.post("/connect", attendeeAuth, sendConnectionRequest);
-
-// export default router;
+export default router;

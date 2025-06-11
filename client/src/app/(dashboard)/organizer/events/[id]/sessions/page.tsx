@@ -1,40 +1,33 @@
 // client/src/app/(dashboard)/organizer/events/[id]/sessions/page.tsx
 // Page to manage sessions (sections) for a conference:
-
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { 
-  Calendar, Clock, MapPin, Users, Plus, ArrowLeft, Trash, Edit, 
-  ChevronRight, MoreHorizontal, AlertCircle 
-} from "lucide-react";
 import { createAuthenticatedApi } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import DeleteSessionDialog from "@/components/DeleteSessionDialog";
+import { Button } from "@/components/ui/button";
+import {
+  Calendar, Clock, MapPin, Users, Plus, ArrowLeft,
+  Trash, Edit, ChevronRight, MoreHorizontal, AlertCircle,
+} from "lucide-react";
+import {
+  Card, CardContent, CardHeader, CardTitle, CardFooter,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogDescription,
+  DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 export default function SessionsManagementPage() {
@@ -53,13 +46,18 @@ export default function SessionsManagementPage() {
     endTime: "",
     room: "",
     capacity: "",
-    type: "presentation" // Default type
+    type: "presentation", // Default type
   });
+  // Add state for the delete dialog
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<any>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
 
   // Fetch event details
   useEffect(() => {
     if (!id) return;
-    
+
     const getEventDetails = async () => {
       try {
         const api = await createAuthenticatedApi();
@@ -70,15 +68,15 @@ export default function SessionsManagementPage() {
         toast.error("Failed to load event details");
       }
     };
-    
+
     getEventDetails();
   }, [id]);
-  
+
   // Fetch sessions for this event
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    
+
     const getSessions = async () => {
       try {
         const api = await createAuthenticatedApi();
@@ -91,23 +89,23 @@ export default function SessionsManagementPage() {
         setLoading(false);
       }
     };
-    
+
     getSessions();
   }, [id]);
-  
+
   const handleAddSession = async () => {
     try {
       const api = await createAuthenticatedApi();
-      await api.post('/sections', {
+      await api.post("/sections", {
         ...sessionForm,
         conferenceId: Number(id),
-        capacity: sessionForm.capacity ? Number(sessionForm.capacity) : null
+        capacity: sessionForm.capacity ? Number(sessionForm.capacity) : null,
       });
-      
+
       // Refresh sessions list
       const response = await api.get(`/sections/conference/${id}`);
       setSessions(response.data);
-      
+
       setShowAddDialog(false);
       resetForm();
       toast.success("Session created successfully");
@@ -116,21 +114,21 @@ export default function SessionsManagementPage() {
       toast.error("Failed to create session");
     }
   };
-  
+
   const handleEditSession = async () => {
     if (!currentSession) return;
-    
+
     try {
       const api = await createAuthenticatedApi();
       await api.put(`/sections/${currentSession.id}`, {
         ...sessionForm,
-        capacity: sessionForm.capacity ? Number(sessionForm.capacity) : null
+        capacity: sessionForm.capacity ? Number(sessionForm.capacity) : null,
       });
-      
+
       // Refresh sessions list
       const response = await api.get(`/sections/conference/${id}`);
       setSessions(response.data);
-      
+
       setShowEditDialog(false);
       setCurrentSession(null);
       resetForm();
@@ -140,27 +138,67 @@ export default function SessionsManagementPage() {
       toast.error("Failed to update session");
     }
   };
-  
+
+  // CHANGE: Update handleDeleteSession to check for presentations
+  // CHANGE: Update handleDeleteSession to handle two-step confirmation
+  // Update handleDeleteSession to use the dialog
   const handleDeleteSession = async (sessionId: number) => {
-    if (!confirm("Are you sure you want to delete this session? This cannot be undone.")) {
-      return;
-    }
-    
+    // Find the session to check if it has presentations
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) return;
+  
     try {
       const api = await createAuthenticatedApi();
-      await api.delete(`/sections/${sessionId}`);
+      // First attempt - Check if section has presentations
+      const response = await api.delete(`/sections/${sessionId}`);
+      
+      // If successful, refresh sessions list
+      const sessionsResponse = await api.get(`/sections/conference/${id}`);
+      setSessions(sessionsResponse.data);
+      toast.success("Session deleted successfully");
+
+    } catch (error: any) {
+      // If error is because of presentations, handle confirmation
+      if (error.response?.status === 400 && error.response?.data?.requiresConfirmation) {
+        const presentationCount = error.response.data.presentationCount;
+        const presentations = error.response.data.presentations || []; 
+       
+        // Show confirmation dialog with presentation details
+        setSessionToDelete({
+          ...session,
+          presentations: presentations
+        });
+        setShowDeleteDialog(true);
+      } else {
+        console.error("Error deleting session:", error);
+        toast.error(error.response?.data?.message || "Failed to delete session");
+      }
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!sessionToDelete) return;
+    try {
+      setDeleteLoading(true);
+      const api = await createAuthenticatedApi();
+      await api.delete(`/sections/${sessionToDelete.id}?force=true`);
       
       // Refresh sessions list
       const response = await api.get(`/sections/conference/${id}`);
       setSessions(response.data);
       
-      toast.success("Session deleted successfully");
-    } catch (error) {
+      toast.success(`Session and ${sessionToDelete.presentations?.length || 0} presentation(s) deleted successfully`);
+      setShowDeleteDialog(false);
+      setSessionToDelete(null);
+
+    } catch (error: any) {
       console.error("Error deleting session:", error);
       toast.error("Failed to delete session");
+    } finally {
+      setDeleteLoading(false);
     }
   };
-  
+
   const resetForm = () => {
     setSessionForm({
       name: "",
@@ -169,44 +207,51 @@ export default function SessionsManagementPage() {
       endTime: "",
       room: "",
       capacity: "",
-      type: "presentation"
+      type: "presentation",
     });
   };
-  
+
   const openEditDialog = (session: any) => {
     setCurrentSession(session);
     setSessionForm({
       name: session.name,
       description: session.description || "",
-      startTime: session.startTime ? new Date(session.startTime).toISOString().slice(0, 16) : "",
-      endTime: session.endTime ? new Date(session.endTime).toISOString().slice(0, 16) : "",
+      startTime: session.startTime
+        ? new Date(session.startTime).toISOString().slice(0, 16)
+        : "",
+      endTime: session.endTime
+        ? new Date(session.endTime).toISOString().slice(0, 16)
+        : "",
       room: session.room || "",
       capacity: session.capacity ? String(session.capacity) : "",
-      type: session.type || "presentation"
+      type: session.type || "presentation",
     });
     setShowEditDialog(true);
   };
-  
+
   const formatDateTime = (dateTimeStr: string) => {
     if (!dateTimeStr) return "TBD";
     const date = new Date(dateTimeStr);
     return format(date, "MMM d, yyyy h:mm a");
   };
-  
+
   // Helper function to validate session form
   const isFormValid = () => {
     // Basic validation - name and start and end time are required
-    if (!sessionForm.name || !sessionForm.startTime || !sessionForm.endTime) return false;
-    
+    if (!sessionForm.name || !sessionForm.startTime || !sessionForm.endTime)
+      return false;
+
     // Ensure end time is after start time
-    if (sessionForm.endTime && 
-        new Date(sessionForm.endTime) <= new Date(sessionForm.startTime)) {
+    if (
+      sessionForm.endTime &&
+      new Date(sessionForm.endTime) <= new Date(sessionForm.startTime)
+    ) {
       return false;
     }
-    
+
     return true;
   };
-  
+
   if (loading) {
     return (
       <div className="p-8 max-w-6xl mx-auto space-y-6">
@@ -230,18 +275,18 @@ export default function SessionsManagementPage() {
     <div className="p-8 max-w-6xl mx-auto">
       {/* Breadcrumb Navigation */}
       <div className="flex items-center mb-6">
-        <Button 
-          variant="ghost" 
-          className="p-0 h-8 hover:bg-transparent hover:text-primary cursor-pointer" 
+        <Button
+          variant="ghost"
+          className="p-0 h-8 hover:bg-transparent hover:text-primary cursor-pointer"
           onClick={() => router.push("/organizer/events")}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           <span className="text-sm font-medium">Events</span>
         </Button>
         <span className="text-gray-400 mx-2">/</span>
-        <Button 
-          variant="ghost" 
-          className="p-0 h-8 hover:bg-transparent hover:text-primary cursor-pointer" 
+        <Button
+          variant="ghost"
+          className="p-0 h-8 hover:bg-transparent hover:text-primary cursor-pointer"
           onClick={() => router.push(`/organizer/events/${id}`)}
         >
           <span className="text-sm font-medium truncate max-w-[200px]">
@@ -251,14 +296,16 @@ export default function SessionsManagementPage() {
         <span className="text-gray-400 mx-2">/</span>
         <span className="text-sm font-medium">Sessions</span>
       </div>
-      
+
       {/* Header with Create Button */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Sessions</h1>
-          <p className="text-gray-500 mt-1">Manage sessions for {event?.name || "this event"}</p>
+          <p className="text-gray-500 mt-1">
+            Manage sessions for {event?.name || "this event"}
+          </p>
         </div>
-        <Button 
+        <Button
           onClick={() => {
             resetForm();
             setShowAddDialog(true);
@@ -269,7 +316,7 @@ export default function SessionsManagementPage() {
           Add Session
         </Button>
       </div>
-      
+
       {/* Sessions List */}
       {sessions.length === 0 ? (
         <Card className="border-dashed border-2 bg-gray-50">
@@ -281,7 +328,7 @@ export default function SessionsManagementPage() {
             <p className="text-gray-500 text-center max-w-md mb-6">
               Create your first session to start organizing your event schedule.
             </p>
-            <Button 
+            <Button
               onClick={() => {
                 resetForm();
                 setShowAddDialog(true);
@@ -305,10 +352,12 @@ export default function SessionsManagementPage() {
               <Card className="h-full hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2 flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg font-bold">{session.name}</CardTitle>
+                    <CardTitle className="text-lg font-bold">
+                      {session.name}
+                    </CardTitle>
                     {session.type && (
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className="mt-1 capitalize bg-primary-50 text-primary-700 border-primary-200"
                       >
                         {session.type}
@@ -317,19 +366,23 @@ export default function SessionsManagementPage() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className=" cursor-pointer">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className=" cursor-pointer"
+                      >
                         <MoreHorizontal className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
-                       className=" cursor-pointer"
-                       onClick={() => openEditDialog(session)}
+                      <DropdownMenuItem
+                        className=" cursor-pointer"
+                        onClick={() => openEditDialog(session)}
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         className="text-red-600 cursor-pointer"
                         onClick={() => handleDeleteSession(session.id)}
                       >
@@ -346,18 +399,29 @@ export default function SessionsManagementPage() {
                     </p>
                   )}
                   <div className="space-y-2 text-sm">
-                    {session.startTime && (
+                    {/* ADD: Show which day this session belongs to */}
+                    {session.day && (
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                        <span className="font-medium">{session.day.name}</span>
+                        <span className="ml-2 text-gray-400">
+                          ({new Date(session.day.date).toLocaleDateString()})
+                        </span>
+                      </div>
+                    )}
+                    {session.startTime && (
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-2 text-gray-500" />
                         <span>{formatDateTime(session.startTime)}</span>
                       </div>
                     )}
-                    {session.endTime && session.startTime !== session.endTime && (
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                        <span>Until {formatDateTime(session.endTime)}</span>
-                      </div>
-                    )}
+                    {session.endTime &&
+                      session.startTime !== session.endTime && (
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2 text-gray-500" />
+                          <span>Until {formatDateTime(session.endTime)}</span>
+                        </div>
+                      )}
                     {session.room && (
                       <div className="flex items-center">
                         <MapPin className="h-4 w-4 mr-2 text-gray-500" />
@@ -375,12 +439,18 @@ export default function SessionsManagementPage() {
                 <CardFooter className="pt-2 border-t">
                   <div className="flex justify-between w-full text-sm">
                     <div className="flex items-center">
-                      <span>{session._count?.presentations || 0} presentations</span>
+                      <span>
+                        {session._count?.presentations || 0} presentations
+                      </span>
                     </div>
-                    <Button 
-                      variant="link" 
+                    <Button
+                      variant="link"
                       className="p-0 h-auto text-primary-700 cursor-pointer"
-                      onClick={() => router.push(`/organizer/events/${id}/sessions/${session.id}`)}
+                      onClick={() =>
+                        router.push(
+                          `/organizer/events/${id}/sessions/${session.id}`
+                        )
+                      }
                     >
                       <span>Details</span>
                       <ChevronRight className="h-4 w-4" />
@@ -392,7 +462,7 @@ export default function SessionsManagementPage() {
           ))}
         </div>
       )}
-      
+
       {/* Add Session Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="sm:max-w-[525px] bg-white">
@@ -410,7 +480,9 @@ export default function SessionsManagementPage() {
               <Input
                 id="name"
                 value={sessionForm.name}
-                onChange={(e) => setSessionForm({...sessionForm, name: e.target.value})}
+                onChange={(e) =>
+                  setSessionForm({ ...sessionForm, name: e.target.value })
+                }
                 placeholder="e.g. Opening Keynote"
                 required
               />
@@ -420,33 +492,78 @@ export default function SessionsManagementPage() {
               <Textarea
                 id="description"
                 value={sessionForm.description}
-                onChange={(e) => setSessionForm({...sessionForm, description: e.target.value})}
+                onChange={(e) =>
+                  setSessionForm({
+                    ...sessionForm,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Brief description of this session"
                 rows={3}
               />
             </div>
+            {/* CHANGE: Add helper text about conference dates */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="startTime">
-                    Start Time <span className="text-red-500">*</span>
+                  Start Time <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="startTime"
                   type="datetime-local"
                   value={sessionForm.startTime}
-                  onChange={(e) => setSessionForm({...sessionForm, startTime: e.target.value})}
+                  onChange={(e) =>
+                    setSessionForm({
+                      ...sessionForm,
+                      startTime: e.target.value,
+                    })
+                  }
+                  min={
+                    event?.startDate
+                      ? new Date(event.startDate).toISOString().slice(0, 16)
+                      : undefined
+                  }
+                  max={
+                    event?.endDate
+                      ? new Date(event.endDate).toISOString().slice(0, 16)
+                      : undefined
+                  }
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="endTime">
-                    End Time <span className="text-red-500">*</span>
+                  End Time <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="endTime"
                   type="datetime-local"
                   value={sessionForm.endTime}
-                  onChange={(e) => setSessionForm({...sessionForm, endTime: e.target.value})}
+                  onChange={(e) =>
+                    setSessionForm({ ...sessionForm, endTime: e.target.value })
+                  }
+                  min={
+                    sessionForm.startTime ||
+                    (event?.startDate
+                      ? new Date(event.startDate).toISOString().slice(0, 16)
+                      : undefined)
+                  }
+                  max={
+                    event?.endDate
+                      ? new Date(event.endDate).toISOString().slice(0, 16)
+                      : undefined
+                  }
                 />
+              </div>
+              <div>
+                {event && (
+                  <p className="text-xs text-gray-500">
+                    <span>
+                      Session time must be within the set Conference date:
+                    </span>{" "}
+                    {new Date(event.startDate).toLocaleDateString()} -{" "}
+                    {new Date(event.endDate).toLocaleDateString()}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -455,7 +572,9 @@ export default function SessionsManagementPage() {
                 <Input
                   id="room"
                   value={sessionForm.room}
-                  onChange={(e) => setSessionForm({...sessionForm, room: e.target.value})}
+                  onChange={(e) =>
+                    setSessionForm({ ...sessionForm, room: e.target.value })
+                  }
                   placeholder="e.g. Main Hall"
                 />
               </div>
@@ -465,7 +584,9 @@ export default function SessionsManagementPage() {
                   id="capacity"
                   type="number"
                   value={sessionForm.capacity}
-                  onChange={(e) => setSessionForm({...sessionForm, capacity: e.target.value})}
+                  onChange={(e) =>
+                    setSessionForm({ ...sessionForm, capacity: e.target.value })
+                  }
                   placeholder="e.g. 100"
                 />
               </div>
@@ -475,7 +596,9 @@ export default function SessionsManagementPage() {
               <select
                 id="type"
                 value={sessionForm.type}
-                onChange={(e) => setSessionForm({...sessionForm, type: e.target.value})}
+                onChange={(e) =>
+                  setSessionForm({ ...sessionForm, type: e.target.value })
+                }
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="presentation">Presentation</option>
@@ -488,8 +611,8 @@ export default function SessionsManagementPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setShowAddDialog(false);
                 resetForm();
@@ -498,7 +621,7 @@ export default function SessionsManagementPage() {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleAddSession}
               disabled={!isFormValid()}
               className="bg-primary-700 text-white hover:bg-primary-800 cursor-pointer"
@@ -508,7 +631,7 @@ export default function SessionsManagementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Edit Session Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="sm:max-w-[525px] bg-white">
@@ -526,7 +649,9 @@ export default function SessionsManagementPage() {
               <Input
                 id="edit-name"
                 value={sessionForm.name}
-                onChange={(e) => setSessionForm({...sessionForm, name: e.target.value})}
+                onChange={(e) =>
+                  setSessionForm({ ...sessionForm, name: e.target.value })
+                }
                 placeholder="e.g. Opening Keynote"
                 required
               />
@@ -536,7 +661,12 @@ export default function SessionsManagementPage() {
               <Textarea
                 id="edit-description"
                 value={sessionForm.description}
-                onChange={(e) => setSessionForm({...sessionForm, description: e.target.value})}
+                onChange={(e) =>
+                  setSessionForm({
+                    ...sessionForm,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Brief description of this session"
                 rows={3}
               />
@@ -544,34 +674,75 @@ export default function SessionsManagementPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-startTime">
-                    Start Time <span className="text-red-500">*</span>
+                  Start Time <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="edit-startTime"
                   type="datetime-local"
                   value={sessionForm.startTime}
-                  onChange={(e) => setSessionForm({...sessionForm, startTime: e.target.value})}
+                  onChange={(e) =>
+                    setSessionForm({
+                      ...sessionForm,
+                      startTime: e.target.value,
+                    })
+                  }
+                  min={
+                    event?.startDate
+                      ? new Date(event.startDate).toISOString().slice(0, 16)
+                      : undefined
+                  }
+                  max={
+                    event?.endDate
+                      ? new Date(event.endDate).toISOString().slice(0, 16)
+                      : undefined
+                  }
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="edit-endTime">
-                    End Time <span className="text-red-500">*</span>
+                  End Time <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="edit-endTime"
                   type="datetime-local"
                   value={sessionForm.endTime}
-                  onChange={(e) => setSessionForm({...sessionForm, endTime: e.target.value})}
+                  onChange={(e) =>
+                    setSessionForm({ ...sessionForm, endTime: e.target.value })
+                  }
+                  min={
+                    event?.startDate
+                      ? new Date(event.startDate).toISOString().slice(0, 16)
+                      : undefined
+                  }
+                  max={
+                    event?.endDate
+                      ? new Date(event.endDate).toISOString().slice(0, 16)
+                      : undefined
+                  }
                 />
               </div>
+              <div>
+                {event && (
+                  <p className="text-xs text-gray-500">
+                    <span>
+                      Session time must be within the set Conference date:
+                    </span>{" "}
+                    {new Date(event.startDate).toLocaleDateString()} -{" "}
+                    {new Date(event.endDate).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-room">Room</Label>
                 <Input
                   id="edit-room"
                   value={sessionForm.room}
-                  onChange={(e) => setSessionForm({...sessionForm, room: e.target.value})}
+                  onChange={(e) =>
+                    setSessionForm({ ...sessionForm, room: e.target.value })
+                  }
                   placeholder="e.g. Main Hall"
                 />
               </div>
@@ -581,7 +752,9 @@ export default function SessionsManagementPage() {
                   id="edit-capacity"
                   type="number"
                   value={sessionForm.capacity}
-                  onChange={(e) => setSessionForm({...sessionForm, capacity: e.target.value})}
+                  onChange={(e) =>
+                    setSessionForm({ ...sessionForm, capacity: e.target.value })
+                  }
                   placeholder="e.g. 100"
                 />
               </div>
@@ -591,7 +764,9 @@ export default function SessionsManagementPage() {
               <select
                 id="edit-type"
                 value={sessionForm.type}
-                onChange={(e) => setSessionForm({...sessionForm, type: e.target.value})}
+                onChange={(e) =>
+                  setSessionForm({ ...sessionForm, type: e.target.value })
+                }
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="presentation">Presentation</option>
@@ -604,8 +779,8 @@ export default function SessionsManagementPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setShowEditDialog(false);
                 setCurrentSession(null);
@@ -615,7 +790,7 @@ export default function SessionsManagementPage() {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleEditSession}
               disabled={!isFormValid()}
               className="bg-primary-700 text-white hover:bg-primary-800 cursor-pointer"
@@ -625,6 +800,19 @@ export default function SessionsManagementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Session Dialog */}
+      <DeleteSessionDialog
+        open={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setSessionToDelete(null);
+        }}
+        sessionName={sessionToDelete?.name || ""}
+        presentations={sessionToDelete?.presentations || []}
+        onConfirm={confirmDelete}
+        loading={deleteLoading}
+      />
     </div>
   );
 }

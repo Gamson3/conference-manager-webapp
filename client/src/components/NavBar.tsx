@@ -19,7 +19,7 @@ const NavBar = () => {
     const router = useRouter();
     const pathname = usePathname();
 
-    const isDashboardPage = pathname.includes("/Organizers") || pathname.includes("/Attendees");
+    const isDashboardPage = pathname.includes("/organizer") || pathname.includes("/attendee");
 
     const handleSignOut = async () => {
         try {
@@ -71,20 +71,20 @@ const NavBar = () => {
                 router.push(
                   authUser.userRole?.toLowerCase() === "organizer"
                     ? "/organizer/create-event"
-                    : "/search"
+                    : "/attendee/discover"
                 )
               }
             >
-              {authUser.userRole?.toLowerCase() === "manager" ? (
+              {authUser.userRole?.toLowerCase() === "organizer" ? (
                 <>
                   <Plus className="h-4 w-4" />
-                  <span className="hidden md:block ml-2">Add New Property</span>
+                  <span className="hidden md:block">Create New Event</span>
                 </>
               ) : (
                 <>
                   <Search className="h-4 w-4" />
-                  <span className="hidden md:block ml-2">
-                    Search Properties
+                  <span className="hidden md:block">
+                    Search Events
                   </span>
                 </>
               )}
