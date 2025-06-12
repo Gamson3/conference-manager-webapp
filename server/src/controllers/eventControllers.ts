@@ -102,27 +102,43 @@ export const getEventById = async (req: Request, res: Response) => {
 };
 
 
-// UPDATE
+// UPDATE - Modify the existing updateEvent function
 export const updateEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const {
-      name, description, startDate, endDate, location
+      name, 
+      description, 
+      startDate, 
+      endDate, 
+      location,
+      status,           // ADD: Handle status updates
+      submissionSettings // ADD: Handle submission settings
     } = req.body;
+
+    const updateData: any = {};
+    
+    // Only update fields that are provided
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (startDate !== undefined) updateData.startDate = new Date(startDate);
+    if (endDate !== undefined) updateData.endDate = new Date(endDate);
+    if (location !== undefined) updateData.location = location;
+    if (status !== undefined) updateData.status = status;
+    
+    // Handle submission settings (store as JSON)
+    if (submissionSettings !== undefined) {
+      updateData.submissionSettings = submissionSettings;
+    }
 
     const event = await prisma.conference.update({
       where: { id: Number(id) },
-      data: {
-        name,
-        description,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        location,
-      },
+      data: updateData,
     });
 
     res.json(event);
   } catch (error: any) {
+    console.error('Error updating event:', error);
     res.status(500).json({ message: error.message });
   }
 };

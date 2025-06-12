@@ -10,7 +10,6 @@ const CREATION_STEPS = [
   { id: 2, path: 'sessions', title: 'Sessions & Schedule', description: 'Create rooms, keynotes, breaks', icon: Clock },
   { id: 3, path: 'categories', title: 'Categories & Types', description: 'Define presentation categories', icon: Tag },
   { id: 4, path: 'publish', title: 'Publish Settings', description: 'Configure submission settings', icon: Globe },
-  { id: 5, path: 'complete', title: 'Complete Setup', description: 'Review and publish', icon: CheckCircle }
 ];
 
 interface CreateEventWorkflowProps {
@@ -54,7 +53,7 @@ export default function CreateEventWorkflow({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {CREATION_STEPS.map((step) => {
             const Icon = step.icon;
             const isCompleted = currentStep > step.id;

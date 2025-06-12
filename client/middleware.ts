@@ -1,17 +1,16 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   
   console.log('[MIDDLEWARE] Processing:', pathname);
   
-  // Don't intercept API routes, static files, or auth-check page itself
+  // Don't intercept API routes, static files, or auth pages
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
-    pathname === '/auth-check' ||
+    pathname.match(/^\/(signin|signup|auth-check)$/) ||
     pathname.includes('.') // files with extensions
   ) {
     return NextResponse.next();
@@ -21,7 +20,7 @@ export function middleware(request: NextRequest) {
   const isDashboardRoute = pathname.startsWith('/organizer') || pathname.startsWith('/attendee');
   
   if (isDashboardRoute) {
-    // NEW: Check for authentication tokens in cookies/headers
+    // Check for authentication tokens in cookies
     const authToken = request.cookies.get('CognitoIdentityServiceProvider.idToken');
     const sessionToken = request.cookies.get('amplify-signin-with-hostedUI');
     
@@ -31,12 +30,9 @@ export function middleware(request: NextRequest) {
       return NextResponse.next();
     }
     
-    // Only redirect if no auth tokens found
-    const authCheckUrl = new URL('/auth-check', request.url);
-    authCheckUrl.searchParams.set('redirect', pathname);
-    
-    console.log('[MIDDLEWARE] No auth found, redirecting:', pathname, '-> auth-check');
-    return NextResponse.redirect(authCheckUrl);
+    // ✅ FIXED: Redirect directly to signin instead of auth-check
+    console.log('[MIDDLEWARE] No auth found, redirecting to signin');
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
   
   return NextResponse.next();
@@ -50,8 +46,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - auth-check (our auth check page)
+     * - public folder
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|auth-check).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|public/).*)',
   ],
 };

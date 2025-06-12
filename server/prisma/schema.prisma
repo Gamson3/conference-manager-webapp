@@ -33,6 +33,7 @@ enum SubmissionType {
 
 enum ConferenceStatus {
   draft
+  call_for_papers
   published
   canceled
   completed
@@ -132,6 +133,7 @@ model Conference {
 
   sections    Section[]
   attendances Attendance[]
+  submissionSettings SubmissionSettings?
 
   // Add this relation for days
   days      Day[]
@@ -591,4 +593,29 @@ model PresenterConflict {
 
   @@map("presenter_conflicts") // Add this
   @@index([presenterId])
+}
+
+model SubmissionSettings {
+  id                   Int      @id @default(autoincrement())
+  conferenceId         Int      @unique
+  submissionDeadline   DateTime
+  allowLateSubmissions Boolean  @default(false)
+  requireAbstract      Boolean  @default(true)
+  maxAbstractLength    Int      @default(500)
+  requireFullPaper     Boolean  @default(true)
+  allowedFileTypes     String[] // ['pdf', 'doc', 'docx']
+  maxFileSize          Int      @default(10) // in MB
+  reviewProcess        String   @default("manual") // 'automatic' | 'manual' | 'peer_review'
+  requireAuthorBio     Boolean  @default(true)
+  requireAffiliation   Boolean  @default(true)
+  notificationEmails   String[] // email addresses
+  submissionGuidelines String?
+  enableSubmissions    Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  conference Conference @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+
+  @@map("submission_settings")
 }

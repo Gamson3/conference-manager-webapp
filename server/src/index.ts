@@ -23,6 +23,8 @@ import attendeeRoutes from "./routes/attendeeRoutes";
 import scheduleRoutes from "./routes/scheduleRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import presentationTypeRoutes from "./routes/presentationTypeRoutes";
+import submissionSettingsRoutes from "./routes/submissionSettingsRoutes";
+import workflowRoutes from "./routes/workflowRoutes";
 
 
 
@@ -56,6 +58,8 @@ app.use("/api", presentationRoutes);
 app.use("/api/attendee", attendeeRoutes);
 app.use("/api", categoryRoutes);
 app.use("/api", presentationTypeRoutes);
+app.use("/api", submissionSettingsRoutes);
+app.use("/api", workflowRoutes);
 
 
 
