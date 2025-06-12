@@ -107,16 +107,15 @@ export default function SessionsManagementPage() {
       setLoading(true);
       const api = await createAuthenticatedApi();
 
-      // Fetch conference details
-      const conferenceRes = await api.get(`/api/conferences/${conferenceId}`);
+      // UPDATED: Use /events/ instead of /conferences/
+      const conferenceRes = await api.get(`/events/${conferenceId}`);
       setConference(conferenceRes.data);
 
-      // Fetch existing sessions
+      // UPDATED: Use consistent endpoint
       try {
-        const sessionsRes = await api.get(`/sections/conference/${conferenceId}`);
+        const sessionsRes = await api.get(`/events/${conferenceId}/sessions`);
         setSessions(sessionsRes.data || []);
       } catch (error) {
-        // No sessions yet - this is fine for new conferences
         setSessions([]);
       }
 

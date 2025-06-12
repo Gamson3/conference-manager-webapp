@@ -12,18 +12,21 @@ async function getIdToken() {
 
 export async function createEvent(eventData: Partial<Conference> & { createdById: number }) {
   try {
-    const token = await getIdToken();
-    const response = await axios.post(`${API_BASE}/events`, eventData, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+    const api = await createAuthenticatedApi();
+    
+    const response = await api.post('/events', {
+      ...eventData,
+      // Ensure these fields are included
+      status: eventData.status || 'draft',
+      workflowStep: eventData.workflowStep || 1,
+      workflowStatus: eventData.workflowStatus || 'draft'
     });
+    
     return { success: true, data: response.data };
   } catch (error: any) {
-    return {
-      success: false,
-      error: error?.response?.data?.message || error.message || "Unknown error",
+    return { 
+      success: false, 
+      error: error.response?.data?.message || 'Failed to create event' 
     };
   }
 }

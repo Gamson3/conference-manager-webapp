@@ -107,6 +107,33 @@ declare global {
     userType: "organizer" | "attendee";
   }
 
+  interface Presentation {
+    id: number;
+    title: string;
+    abstract: string;
+    keywords?: string[];
+    duration: number;
+    categoryId: number;
+    presentationTypeId: number;
+    submissionType: 'internal' | 'external';
+    reviewStatus: 'pending' | 'approved' | 'rejected' | 'revision_required';
+    submittedAt?: string;
+    reviewedAt?: string;
+    assignedAt?: string;
+    sectionId?: number; // ✅ Add this back for direct access
+    createdAt: string;
+    updatedAt: string;
+    
+    // Relations
+    category?: Category;
+    presentationType?: PresentationType;
+    section?: Section; // ✅ Keep this for populated relations
+    authors?: PresentationAuthor[];
+    timeSlot?: TimeSlot;
+    materials?: PresentationMaterial[];
+    feedback?: PresentationFeedback[];
+  }
+
 }
 
 export {};

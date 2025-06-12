@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useGetAuthUserQuery } from '@/state/api';
 import { createEvent, saveEventDraft } from '@/lib/actions/events';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from 'sonner';
+import { createAuthenticatedApi } from '@/lib/utils';
+import CreateEventWorkflow from '@/components/workflow/CreateEventWorkflow';
 
 // Modern timezone handling - using native Intl API
 const getTimezones = () => {
@@ -107,6 +109,13 @@ const eventSchema = z.object({
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const eventId = searchParams?.get('eventId') || undefined;
+  
+  // If we have an eventId, we're editing step 1, otherwise creating new
+  const [isEditing, setIsEditing] = useState(!!eventId);
+  const [currentWorkflowStep, setCurrentWorkflowStep] = useState(1);
+  
   const { data: authUser, isLoading: userLoading } = useGetAuthUserQuery();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -194,26 +203,22 @@ const [isDraftSaving, setIsDraftSaving] = useState(false);
     }
   }, [formData.startDate, formData.endDate, form]);
 
-  // Update handleSubmit function to route to sessions management
+  // Update the form submission to include workflow fields
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   
   const validationResult = await form.trigger();
-  if (!validationResult) {
-    return;
-  }
+  if (!validationResult) return;
   
   try {
     setIsLoading(true);
     setError(null);
 
-    // Create proper timezone-aware dates
     const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
     const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
 
     if (endDateTime < startDateTime) {
       setError('End date and time must be after start date and time');
-      setIsLoading(false);
       return;
     }
 
@@ -228,24 +233,38 @@ const handleSubmit = async (e: React.FormEvent) => {
       startDate: startDateTime.toISOString(),
       endDate: endDateTime.toISOString(),
       createdById: authUser?.userInfo?.id,
-      // Add workflow tracking
-      workflowStep: 2, // Moving to step 2 (sessions)
+      status: 'draft',
+      workflowStep: 2,
       workflowStatus: 'in_progress'
     };
 
-    const response = await createEvent(eventData);
-
-    if (response.success) {
-      toast.success("Event created successfully! Setting up sessions next...");
-      
-      // Route directly to sessions management (step 2)
-      router.push(`/organizer/events/${response.data.id}/sessions?setup=true&step=2`);
+    if (isEditing && eventId) {
+      // Update existing draft
+      const api = await createAuthenticatedApi();
+      await api.put(`/events/${eventId}/draft`, eventData);
+      toast.success('Event details updated!');
     } else {
-      setError(response.error || 'Failed to create event');
+      // Create new draft event
+      const response = await createEvent({
+        ...eventData,
+        status: 'draft',
+        workflowStep: 1
+      });
+      
+      if (response.success) {
+        toast.success('Event created! Let\'s set up sessions...');
+        router.push(`/organizer/create-event/sessions?eventId=${response.data.id}`);
+        return;
+      }
     }
-  } catch (err) {
-    setError('An unexpected error occurred');
-    console.error('Create event error:', err);
+    
+    // If editing, continue to next step
+    if (eventId) {
+      router.push(`/organizer/create-event/sessions?eventId=${eventId}`);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    toast.error('Failed to save event details');
   } finally {
     setIsLoading(false);
   }
@@ -309,6 +328,50 @@ const handleSaveDraft = async () => {
   }
 };
 
+  // Add useEffect to load existing event data if editing
+  useEffect(() => {
+    if (eventId && isEditing) {
+      loadEventData();
+    }
+  }, [eventId, isEditing]);
+
+  const loadEventData = async () => {
+    try {
+      const api = await createAuthenticatedApi();
+      const response = await api.get(`/events/${eventId}`);
+      const event = response.data;
+      
+      // Populate form with existing data
+      const startDate = event.startDate ? new Date(event.startDate) : null;
+      const endDate = event.endDate ? new Date(event.endDate) : null;
+      
+      const formData = {
+        name: event.name || '',
+        description: event.description || '',
+        startDate: startDate ? startDate.toISOString().split('T')[0] : '',
+        startTime: startDate ? startDate.toTimeString().slice(0, 5) : '09:00',
+        endDate: endDate ? endDate.toISOString().split('T')[0] : '',
+        endTime: endDate ? endDate.toTimeString().slice(0, 5) : '17:00',
+        location: event.location || '',
+        timezone: event.timezone || userTimezone,
+        topics: event.topics ? event.topics.join(', ') : '',
+      };
+      
+      setFormData(formData);
+      setCurrentWorkflowStep(event.workflowStep || 1);
+      
+      // Update form values
+      Object.entries(formData).forEach(([key, value]) => {
+        form.setValue(key as any, value);
+      });
+      
+    } catch (error) {
+      console.error('Error loading event data:', error);
+      toast.error('Failed to load event data');
+      router.push('/organizer/create-event');
+    }
+  };
+
   if (userLoading) {
     return <LoadingSkeleton />;
   }
@@ -331,64 +394,29 @@ const handleSaveDraft = async () => {
           <span className="text-sm font-medium">Events</span>
         </Button>
         <span className="text-gray-400">/</span>
-        <span className="text-sm font-medium">Create New Event</span>
+        <span className="text-sm font-medium">
+          {isEditing ? 'Edit Event Details' : 'Create New Event'}
+        </span>
       </div>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Create New Conference</h1>
+        <h1 className="text-3xl font-bold mb-2">
+          {isEditing ? 'Edit Conference Details' : 'Create New Conference'}
+        </h1>
         <p className="text-gray-600">
-          Set up your conference details. After creation, you'll be guided through the complete setup process.
+          {isEditing 
+            ? 'Update your conference details and continue with the setup process.'
+            : 'Set up your conference details. After creation, you\'ll be guided through the complete setup process.'
+          }
         </p>
       </div>
 
-      {/* Workflow Preview */}
-      <Card className="mb-8 border-blue-200 bg-blue-50">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center">
-            <ArrowRight className="h-5 w-5 mr-2 text-blue-600" />
-            Setup Workflow Preview
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <WorkflowStep
-              number={1}
-              title="Event Details"
-              description="Basic conference information"
-              status="current"
-              icon={<Calendar className="h-4 w-4" />}
-            />
-            <WorkflowStep
-              number={2}
-              title="Sessions & Schedule"
-              description="Create rooms, keynotes, breaks"
-              status="upcoming"
-              icon={<Clock className="h-4 w-4" />}
-            />
-            <WorkflowStep
-              number={3}
-              title="Categories & Types"
-              description="Define presentation categories"
-              status="upcoming"
-              icon={<Tag className="h-4 w-4" />}
-            />
-            <WorkflowStep
-              number={4}
-              title="Publish for Submissions"
-              description="Open for presenter applications"
-              status="upcoming"
-              icon={<ArrowRight className="h-4 w-4" />}
-            />
-            <WorkflowStep
-              number={5}
-              title="Schedule Builder"
-              description="Organize approved presentations"
-              status="upcoming"
-              icon={<CheckCircle className="h-4 w-4" />}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Workflow Component */}
+      <CreateEventWorkflow 
+        currentStep={currentWorkflowStep} 
+        eventId={eventId}
+        showCancelButton={true}
+      />
 
       {error && (
         <div className="mb-6 text-red-600 border border-red-200 rounded-lg p-4 bg-red-50">
@@ -641,11 +669,11 @@ const handleSaveDraft = async () => {
               {isLoading ? (
                 <div className="flex items-center">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  {isEditing ? 'Updating...' : 'Creating...'}
                 </div>
               ) : (
                 <div className="flex items-center">
-                  Create Event & Setup Sessions
+                  {isEditing ? 'Update & Continue to Sessions' : 'Create Event & Setup Sessions'}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </div>
               )}
@@ -653,60 +681,6 @@ const handleSaveDraft = async () => {
           </div>
         </div>
       </form>
-    </div>
-  );
-}
-
-// Workflow step component
-function WorkflowStep({
-  number,
-  title,
-  description,
-  status,
-  icon
-}: {
-  number: number;
-  title: string;
-  description: string;
-  status: 'current' | 'upcoming' | 'completed';
-  icon: React.ReactNode;
-}) {
-  const getStepStyling = () => {
-    switch (status) {
-      case 'current':
-        return 'border-blue-300 bg-blue-50';
-      case 'completed':
-        return 'border-green-300 bg-green-50';
-      case 'upcoming':
-        return 'border-gray-200 bg-gray-50';
-    }
-  };
-
-  const getNumberStyling = () => {
-    switch (status) {
-      case 'current':
-        return 'bg-blue-600 text-white';
-      case 'completed':
-        return 'bg-green-600 text-white';
-      case 'upcoming':
-        return 'bg-gray-300 text-gray-600';
-    }
-  };
-
-  return (
-    <div className={`relative p-4 rounded-lg border ${getStepStyling()}`}>
-      <div className="flex items-start space-x-3">
-        <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${getNumberStyling()}`}>
-          {status === 'completed' ? <CheckCircle className="h-4 w-4" /> : number}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2">
-            {icon}
-            <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
-          </div>
-          <p className="text-xs text-gray-600 mt-1">{description}</p>
-        </div>
-      </div>
     </div>
   );
 }

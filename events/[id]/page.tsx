@@ -40,10 +40,10 @@ export default function EventDetailPage() {
       const eventResponse = await api.get(`/events/${id}`);
       
       // Fetch participants 
-      const participantsResponse = await api.get(`/conferences/${id}/participants`);
+      const participantsResponse = await api.get(`/events/${id}/participants`);
       
       // ADDED: Fetch sessions (sections) for this conference
-      const sessionsResponse = await api.get(`/sections/conference/${id}`);
+      const sessionsResponse = await api.get(`/sections/events/${id}`);
       
       console.log("Event data:", eventResponse.data);
       console.log("Participants data:", participantsResponse.data);
@@ -424,7 +424,7 @@ export default function EventDetailPage() {
               showSearch={true}
               expandedByDefault={false}
               onPresentationSelect={(presentation) => {
-                router.push(`/organizer/events/${id}/sessions/${presentation.sectionId}/presentations/${presentation.id}`);
+                router.push(`/organizer/events/${id}/sessions/${presentation.section?.id}/presentations/${presentation.id}`);
               }}
             />
           ) : (

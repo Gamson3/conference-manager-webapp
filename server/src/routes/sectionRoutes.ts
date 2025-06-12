@@ -5,7 +5,6 @@ import {
   getSectionById,
   updateSection,
   deleteSection,
-  // getSectionPresentations,
   getSectionAttendance,
   reorderSectionPresentations,
   getSectionSummary,
@@ -18,7 +17,8 @@ const router = express.Router();
 // POST /sections - Create section
 router.post("/", authMiddleware(["organizer", "admin"]), createSection);
 
-// GET /sections/conference/:conferenceId - List sections by conference
+// UPDATED: Add both endpoints for flexibility
+router.get("/events/:eventId/sessions", authMiddleware(["organizer", "admin"]), getSectionsByConference);
 router.get("/conference/:conferenceId", authMiddleware(["organizer", "admin"]), getSectionsByConference);
 
 // GET /sections/:id - Get section details
@@ -29,9 +29,6 @@ router.put("/:id", authMiddleware(["organizer", "admin"]), updateSection);
 
 // DELETE /sections/:id - Delete section
 router.delete("/:id", authMiddleware(["organizer", "admin"]), deleteSection);
-
-// GET /sections/:id/presentations - Get presentations in section
-// router.get("/:id/presentations", authMiddleware(["organizer", "admin"]), getSectionPresentations);
 
 // POST /sections/:id/presentations/reorder - Reorder presentations in section
 router.post("/:id/presentations/reorder", authMiddleware(["organizer", "admin"]), reorderSectionPresentations);

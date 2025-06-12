@@ -120,10 +120,11 @@ export default function CategoryManagementPage() {
     try {
       setLoading(true);
       const api = await createAuthenticatedApi();
-      
+
+      // UPDATED: Use /events/ endpoints
       const [categoriesRes, typesRes] = await Promise.all([
-        api.get(`/api/conferences/${conferenceId}/categories`),
-        api.get(`/api/conferences/${conferenceId}/presentation-types`)
+        api.get(`/events/${conferenceId}/categories`),
+        api.get(`/events/${conferenceId}/presentation-types`)
       ]);
 
       setCategories(categoriesRes.data);
@@ -159,22 +160,20 @@ export default function CategoryManagementPage() {
       const api = await createAuthenticatedApi();
 
       if (editingCategory) {
-        // Update existing category
-        const response = await api.put(`/api/categories/${editingCategory.id}`, categoryForm);
+        const response = await api.put(`/categories/${editingCategory.id}`, categoryForm);
         setCategories(categories.map(cat => 
           cat.id === editingCategory.id ? response.data : cat
         ));
         toast.success('Category updated successfully');
       } else {
-        // Create new category
-        const response = await api.post(`/api/conferences/${conferenceId}/categories`, categoryForm);
+        // UPDATED: Use /events/ endpoint
+        const response = await api.post(`/events/${conferenceId}/categories`, categoryForm);
         setCategories([...categories, response.data]);
         toast.success('Category created successfully');
       }
 
       setShowCategoryDialog(false);
     } catch (error: any) {
-      console.error('Error saving category:', error);
       toast.error(error.response?.data?.message || 'Failed to save category');
     } finally {
       setSubmitting(false);
