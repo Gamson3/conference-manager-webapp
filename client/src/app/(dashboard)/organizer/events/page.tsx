@@ -17,7 +17,11 @@ import {
   UsersIcon, 
   LayoutIcon, 
   PlusIcon,
-  Loader2 
+  Loader2, 
+  EyeIcon,
+  EditIcon,
+  ArrowRight,
+  TrashIcon
 } from "lucide-react";
 
 const ManageEventsPage = () => {
@@ -92,6 +96,152 @@ const ManageEventsPage = () => {
       </span>
     );
   };
+
+  // Update the event card to show workflow progress
+  function EventCard({ event, onDelete }: { event: any; onDelete: (id: number) => void }) {
+    const router = useRouter();
+    
+    // Determine next step in workflow
+    const getNextWorkflowStep = (event: any) => {
+      if (!event.workflowStep || event.workflowStep === 1) {
+        return {
+          step: 2,
+          label: 'Setup Sessions',
+          path: `/organizer/events/${event.id}/sessions?setup=true&step=2`
+        };
+      } else if (event.workflowStep === 2) {
+        return {
+          step: 3,
+          label: 'Setup Categories',
+          path: `/organizer/events/${event.id}/categories?setup=true&step=3`
+        };
+      } else if (event.workflowStep === 3) {
+        return {
+          step: 4,
+          label: 'Publish Event',
+          path: `/organizer/events/${event.id}/publish?setup=true&step=4`
+        };
+      } else if (event.workflowStep === 4) {
+        return {
+          step: 5,
+          label: 'Schedule Builder',
+          path: `/organizer/events/${event.id}/schedule-builder?setup=true&step=5`
+        };
+      }
+      return null;
+    };
+
+    const nextStep = getNextWorkflowStep(event);
+    const isInProgress = event.workflowStatus === 'in_progress' || event.workflowStatus === 'draft';
+
+    return (
+      <Card key={event.id} className="hover:shadow-lg transition-shadow duration-300">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold mb-2 line-clamp-2">
+                {event.name}
+              </h3>
+              
+              {/* Workflow Progress Indicator */}
+              {isInProgress && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="border-orange-300 text-orange-700 bg-orange-50">
+                      Setup in Progress
+                    </Badge>
+                    <span className="text-sm text-gray-500">
+                      Step {event.workflowStep || 1} of 5
+                    </span>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all" 
+                      style={{ width: `${((event.workflowStep || 1) / 5) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-gray-600 mb-4 line-clamp-2">
+                {event.description}
+              </p>
+              
+              <div className="space-y-2 text-sm text-gray-500">
+                <div className="flex items-center">
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  <span>
+                    {new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}
+                  </span>
+                </div>
+                
+                <div className="flex items-center">
+                  <MapPinIcon className="h-4 w-4 mr-2" />
+                  <span>{event.location}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-end gap-2">
+              <StatusBadge status={getEventStatus(event)} />
+              
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1"
+                  onClick={() => router.push(`/organizer/events/${event.id}`)}
+                >
+                  <EyeIcon className="h-4 w-4" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1"
+                  onClick={() => router.push(`/organizer/events/${event.id}/edit`)}
+                >
+                  <EditIcon className="h-4 w-4" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 text-red-600 hover:text-red-700"
+                  onClick={() => onDelete(event.id)}
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-4 border-t">
+            {isInProgress && nextStep ? (
+              <Button
+                onClick={() => router.push(nextStep.path)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Continue Setup: {nextStep.label}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/organizer/events/${event.id}`)}
+                className="flex-1"
+              >
+                View Details
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Enhanced loading state
   if (userLoading || eventsLoading) {

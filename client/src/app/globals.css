@@ -356,4 +356,22 @@ button[aria-disabled="true"],
   @apply bg-background border-border text-foreground hover:bg-muted;
 }
 
+/* Dialog/Modal Backdrop Improvements */
+[data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(4px);
+}
+
+[data-radix-dialog-content] {
+  background-color: white !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Ensure dialog content is solid in dark mode too */
+.dark [data-radix-dialog-content] {
+  background-color: hsl(var(--card)) !important;
+  border-color: hsl(var(--border));
+}
+
 

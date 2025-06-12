@@ -1,23 +1,96 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGetAuthUserQuery } from '@/state/api';
 import { createEvent, saveEventDraft } from '@/lib/actions/events';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, MapPin, Calendar, Clock, Loader2, Tag } from 'lucide-react';
+import { ArrowLeft, Plus, MapPin, Calendar, Clock, Loader2, Tag, ArrowRight, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from 'sonner';
+
+// Modern timezone handling - using native Intl API
+const getTimezones = () => {
+  try {
+    // Use the modern Intl API to get all supported timezones
+    const timezones = Intl.supportedValuesOf('timeZone');
+    
+    // Group by region and format nicely
+    const timezoneOptions = timezones
+      .map(tz => {
+        try {
+          // Get timezone offset and name
+          const now = new Date();
+          const formatter = new Intl.DateTimeFormat('en', {
+            timeZone: tz,
+            timeZoneName: 'longOffset'
+          });
+          
+          const parts = formatter.formatToParts(now);
+          const offsetPart = parts.find(part => part.type === 'timeZoneName');
+          const offset = offsetPart ? offsetPart.value : '';
+          
+          // Format: "America/New_York" -> "New York (GMT-5)"
+          const cityName = tz.includes('/') 
+            ? tz.split('/').pop()?.replace(/_/g, ' ') || tz
+            : tz;
+          
+          return {
+            value: tz,
+            label: `${cityName} (${offset})`,
+            region: tz.split('/')[0] || 'Other',
+            offset: offset
+          };
+        } catch (e) {
+          // Fallback for problematic timezones
+          return {
+            value: tz,
+            label: tz.replace(/_/g, ' '),
+            region: tz.split('/')[0] || 'Other',
+            offset: ''
+          };
+        }
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    return timezoneOptions;
+  } catch (error) {
+    // Fallback to common timezones if Intl API fails
+    console.warn('Intl.supportedValuesOf not supported, using fallback timezones');
+    return [
+      { value: 'America/New_York', label: 'New York (GMT-5)', region: 'America', offset: 'GMT-5' },
+      { value: 'America/Chicago', label: 'Chicago (GMT-6)', region: 'America', offset: 'GMT-6' },
+      { value: 'America/Denver', label: 'Denver (GMT-7)', region: 'America', offset: 'GMT-7' },
+      { value: 'America/Los_Angeles', label: 'Los Angeles (GMT-8)', region: 'America', offset: 'GMT-8' },
+      { value: 'Europe/London', label: 'London (GMT+0)', region: 'Europe', offset: 'GMT+0' },
+      { value: 'Europe/Paris', label: 'Paris (GMT+1)', region: 'Europe', offset: 'GMT+1' },
+      { value: 'Europe/Berlin', label: 'Berlin (GMT+1)', region: 'Europe', offset: 'GMT+1' },
+      { value: 'Asia/Tokyo', label: 'Tokyo (GMT+9)', region: 'Asia', offset: 'GMT+9' },
+      { value: 'Asia/Shanghai', label: 'Shanghai (GMT+8)', region: 'Asia', offset: 'GMT+8' },
+      { value: 'Australia/Sydney', label: 'Sydney (GMT+11)', region: 'Australia', offset: 'GMT+11' },
+      { value: 'UTC', label: 'UTC (GMT+0)', region: 'UTC', offset: 'GMT+0' },
+    ];
+  }
+};
+
+// Get user's local timezone as default
+const getUserTimezone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch (error) {
+    return 'UTC';
+  }
+};
 
 // Define the form schema with zod for validation
 const eventSchema = z.object({
@@ -40,6 +113,14 @@ export default function CreateEventPage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [descriptionLength, setDescriptionLength] = useState(0);
   
+  // Add new state for workflow draft tracking
+const [workflowStep, setWorkflowStep] = useState(1);
+const [isDraftSaving, setIsDraftSaving] = useState(false);
+  
+  // Get timezones with proper formatting
+  const timezones = useMemo(() => getTimezones(), []);
+  const userTimezone = useMemo(() => getUserTimezone(), []);
+  
   // Use React Hook Form with zod validation
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
@@ -47,11 +128,11 @@ export default function CreateEventPage() {
       name: '',
       description: '',
       startDate: '',
-      startTime: '09:00', // Default to 9 AM
+      startTime: '09:00',
       endDate: '',
-      endTime: '17:00', // Default to 5 PM
+      endTime: '17:00',
       location: '',
-      timezone: '(GMT+00:00) UTC',
+      timezone: userTimezone, // Use user's actual timezone
       topics: '',
     },
   });
@@ -61,199 +142,175 @@ export default function CreateEventPage() {
     name: '',
     description: '',
     startDate: '',
-    startTime: '09:00', // Default to 9 AM
+    startTime: '09:00',
     endDate: '',
-    endTime: '17:00', // Default to 5 PM
+    endTime: '17:00',
     location: '',
-    timezone: '(GMT+00:00) UTC',
+    timezone: userTimezone, // Use user's actual timezone
     topics: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    // Update form data state
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
     
-    // For description, update character count
     if (name === 'description') {
       setDescriptionLength(value.length);
     }
     
-    // Also update the react-hook-form state
     form.setValue(name as any, value);
   };
 
-  // Add this to handle date synchronization
+  // Calculate event duration for display
+  const eventDuration = useMemo(() => {
+    if (formData.startDate && formData.endDate && formData.startTime && formData.endTime) {
+      const start = new Date(`${formData.startDate}T${formData.startTime}`);
+      const end = new Date(`${formData.endDate}T${formData.endTime}`);
+      
+      if (end > start) {
+        const diffMs = end.getTime() - start.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+        
+        if (diffDays > 1) {
+          return `${diffDays} days`;
+        } else {
+          return `${diffHours} hours`;
+        }
+      }
+    }
+    return null;
+  }, [formData.startDate, formData.endDate, formData.startTime, formData.endTime]);
+
+  // Auto-sync dates and times
   useEffect(() => {
-    // If start date changes and end date is empty or before start date, update end date
     if (formData.startDate && (!formData.endDate || formData.endDate < formData.startDate)) {
-      setFormData(prev => ({
-        ...prev,
-        endDate: formData.startDate
-      }));
+      setFormData(prev => ({ ...prev, endDate: formData.startDate }));
       form.setValue('endDate', formData.startDate);
     }
-    
-    // If start time changes, set end time to 2 hours later by default
-    if (formData.startTime && !formData.endTime) {
-      const [hours, minutes] = formData.startTime.split(':').map(Number);
-      let endHours = hours + 2;
-      if (endHours > 23) endHours = 23;
-      
-      const endTime = `${String(endHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-      
-      setFormData(prev => ({
-        ...prev,
-        endTime
-      }));
-      form.setValue('endTime', endTime);
-    }
-  }, [formData.startDate, formData.startTime, form]);
+  }, [formData.startDate, formData.endDate, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate using react-hook-form
-    const validationResult = await form.trigger();
-    if (!validationResult) {
-      return; // Form has validation errors
-    }
-    
-    try {
-      setIsLoading(true);
-      setError(null);
+  // Update handleSubmit function to route to sessions management
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  const validationResult = await form.trigger();
+  if (!validationResult) {
+    return;
+  }
+  
+  try {
+    setIsLoading(true);
+    setError(null);
 
-      // Combine date and time into ISO strings
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
-      const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+    // Create proper timezone-aware dates
+    const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+    const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
 
-      // Validation
-      if (endDateTime < startDateTime) {
-        setError('End date and time must be after start date and time');
-        setIsLoading(false);
-        return;
-      }
-
-      // Process topics into an array
-      const topics = formData.topics 
-        ? formData.topics.split(',').map(topic => topic.trim()).filter(Boolean)
-        : [];
-
-      const { startTime, endTime, ...eventDataWithoutTimes } = formData;
-      const eventData = {
-        ...eventDataWithoutTimes,
-        topics, // Add the processed topics array
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime.toISOString(),
-        createdById: authUser?.userInfo?.id,
-      };
-
-      const response = await createEvent(eventData);
-
-      if (response.success) {
-        toast.success("Event created successfully!");
-        router.push(`/organizer/events/${response.data.id}`);
-      } else {
-        setError(response.error || 'Failed to create event');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred');
-      console.error('Create event error:', err);
-    } finally {
+    if (endDateTime < startDateTime) {
+      setError('End date and time must be after start date and time');
       setIsLoading(false);
+      return;
     }
-  };
 
-  const handleSaveDraft = async () => {
+    const topics = formData.topics 
+      ? formData.topics.split(',').map(topic => topic.trim()).filter(Boolean)
+      : [];
+
+    const { startTime, endTime, ...eventDataWithoutTimes } = formData;
+    const eventData = {
+      ...eventDataWithoutTimes,
+      topics,
+      startDate: startDateTime.toISOString(),
+      endDate: endDateTime.toISOString(),
+      createdById: authUser?.userInfo?.id,
+      // Add workflow tracking
+      workflowStep: 2, // Moving to step 2 (sessions)
+      workflowStatus: 'in_progress'
+    };
+
+    const response = await createEvent(eventData);
+
+    if (response.success) {
+      toast.success("Event created successfully! Setting up sessions next...");
+      
+      // Route directly to sessions management (step 2)
+      router.push(`/organizer/events/${response.data.id}/sessions?setup=true&step=2`);
+    } else {
+      setError(response.error || 'Failed to create event');
+    }
+  } catch (err) {
+    setError('An unexpected error occurred');
+    console.error('Create event error:', err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Enhanced draft saving with workflow step tracking
+const handleSaveDraft = async () => {
+  try {
+    if (!formData.name.length) {
+      setError('Event name is required even for drafts');
+      return;
+    }
+    
+    setIsDraftSaving(true);
+    setError(null);
+
+    let startDateTime = null;
+    let endDateTime = null;
+    
     try {
-      // Validate the form first - but with less strict rules for drafts
-      // You could skip full validation for drafts if desired
-      const nameIsValid = formData.name.length > 0;
-      if (!nameIsValid) {
-        setError('Event name is required even for drafts');
-        return;
+      if (formData.startDate && formData.startTime) {
+        startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
       }
-      
-      setIsSavingDraft(true);
-      setError(null);
-
-      // Combine date and time into ISO strings (if present)
-      let startDateTime = null;
-      let endDateTime = null;
-      
-      try {
-        if (formData.startDate && formData.startTime) {
-          startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
-        }
-        
-        if (formData.endDate && formData.endTime) {
-          endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
-        }
-      } catch (err) {
-        console.warn("Date parsing issue, sending as is:", err);
-      }
-
-      // Process topics into an array
-      const topics = formData.topics 
-        ? formData.topics.split(',').map(topic => topic.trim()).filter(Boolean)
-        : [];
-
-      const { startTime, endTime, ...eventDataWithoutTimes } = formData;
-      const draftData = {
-        ...eventDataWithoutTimes,
-        topics,
-        status: 'draft',
-        createdById: authUser?.userInfo?.id,
-        startDate: startDateTime ? startDateTime.toISOString() : formData.startDate,
-        endDate: endDateTime ? endDateTime.toISOString() : formData.endDate,
-      };
-
-      // For debugging - log what we're sending
-      console.log("Saving draft with data:", draftData);
-
-      const response = await saveEventDraft(draftData);
-
-      if (response.success) {
-        toast.success("Draft saved successfully!");
-        router.push('/organizer/events');
-      } else {
-        setError(response.error || 'Failed to save draft');
+      if (formData.endDate && formData.endTime) {
+        endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
       }
     } catch (err) {
-      console.error('Save draft error details:', err);
-      setError('An unexpected error occurred while saving draft');
-    } finally {
-      setIsSavingDraft(false);
+      console.warn("Date parsing issue:", err);
     }
-  };
 
-  const handleCancel = () => {
-    router.push('/organizer/events');
-  };
+    const topics = formData.topics 
+      ? formData.topics.split(',').map(topic => topic.trim()).filter(Boolean)
+      : [];
+
+    const { startTime, endTime, ...eventDataWithoutTimes } = formData;
+    const draftData = {
+      ...eventDataWithoutTimes,
+      topics,
+      status: 'draft',
+      createdById: authUser?.userInfo?.id,
+      startDate: startDateTime ? startDateTime.toISOString() : formData.startDate,
+      endDate: endDateTime ? endDateTime.toISOString() : formData.endDate,
+      // Add workflow tracking
+      workflowStep: 1, // Still on step 1
+      workflowStatus: 'draft'
+    };
+
+    const response = await saveEventDraft(draftData);
+
+    if (response.success) {
+      toast.success("Draft saved successfully!");
+      router.push('/organizer/events');
+    } else {
+      setError(response.error || 'Failed to save draft');
+    }
+  } catch (err) {
+    console.error('Save draft error:', err);
+    setError('An unexpected error occurred while saving draft');
+  } finally {
+    setIsDraftSaving(false);
+  }
+};
 
   if (userLoading) {
-    return (
-      <div className="max-w-3xl mx-auto py-8 px-4">
-        <Skeleton className="h-10 w-64 mb-6" />
-        <Card className="p-8">
-          <div className="space-y-8">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-8 w-3/4" />
-            <div className="grid grid-cols-2 gap-4">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        </Card>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (!authUser?.userInfo?.id) {
@@ -261,38 +318,9 @@ export default function CreateEventPage() {
     return null;
   }
 
-  const timezones = [
-    '(GMT-12:00) International Date Line West',
-    '(GMT-11:00) Midway Island, Samoa',
-    '(GMT-10:00) Hawaii',
-    '(GMT-09:00) Alaska',
-    '(GMT-08:00) Pacific Time (US & Canada)',
-    '(GMT-07:00) Mountain Time (US & Canada)',
-    '(GMT-06:00) Central Time (US & Canada)',
-    '(GMT-05:00) Eastern Time (US & Canada)',
-    '(GMT-04:00) Atlantic Time (Canada)',
-    '(GMT-03:00) Brasilia, Buenos Aires',
-    '(GMT-02:00) Mid-Atlantic',
-    '(GMT-01:00) Azores, Cape Verde Islands',
-    '(GMT+00:00) UTC',
-    '(GMT+01:00) Budapest, Paris, Madrid',
-    '(GMT+02:00) Athens, Istanbul, Cairo',
-    '(GMT+03:00) Moscow, Baghdad',
-    '(GMT+04:00) Dubai, Baku',
-    '(GMT+05:00) Karachi, Tashkent',
-    '(GMT+05:30) Mumbai, Kolkata',
-    '(GMT+06:00) Dhaka, Almaty',
-    '(GMT+07:00) Bangkok, Jakarta',
-    '(GMT+08:00) Beijing, Singapore',
-    '(GMT+09:00) Tokyo, Seoul',
-    '(GMT+10:00) Sydney, Melbourne',
-    '(GMT+11:00) Solomon Islands',
-    '(GMT+12:00) Auckland, Fiji',
-  ];
-
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4 min-h-screen">
-      {/* Breadcrumb navigation */}
+    <div className="max-w-4xl mx-auto py-8 px-4 min-h-screen">
+      {/* Header */}
       <div className="flex items-center gap-2 mb-8">
         <Button 
           variant="ghost" 
@@ -306,63 +334,135 @@ export default function CreateEventPage() {
         <span className="text-sm font-medium">Create New Event</span>
       </div>
 
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Create New Conference</h1>
+        <p className="text-gray-600">
+          Set up your conference details. After creation, you'll be guided through the complete setup process.
+        </p>
+      </div>
+
+      {/* Workflow Preview */}
+      <Card className="mb-8 border-blue-200 bg-blue-50">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center">
+            <ArrowRight className="h-5 w-5 mr-2 text-blue-600" />
+            Setup Workflow Preview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <WorkflowStep
+              number={1}
+              title="Event Details"
+              description="Basic conference information"
+              status="current"
+              icon={<Calendar className="h-4 w-4" />}
+            />
+            <WorkflowStep
+              number={2}
+              title="Sessions & Schedule"
+              description="Create rooms, keynotes, breaks"
+              status="upcoming"
+              icon={<Clock className="h-4 w-4" />}
+            />
+            <WorkflowStep
+              number={3}
+              title="Categories & Types"
+              description="Define presentation categories"
+              status="upcoming"
+              icon={<Tag className="h-4 w-4" />}
+            />
+            <WorkflowStep
+              number={4}
+              title="Publish for Submissions"
+              description="Open for presenter applications"
+              status="upcoming"
+              icon={<ArrowRight className="h-4 w-4" />}
+            />
+            <WorkflowStep
+              number={5}
+              title="Schedule Builder"
+              description="Organize approved presentations"
+              status="upcoming"
+              icon={<CheckCircle className="h-4 w-4" />}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {error && (
-        <div className="mb-6 text-red-600 border border-red-200 rounded-lg p-4 bg-red-50 shadow-sm">
+        <div className="mb-6 text-red-600 border border-red-200 rounded-lg p-4 bg-red-50">
           <h3 className="font-semibold mb-1">Error</h3>
           <p>{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-12">
+      <form onSubmit={handleSubmit} className="space-y-8">
         {/* Event Name Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white rounded-lg p-6 shadow-sm"
-        >
-          <h2 className="text-xl font-bold mb-3">What will your event's name be?</h2>
-          <p className="text-gray-500 text-sm mb-4">
-            Write your event name here. Remember, an SEO-friendly event name boosts discoverability.
-          </p>
-          <Input 
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Your event name"
-            className="w-full p-3 text-base"
-            required
-          />
-          {form.formState.errors.name && (
-            <p className="text-red-500 text-sm mt-1">{form.formState.errors.name.message}</p>
-          )}
-        </motion.section>
-        
-        {/* Event Date Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="bg-white rounded-lg p-6 shadow-sm"
-        >
-          <h2 className="text-xl font-bold mb-3">When will the event start and end?</h2>
-          <p className="text-gray-500 text-sm mb-4">
-            Choose the start and end dates and times of your event.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Calendar className="h-5 w-5 mr-2" />
+              Basic Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <Label htmlFor="name">Conference Name *</Label>
+              <Input 
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="e.g., International Architecture & Engineering Conference 2024"
+                className="mt-1"
+                required
+              />
+              {form.formState.errors.name && (
+                <p className="text-red-500 text-sm mt-1">{form.formState.errors.name.message}</p>
+              )}
+            </div>
+            
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <Textarea 
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Describe your conference, its goals, and target audience..."
+                className="mt-1 min-h-[100px]"
+                required
+              />
+              <div className="flex justify-between items-center mt-1">
+                {form.formState.errors.description && (
+                  <p className="text-red-500 text-sm">{form.formState.errors.description.message}</p>
+                )}
+                <p className="text-xs text-gray-400 ml-auto">{descriptionLength} characters</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dates & Times */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Clock className="h-5 w-5 mr-2" />
+              Dates & Schedule
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <Label htmlFor="startDate" className="block mb-2 font-medium">
-                  Start Date <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="startDate">Start Date *</Label>
                 <Input 
                   id="startDate"
                   name="startDate"
                   type="date"
-                  value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                  value={formData.startDate}
                   onChange={handleInputChange}
-                  className="w-full p-3"
+                  className="mt-1"
                   required
                 />
                 {form.formState.errors.startDate && (
@@ -371,41 +471,15 @@ export default function CreateEventPage() {
               </div>
               
               <div>
-                <Label htmlFor="startTime" className="block mb-2 font-medium flex items-center justify-between">
-                  <span>Start Time <span className="text-red-500">*</span></span>
-                  <span className="text-xs text-gray-500">24-hour format</span>
-                </Label>
-                <Input 
-                  id="startTime"
-                  name="startTime"
-                  type="time"
-                  value={formData.startTime || ''}
-                  onChange={handleInputChange}
-                  className="w-full p-3"
-                  required
-                />
-                <div className="flex items-center mt-1 text-xs text-gray-500">
-                  <Clock className="h-3 w-3 mr-1" />
-                  <span>Local time in {formData.timezone.split(') ')[1] || 'selected timezone'}</span>
-                </div>
-                {form.formState.errors.startTime && (
-                  <p className="text-red-500 text-sm mt-1">{form.formState.errors.startTime.message}</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="endDate" className="block mb-2 font-medium">
-                  End Date <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="endDate">End Date *</Label>
                 <Input 
                   id="endDate"
                   name="endDate"
                   type="date"
-                  value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                  value={formData.endDate}
                   onChange={handleInputChange}
-                  className="w-full p-3"
+                  min={formData.startDate}
+                  className="mt-1"
                   required
                 />
                 {form.formState.errors.endDate && (
@@ -414,164 +488,146 @@ export default function CreateEventPage() {
               </div>
               
               <div>
-                <Label htmlFor="endTime" className="block mb-2 font-medium">
-                  End Time <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="timezone">Timezone</Label>
+                <select
+                  id="timezone"
+                  name="timezone"
+                  value={formData.timezone}
+                  onChange={handleInputChange}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  {timezones.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="startTime">Start Time *</Label>
+                <Input 
+                  id="startTime"
+                  name="startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={handleInputChange}
+                  className="mt-1"
+                  required
+                />
+                {form.formState.errors.startTime && (
+                  <p className="text-red-500 text-sm mt-1">{form.formState.errors.startTime.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="endTime">End Time *</Label>
                 <Input 
                   id="endTime"
                   name="endTime"
                   type="time"
-                  value={formData.endTime || ''}
+                  value={formData.endTime}
                   onChange={handleInputChange}
-                  className="w-full p-3"
+                  className="mt-1"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Local time in your selected timezone</p>
                 {form.formState.errors.endTime && (
                   <p className="text-red-500 text-sm mt-1">{form.formState.errors.endTime.message}</p>
                 )}
               </div>
             </div>
-          </div>
-          
-          <div className="mt-4">
-            <Label htmlFor="timezone" className="block mb-2 font-medium">
-              Time Zone
-            </Label>
-            <select
-              id="timezone"
-              name="timezone"
-              value={formData.timezone}
-              onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              {timezones.map(timezone => (
-                <option key={timezone} value={timezone}>
-                  {timezone}
-                </option>
-              ))}
-            </select>
-          </div>
-        </motion.section>
-        
-        {/* Event Location Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          className="bg-white rounded-lg p-6 shadow-sm"
-        >
-          <h2 className="text-xl font-bold mb-3">Where will your event take place?</h2>
-          <p className="text-gray-500 text-sm mb-4">
-            Write your event's location. You can change later on.
-          </p>
-          
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-gray-600 mb-4">
-              <MapPin className="h-5 w-5" />
-              <span className="font-medium">Find Event location with Google Maps</span>
-            </div>
             
-            <div className="relative">
+            {eventDuration && (
+              <div className="p-3 bg-gray-50 rounded border">
+                <p className="text-sm text-gray-600">
+                  <strong>Duration:</strong> {eventDuration}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  You'll create detailed daily schedules in the next step.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Location */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <MapPin className="h-5 w-5 mr-2" />
+              Location & Venue
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label htmlFor="location">Event Location *</Label>
               <Input 
+                id="location"
                 name="location"
                 value={formData.location}
                 onChange={handleInputChange}
-                placeholder="Search venue location"
-                className="w-full pl-10 p-3"
+                placeholder="e.g., San Francisco Convention Center, CA"
+                className="mt-1"
                 required
               />
               {form.formState.errors.location && (
                 <p className="text-red-500 text-sm mt-1">{form.formState.errors.location.message}</p>
               )}
             </div>
-          </div>
-        </motion.section>
-        
-        {/* Description Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-          className="bg-white rounded-lg p-6 shadow-sm"
-        >
-          <h2 className="text-xl font-bold mb-3">Describe your event</h2>
-          <p className="text-gray-500 text-sm mb-4">
-            Provide details about what attendees can expect.
-          </p>
-          
-          <div className="relative">
-            <Textarea 
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Describe your event..."
-              className="w-full p-3 min-h-[120px]"
-              required
-            />
-            <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-              {descriptionLength} characters
+          </CardContent>
+        </Card>
+
+        {/* Topics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Tag className="h-5 w-5 mr-2" />
+              Topics & Categories
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label htmlFor="topics">Event Topics (Optional)</Label>
+              <Input 
+                id="topics"
+                name="topics"
+                value={formData.topics}
+                onChange={handleInputChange}
+                placeholder="Architecture, Engineering, Urban Planning, Sustainability"
+                className="mt-1"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Comma-separated topics to help with discoverability. You'll create detailed categories later.
+              </p>
             </div>
-            {form.formState.errors.description && (
-              <p className="text-red-500 text-sm mt-1">{form.formState.errors.description.message}</p>
-            )}
-          </div>
-        </motion.section>
-        
-        {/* Topics Section - New */}
-        <motion.section 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-          className="bg-white rounded-lg p-6 shadow-sm"
-        >
-          <h2 className="text-xl font-bold mb-3">Event Topics</h2>
-          <p className="text-gray-500 text-sm mb-4">
-            Add topics to help attendees find your event (comma-separated).
-          </p>
-          
-          <div className="flex items-center gap-2 text-gray-600 mb-4">
-            <Tag className="h-5 w-5" />
-            <span className="font-medium">Add relevant topics to improve discoverability</span>
-          </div>
-          
-          <Input 
-            name="topics"
-            value={formData.topics}
-            onChange={handleInputChange}
-            placeholder="AI, Machine Learning, Web Development"
-            className="w-full p-3"
-          />
-          <p className="text-xs text-gray-500 mt-2">
-            Example: Technology, Business, Healthcare, Education
-          </p>
-        </motion.section>
-        
-        {/* Buttons */}
-        <div className="flex justify-between items-center pt-4 mb-4">
-          <Button 
+          </CardContent>
+        </Card>
+
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-6">
+          <Button
             type="button"
-            variant="outline" 
-            onClick={handleCancel}
+            variant="outline"
+            onClick={() => router.push('/organizer/events')}
             disabled={isLoading || isSavingDraft}
-            className="border cursor-pointer min-w-[120px]"
           >
             Cancel
           </Button>
           
-          <div className="flex space-x-4">
+          <div className="flex gap-3">
             <Button 
               type="button"
               variant="outline"
               onClick={handleSaveDraft}
               disabled={isLoading || isSavingDraft}
-              className="border cursor-pointer min-w-[120px]"
             >
               {isSavingDraft ? (
-                <>
+                <div className="flex items-center">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...
-                </>
+                </div>
               ) : (
                 "Save Draft"
               )}
@@ -580,20 +636,96 @@ export default function CreateEventPage() {
             <Button 
               type="submit"
               disabled={isLoading || isSavingDraft}
-              className="border bg-primary-700 text-white hover:bg-primary-700 cursor-pointer min-w-[120px]"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               {isLoading ? (
-                <>
+                <div className="flex items-center">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creating...
-                </>
+                </div>
               ) : (
-                "Create Event"
+                <div className="flex items-center">
+                  Create Event & Setup Sessions
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </div>
               )}
             </Button>
           </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+// Workflow step component
+function WorkflowStep({
+  number,
+  title,
+  description,
+  status,
+  icon
+}: {
+  number: number;
+  title: string;
+  description: string;
+  status: 'current' | 'upcoming' | 'completed';
+  icon: React.ReactNode;
+}) {
+  const getStepStyling = () => {
+    switch (status) {
+      case 'current':
+        return 'border-blue-300 bg-blue-50';
+      case 'completed':
+        return 'border-green-300 bg-green-50';
+      case 'upcoming':
+        return 'border-gray-200 bg-gray-50';
+    }
+  };
+
+  const getNumberStyling = () => {
+    switch (status) {
+      case 'current':
+        return 'bg-blue-600 text-white';
+      case 'completed':
+        return 'bg-green-600 text-white';
+      case 'upcoming':
+        return 'bg-gray-300 text-gray-600';
+    }
+  };
+
+  return (
+    <div className={`relative p-4 rounded-lg border ${getStepStyling()}`}>
+      <div className="flex items-start space-x-3">
+        <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${getNumberStyling()}`}>
+          {status === 'completed' ? <CheckCircle className="h-4 w-4" /> : number}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2">
+            {icon}
+            <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
+          </div>
+          <p className="text-xs text-gray-600 mt-1">{description}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <Skeleton className="h-10 w-64 mb-6" />
+      <Card className="p-8">
+        <div className="space-y-8">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-16 w-full" />
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+          <Skeleton className="h-12 w-full" />
+        </div>
+      </Card>
     </div>
   );
 }

@@ -4,6 +4,8 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   
+  console.log('[MIDDLEWARE] Processing:', pathname);
+  
   // Don't intercept API routes, static files, or auth-check page itself
   if (
     pathname.startsWith('/api') ||
@@ -19,11 +21,21 @@ export function middleware(request: NextRequest) {
   const isDashboardRoute = pathname.startsWith('/organizer') || pathname.startsWith('/attendee');
   
   if (isDashboardRoute) {
-    // Redirect to auth-check with the original path
+    // NEW: Check for authentication tokens in cookies/headers
+    const authToken = request.cookies.get('CognitoIdentityServiceProvider.idToken');
+    const sessionToken = request.cookies.get('amplify-signin-with-hostedUI');
+    
+    // If user appears to be authenticated, let them through
+    if (authToken || sessionToken) {
+      console.log('[MIDDLEWARE] User appears authenticated, allowing access to:', pathname);
+      return NextResponse.next();
+    }
+    
+    // Only redirect if no auth tokens found
     const authCheckUrl = new URL('/auth-check', request.url);
     authCheckUrl.searchParams.set('redirect', pathname);
     
-    console.log('[MIDDLEWARE] Intercepting dashboard route:', pathname, '-> auth-check');
+    console.log('[MIDDLEWARE] No auth found, redirecting:', pathname, '-> auth-check');
     return NextResponse.redirect(authCheckUrl);
   }
   
