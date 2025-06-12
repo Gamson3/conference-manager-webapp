@@ -21,6 +21,8 @@ import favoriteRoutes from "./routes/favoriteRoutes";
 import presentationRoutes from "./routes/presentationRoutes";
 import attendeeRoutes from "./routes/attendeeRoutes";
 import scheduleRoutes from "./routes/scheduleRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
+import presentationTypeRoutes from "./routes/presentationTypeRoutes";
 
 
 
@@ -52,6 +54,8 @@ app.use("/search", searchRoutes);
 app.use("/favorites", favoriteRoutes);
 app.use("/api", presentationRoutes);
 app.use("/api/attendee", attendeeRoutes);
+app.use("/api", categoryRoutes);
+app.use("/api", presentationTypeRoutes);
 
 
 

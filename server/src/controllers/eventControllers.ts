@@ -8,7 +8,8 @@ export const createEvent = async (req: Request, res: Response) => {
     const {
       name, description, startDate, endDate, location, createdById,
       capacity, registrationDeadline, isPublic, timezone, registrationFee,
-      websiteUrl, venue, venueAddress, organizerNotes, bannerImageUrl, topics
+      websiteUrl, venue, venueAddress, organizerNotes, bannerImageUrl, topics,
+      workflowStep, workflowStatus // Add these fields
     } = req.body;
 
     const event = await prisma.conference.create({
@@ -19,24 +20,26 @@ export const createEvent = async (req: Request, res: Response) => {
         endDate: new Date(endDate),
         location,
         createdById,
-        // New fields
         capacity: capacity ? Number(capacity) : null,
         registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : null,
         isPublic: isPublic !== undefined ? isPublic : true,
         timezone,
-        // registrationFee: registrationFee ? parseFloat(registrationFee) : null,
         websiteUrl,
         venue,
         venueAddress,
         organizerNotes,
         bannerImageUrl,
         topics: topics || [],
-        status: 'draft'
+        // Add workflow tracking fields
+        workflowStep: workflowStep || 1,
+        workflowStatus: workflowStatus || 'draft',
+        status: 'draft', // Always start as draft until published
       },
     });
 
     res.status(201).json(event);
   } catch (error: any) {
+    console.error("Error creating event:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -166,6 +169,47 @@ export const updateEventDraft = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error updating draft:", error);
     res.status(500).json({ message: "Failed to update draft" });
+  }
+};
+
+// Add workflow progress update endpoint
+export const updateWorkflowProgress = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { workflowStep, workflowStatus } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    // Verify ownership
+    const conference = await prisma.conference.findFirst({
+      where: {
+        id: Number(id),
+        createdById: Number(userId),
+      },
+    });
+
+    if (!conference) {
+      res.status(404).json({ message: "Conference not found or not authorized" });
+      return;
+    }
+
+    const updatedConference = await prisma.conference.update({
+      where: { id: Number(id) },
+      data: {
+        workflowStep: Number(workflowStep),
+        workflowStatus,
+        updatedAt: new Date(),
+      },
+    });
+
+    res.json(updatedConference);
+  } catch (error: any) {
+    console.error("Error updating workflow progress:", error);
+    res.status(500).json({ message: "Failed to update workflow progress" });
   }
 };
 

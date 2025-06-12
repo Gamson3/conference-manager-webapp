@@ -17,6 +17,7 @@ import {
   validateConferenceForPublishing,
   publishConference,
   unpublishConference,
+  updateWorkflowProgress,
 } from "../controllers/eventControllers";
 import { authMiddleware } from "../middleware/authMiddleware";
 
@@ -43,5 +44,8 @@ router.get("/:id/abstracts", authMiddleware(["organizer", "admin"]), getEventAbs
 router.get("/:id/publish-validation", authMiddleware(["organizer", "admin"]), validateConferenceForPublishing);
 router.post("/:id/publish", authMiddleware(["organizer", "admin"]), publishConference);
 router.post("/:id/unpublish", authMiddleware(["organizer", "admin"]), unpublishConference);
+
+// Add new workflow progress route
+router.put("/:id/workflow", authMiddleware(["organizer", "admin"]), updateWorkflowProgress);
 
 export default router;

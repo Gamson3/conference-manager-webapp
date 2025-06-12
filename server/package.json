@@ -10,7 +10,8 @@
     "clear:seed": "ts-node prisma/clear-seed.ts",
     "seed:full": "ts-node prisma/seed-full-conference.ts",
     "prisma:generate": "prisma generate",
-    "postprisma:generate": "shx cp -r node_modules/.prisma/client/index.d.ts ../client/src/types/prismaTypes.d.ts"
+    "postprisma:generate": "shx cp -r node_modules/.prisma/client/index.d.ts ../client/src/types/prismaTypes.d.ts",
+    "db:reset": "npx prisma migrate reset --force && npx prisma migrate dev && npm prisma:generate"
   },
   "keywords": [],
   "author": "",
