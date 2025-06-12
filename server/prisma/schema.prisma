@@ -598,19 +598,51 @@ model PresenterConflict {
 model SubmissionSettings {
   id                   Int      @id @default(autoincrement())
   conferenceId         Int      @unique
+    
+  // Deadline Settings
   submissionDeadline   DateTime
   allowLateSubmissions Boolean  @default(false)
+  
+  // Abstract Requirements
   requireAbstract      Boolean  @default(true)
   maxAbstractLength    Int      @default(500)
+  
+  // File Requirements
   requireFullPaper     Boolean  @default(true)
-  allowedFileTypes     String[] // ['pdf', 'doc', 'docx']
-  maxFileSize          Int      @default(10) // in MB
-  reviewProcess        String   @default("manual") // 'automatic' | 'manual' | 'peer_review'
+  allowedFileTypes     String[] @default(["pdf", "doc", "docx"]) // Only PDF and Word
+  maxFileSize          Int      @default(50) // 50MB for documents
+  
+  // Author Requirements
   requireAuthorBio     Boolean  @default(true)
   requireAffiliation   Boolean  @default(true)
-  notificationEmails   String[] // email addresses
-  submissionGuidelines String?
+  maxCoAuthors         Int      @default(10) // NEW: Limit co-authors
+  requirePresenterDesignation Boolean @default(true) // NEW: Must specify who presents
+  
+  // Presentation Requirements
+  requireKeywords      Boolean  @default(true)
+  minKeywords          Int      @default(5) // NEW: Minimum keywords required
+  maxKeywords          Int      @default(15) // NEW: Maximum keywords allowed
+  requirePresentationType Boolean @default(true) // NEW: Must select presentation type
+  allowDurationRequest Boolean  @default(false) // NEW: Can presenters request duration?
+  
+  // Submission Process
+  reviewProcess        String   @default("manual") // 'automatic' | 'manual' | 'peer_review'
   enableSubmissions    Boolean  @default(true)
+  allowMultipleSubmissions Boolean @default(false) // NEW: Can one presenter submit multiple?
+  requireConsentToTerms Boolean @default(true) // NEW: Must agree to terms
+  
+  // Guidelines and Instructions
+  submissionGuidelines String?
+  authorGuidelines     String? // NEW: Specific guidelines for authors
+  presentationGuidelines String? // NEW: Guidelines for presentations
+  reviewCriteria       String? // NEW: What reviewers will look for
+  
+  // Notification Settings
+  notificationEmails   String[]
+  sendConfirmationEmail Boolean @default(true) // NEW: Send confirmation on submission
+  sendStatusUpdates    Boolean @default(true) // NEW: Send status change emails
+  
+  // Metadata
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 

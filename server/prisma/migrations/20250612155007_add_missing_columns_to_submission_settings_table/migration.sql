@@ -1,0 +1,17 @@
+-- AlterTable
+ALTER TABLE "submission_settings" ADD COLUMN     "allowDurationRequest" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "allowMultipleSubmissions" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "authorGuidelines" TEXT,
+ADD COLUMN     "maxCoAuthors" INTEGER NOT NULL DEFAULT 10,
+ADD COLUMN     "maxKeywords" INTEGER NOT NULL DEFAULT 15,
+ADD COLUMN     "minKeywords" INTEGER NOT NULL DEFAULT 5,
+ADD COLUMN     "presentationGuidelines" TEXT,
+ADD COLUMN     "requireConsentToTerms" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "requireKeywords" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "requirePresentationType" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "requirePresenterDesignation" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "reviewCriteria" TEXT,
+ADD COLUMN     "sendConfirmationEmail" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "sendStatusUpdates" BOOLEAN NOT NULL DEFAULT true,
+ALTER COLUMN "allowedFileTypes" SET DEFAULT ARRAY['pdf', 'doc', 'docx']::TEXT[],
+ALTER COLUMN "maxFileSize" SET DEFAULT 50;

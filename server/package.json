@@ -9,6 +9,7 @@
     "seed": "ts-node prisma/seed.ts",
     "clear:seed": "ts-node prisma/clear-seed.ts",
     "seed:full": "ts-node prisma/seed-full-conference.ts",
+    "seed:presentations": "npx tsx prisma/seed-presentations",
     "prisma:generate": "prisma generate",
     "postprisma:generate": "shx cp -r node_modules/.prisma/client/index.d.ts ../client/src/types/prismaTypes.d.ts",
     "db:reset": "npx prisma migrate reset --force && npx prisma migrate dev && npm prisma:generate"

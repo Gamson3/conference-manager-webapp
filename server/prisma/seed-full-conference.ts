@@ -8,7 +8,7 @@ async function main() {
 
   // Clear existing data in the correct order (delete child records first)
   // console.log('🧹 Clearing existing data...');
-  
+
   // // Delete data in dependency order (children first, then parents)
   // await prisma.presentationFavorite.deleteMany({});
   // await prisma.conferenceFavorite.deleteMany({});
@@ -533,307 +533,307 @@ Join us for three days of inspiring presentations, workshops, and networking opp
   // 6. Create authors for presentations (using correct field names from schema)
   const authorAssignments = [
     // Opening Keynote - External speaker
-    { 
-      presentationId: createdPresentations[0].id, 
-      authorData: { 
-        name: 'Dr. Geoffrey Hinton', 
-        email: 'hinton@deepmind.com', 
+    {
+      presentationId: createdPresentations[0].id,
+      authorData: {
+        name: 'Dr. Geoffrey Hinton',
+        email: 'hinton@deepmind.com',
         affiliation: 'Google DeepMind',
         title: 'Dr.',
         bio: 'Pioneer in deep learning and artificial neural networks, often called the "Godfather of AI".',
         country: 'Canada'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    
+
     // ML Foundations presentations
-    { 
-      presentationId: createdPresentations[1].id, 
-      authorData: { 
-        name: organizer1.name, 
-        email: organizer1.email, 
-        affiliation: organizer1.organization, 
-        userId: organizer1.id 
-      }, 
-      isPresenter: true, 
-      order: 1 
+    {
+      presentationId: createdPresentations[1].id,
+      authorData: {
+        name: organizer1.name,
+        email: organizer1.email,
+        affiliation: organizer1.organization,
+        userId: organizer1.id
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[1].id, 
-      authorData: { 
-        name: 'Dr. Jane Smith', 
-        email: 'jane.smith@university.edu', 
+    {
+      presentationId: createdPresentations[1].id,
+      authorData: {
+        name: 'Dr. Jane Smith',
+        email: 'jane.smith@university.edu',
         affiliation: 'Stanford University',
         title: 'Dr.'
-      }, 
-      isPresenter: false, 
-      order: 2 
+      },
+      isPresenter: false,
+      order: 2
     },
-    
-    { 
-      presentationId: createdPresentations[2].id, 
-      authorData: { 
-        name: 'Dr. Yann LeCun', 
-        email: 'lecun@nyu.edu', 
+
+    {
+      presentationId: createdPresentations[2].id,
+      authorData: {
+        name: 'Dr. Yann LeCun',
+        email: 'lecun@nyu.edu',
         affiliation: 'New York University & Meta',
         title: 'Dr.',
         bio: 'Turing Award winner and Chief AI Scientist at Meta, known for convolutional neural networks.',
         country: 'USA'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[2].id, 
-      authorData: { 
-        name: attendees[0].name, 
-        email: attendees[0].email, 
-        affiliation: attendees[0].organization, 
-        userId: attendees[0].id 
-      }, 
-      isPresenter: false, 
-      order: 2 
+    {
+      presentationId: createdPresentations[2].id,
+      authorData: {
+        name: attendees[0].name,
+        email: attendees[0].email,
+        affiliation: attendees[0].organization,
+        userId: attendees[0].id
+      },
+      isPresenter: false,
+      order: 2
     },
-    
-    { 
-      presentationId: createdPresentations[3].id, 
-      authorData: { 
-        name: organizer2.name, 
-        email: organizer2.email, 
-        affiliation: organizer2.organization, 
-        userId: organizer2.id 
-      }, 
-      isPresenter: true, 
-      order: 1 
+
+    {
+      presentationId: createdPresentations[3].id,
+      authorData: {
+        name: organizer2.name,
+        email: organizer2.email,
+        affiliation: organizer2.organization,
+        userId: organizer2.id
+      },
+      isPresenter: true,
+      order: 1
     },
-    
+
     // NLP Workshop
-    { 
-      presentationId: createdPresentations[4].id, 
-      authorData: { 
-        name: 'Dr. Fei-Fei Li', 
-        email: 'feifeili@stanford.edu', 
+    {
+      presentationId: createdPresentations[4].id,
+      authorData: {
+        name: 'Dr. Fei-Fei Li',
+        email: 'feifeili@stanford.edu',
         affiliation: 'Stanford University',
         title: 'Dr.',
         bio: 'Leading researcher in computer vision and AI, co-director of Human-Centered AI Institute.',
         country: 'USA'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[4].id, 
-      authorData: { 
-        name: 'Dr. Maria Garcia', 
-        email: 'maria.garcia@tech.com', 
+    {
+      presentationId: createdPresentations[4].id,
+      authorData: {
+        name: 'Dr. Maria Garcia',
+        email: 'maria.garcia@tech.com',
         affiliation: 'Google Research',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 2 
+      },
+      isPresenter: true,
+      order: 2
     },
-    
-    { 
-      presentationId: createdPresentations[5].id, 
-      authorData: { 
-        name: attendees[1].name, 
-        email: attendees[1].email, 
-        affiliation: attendees[1].organization, 
-        userId: attendees[1].id 
-      }, 
-      isPresenter: true, 
-      order: 1 
+
+    {
+      presentationId: createdPresentations[5].id,
+      authorData: {
+        name: attendees[1].name,
+        email: attendees[1].email,
+        affiliation: attendees[1].organization,
+        userId: attendees[1].id
+      },
+      isPresenter: true,
+      order: 1
     },
-    
-    { 
-      presentationId: createdPresentations[6].id, 
-      authorData: { 
-        name: 'Dr. Ahmed Hassan', 
-        email: 'ahmed.hassan@university.edu', 
+
+    {
+      presentationId: createdPresentations[6].id,
+      authorData: {
+        name: 'Dr. Ahmed Hassan',
+        email: 'ahmed.hassan@university.edu',
         affiliation: 'MIT',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    
+
     // Deep Learning presentations
-    { 
-      presentationId: createdPresentations[7].id, 
-      authorData: { 
-        name: 'Dr. Yoshua Bengio', 
-        email: 'bengio@mila.quebec', 
+    {
+      presentationId: createdPresentations[7].id,
+      authorData: {
+        name: 'Dr. Yoshua Bengio',
+        email: 'bengio@mila.quebec',
         affiliation: 'University of Montreal',
         title: 'Dr.',
         bio: 'Turing Award winner and scientific director of Mila - Quebec AI Institute.',
         country: 'Canada'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[8].id, 
-      authorData: { 
-        name: attendees[2].name, 
-        email: attendees[2].email, 
-        affiliation: attendees[2].organization, 
-        userId: attendees[2].id 
-      }, 
-      isPresenter: true, 
-      order: 1 
+    {
+      presentationId: createdPresentations[8].id,
+      authorData: {
+        name: attendees[2].name,
+        email: attendees[2].email,
+        affiliation: attendees[2].organization,
+        userId: attendees[2].id
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[9].id, 
-      authorData: { 
-        name: 'Dr. Andrew Ng', 
-        email: 'ang@stanford.edu', 
+    {
+      presentationId: createdPresentations[9].id,
+      authorData: {
+        name: 'Dr. Andrew Ng',
+        email: 'ang@stanford.edu',
         affiliation: 'Stanford University',
         title: 'Dr.',
         bio: 'Co-founder of Coursera, former head of Baidu AI Group and Google Brain, pioneer in online education for AI.',
         country: 'USA'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    
+
     // Computer Vision Panel
-    { 
-      presentationId: createdPresentations[10].id, 
-      authorData: { 
-        name: 'Dr. Fei-Fei Li', 
-        email: 'feifeili@stanford.edu', 
+    {
+      presentationId: createdPresentations[10].id,
+      authorData: {
+        name: 'Dr. Fei-Fei Li',
+        email: 'feifeili@stanford.edu',
         affiliation: 'Stanford University',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[10].id, 
-      authorData: { 
-        name: 'Dr. Alex Thompson', 
-        email: 'alex.thompson@nvidia.com', 
+    {
+      presentationId: createdPresentations[10].id,
+      authorData: {
+        name: 'Dr. Alex Thompson',
+        email: 'alex.thompson@nvidia.com',
         affiliation: 'NVIDIA Research',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 2 
+      },
+      isPresenter: true,
+      order: 2
     },
-    { 
-      presentationId: createdPresentations[10].id, 
-      authorData: { 
-        name: 'Dr. Lisa Wang', 
-        email: 'lisa.wang@microsoft.com', 
+    {
+      presentationId: createdPresentations[10].id,
+      authorData: {
+        name: 'Dr. Lisa Wang',
+        email: 'lisa.wang@microsoft.com',
         affiliation: 'Microsoft Research',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 3 
+      },
+      isPresenter: true,
+      order: 3
     },
-    
+
     // Robotics presentations
-    { 
-      presentationId: createdPresentations[11].id, 
-      authorData: { 
-        name: 'Dr. Robert Kim', 
-        email: 'robert.kim@robotics.edu', 
+    {
+      presentationId: createdPresentations[11].id,
+      authorData: {
+        name: 'Dr. Robert Kim',
+        email: 'robert.kim@robotics.edu',
         affiliation: 'Carnegie Mellon University',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[12].id, 
-      authorData: { 
-        name: 'Dr. Emily Zhang', 
-        email: 'emily.zhang@tesla.com', 
+    {
+      presentationId: createdPresentations[12].id,
+      authorData: {
+        name: 'Dr. Emily Zhang',
+        email: 'emily.zhang@tesla.com',
         affiliation: 'Tesla AI',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[13].id, 
-      authorData: { 
-        name: 'Dr. David Brown', 
-        email: 'david.brown@manufacturing.com', 
+    {
+      presentationId: createdPresentations[13].id,
+      authorData: {
+        name: 'Dr. David Brown',
+        email: 'david.brown@manufacturing.com',
         affiliation: 'Boston Dynamics',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    
+
     // Ethics Keynote
-    { 
-      presentationId: createdPresentations[14].id, 
-      authorData: { 
-        name: 'Dr. Timnit Gebru', 
-        email: 'timnit@dair-institute.org', 
+    {
+      presentationId: createdPresentations[14].id,
+      authorData: {
+        name: 'Dr. Timnit Gebru',
+        email: 'timnit@dair-institute.org',
         affiliation: 'DAIR Institute',
         title: 'Dr.'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    
+
     // Future Panel
-    { 
-      presentationId: createdPresentations[15].id, 
-      authorData: { 
-        name: 'Satya Nadella', 
-        email: 'satya@microsoft.com', 
+    {
+      presentationId: createdPresentations[15].id,
+      authorData: {
+        name: 'Satya Nadella',
+        email: 'satya@microsoft.com',
         affiliation: 'Microsoft'
-      }, 
-      isPresenter: true, 
-      order: 1 
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[15].id, 
-      authorData: { 
-        name: 'Sundar Pichai', 
-        email: 'sundar@google.com', 
+    {
+      presentationId: createdPresentations[15].id,
+      authorData: {
+        name: 'Sundar Pichai',
+        email: 'sundar@google.com',
         affiliation: 'Google'
-      }, 
-      isPresenter: true, 
-      order: 2 
+      },
+      isPresenter: true,
+      order: 2
     },
-    { 
-      presentationId: createdPresentations[15].id, 
-      authorData: { 
-        name: 'Sam Altman', 
-        email: 'sam@openai.com', 
+    {
+      presentationId: createdPresentations[15].id,
+      authorData: {
+        name: 'Sam Altman',
+        email: 'sam@openai.com',
         affiliation: 'OpenAI'
-      }, 
-      isPresenter: true, 
-      order: 3 
+      },
+      isPresenter: true,
+      order: 3
     },
-    
+
     // Closing Session
-    { 
-      presentationId: createdPresentations[16].id, 
-      authorData: { 
-        name: organizer1.name, 
-        email: organizer1.email, 
-        affiliation: organizer1.organization, 
-        userId: organizer1.id 
-      }, 
-      isPresenter: true, 
-      order: 1 
+    {
+      presentationId: createdPresentations[16].id,
+      authorData: {
+        name: organizer1.name,
+        email: organizer1.email,
+        affiliation: organizer1.organization,
+        userId: organizer1.id
+      },
+      isPresenter: true,
+      order: 1
     },
-    { 
-      presentationId: createdPresentations[16].id, 
-      authorData: { 
-        name: organizer2.name, 
-        email: organizer2.email, 
-        affiliation: organizer2.organization, 
-        userId: organizer2.id 
-      }, 
-      isPresenter: true, 
-      order: 2 
+    {
+      presentationId: createdPresentations[16].id,
+      authorData: {
+        name: organizer2.name,
+        email: organizer2.email,
+        affiliation: organizer2.organization,
+        userId: organizer2.id
+      },
+      isPresenter: true,
+      order: 2
     }
   ];
 
