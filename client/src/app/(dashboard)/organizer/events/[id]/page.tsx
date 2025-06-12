@@ -39,6 +39,13 @@ import { toast } from "sonner";
 import { createAuthenticatedApi } from "@/lib/utils";
 import { format } from "date-fns";
 import ConferencePublishDialog from "@/components/ConferencePublishDialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@radix-ui/react-dropdown-menu";
 
 interface EventDetails {
   id: number;
@@ -133,22 +140,41 @@ export default function EventDetailPage() {
   };
 
   const handleDeleteEvent = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this event? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
+    // Enhanced confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${event?.name}"?\n\n` +
+        `This will permanently delete:\n` +
+        `• ${event?.sections?.length || 0} sessions\n` +
+        `• ${event?.categories?.length || 0} categories\n` +
+        `• ${event?.presentationTypes?.length || 0} presentation types\n` +
+        `• ${submissions.length} submissions\n` +
+        `• ${attendees.length} attendee registrations\n\n` +
+        `This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
 
     try {
+      setLoading(true);
       const api = await createAuthenticatedApi();
+
       await api.delete(`/events/${eventId}`);
+
       toast.success("Event deleted successfully");
       router.push("/organizer/events");
     } catch (error: any) {
       console.error("Error deleting event:", error);
-      toast.error("Failed to delete event");
+
+      if (error.response?.status === 403) {
+        toast.error("You do not have permission to delete this event");
+      } else if (error.response?.status === 404) {
+        toast.error("Event not found");
+        router.push("/organizer/events");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to delete event");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -230,14 +256,14 @@ export default function EventDetailPage() {
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">{event.name}</h1>
+              <h1 className="text-3xl font-bold mb-3">{event.name}</h1>
               <Badge className={`px-3 py-1 ${getStatusColor(event.status)}`}>
                 {event.status.replace("_", " ").toUpperCase()}
               </Badge>
             </div>
-            <p className="text-gray-700 mb-4 max-w-2xl">{event.description}</p>
+            <p className="text-gray-700 mb-4 mt-4">{event.description}</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mt-4">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary-600" />
                 <span>
@@ -249,44 +275,44 @@ export default function EventDetailPage() {
                 <MapPin className="h-4 w-4 text-primary-600" />
                 <span>{event.location}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary-600" />
-                <span>{event._count?.attendances || 0} attendees</span>
+
+              {/* Simplified Header Actions */}
+              <div className="flex gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPublishDialog(true)}
+                >
+                  {event.status === "published" ? (
+                    <>
+                      <EyeOff className="h-4 w-4 mr-2" />
+                      Unpublish
+                    </>
+                  ) : (
+                    <>
+                      <Globe className="h-4 w-4 mr-2" />
+                      Publish
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    router.push(`/organizer/create-event?eventId=${eventId}`)
+                  }
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDeleteEvent}
+                  className="text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Event
+                </Button>
               </div>
             </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => router.push(`/organizer/events/${eventId}/edit`)}
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowPublishDialog(true)}
-            >
-              {event.status === "published" ? (
-                <>
-                  <EyeOff className="h-4 w-4 mr-2" />
-                  Unpublish
-                </>
-              ) : (
-                <>
-                  <Globe className="h-4 w-4 mr-2" />
-                  Publish
-                </>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleDeleteEvent}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </div>
@@ -348,6 +374,170 @@ export default function EventDetailPage() {
         </Card>
       </div>
 
+      {/* Action Buttons Section - Add this after Quick Stats */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Conference Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Schedule Builder */}
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-blue-50 border-blue-200"
+              onClick={() =>
+                router.push(`/organizer/events/${eventId}/schedule-builder`)
+              }
+            >
+              <Calendar className="h-6 w-6 text-blue-600" />
+              <div className="text-center">
+                <div className="font-medium">Schedule Builder</div>
+                <div className="text-xs text-gray-500">
+                  Build conference schedule
+                </div>
+              </div>
+            </Button>
+
+            {/* Edit Event (Workflow) */}
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-purple-50 border-purple-200"
+              onClick={() => {
+                // Determine which step to redirect to based on workflow
+                if (event.workflowStep === 1) {
+                  router.push(`/organizer/create-event?eventId=${eventId}`);
+                } else if (event.workflowStep === 2) {
+                  router.push(
+                    `/organizer/create-event/sessions?eventId=${eventId}`
+                  );
+                } else if (event.workflowStep === 3) {
+                  router.push(
+                    `/organizer/create-event/categories?eventId=${eventId}`
+                  );
+                } else if (event.workflowStep === 4) {
+                  router.push(
+                    `/organizer/create-event/publish?eventId=${eventId}`
+                  );
+                } else {
+                  // Default to first step if no workflow step
+                  router.push(`/organizer/create-event?eventId=${eventId}`);
+                }
+              }}
+            >
+              <Edit className="h-6 w-6 text-purple-600" />
+              <div className="text-center">
+                <div className="font-medium">Edit Event</div>
+                <div className="text-xs text-gray-500">
+                  Modify event details
+                </div>
+              </div>
+            </Button>
+
+            {/* Review Submissions */}
+            <Button
+              variant="outline"
+              className={`h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 border-orange-200 ${
+                submissions.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              onClick={() => {
+                if (submissions.length > 0) {
+                  router.push(`/organizer/events/${eventId}/submissions`);
+                } else {
+                  toast.info("No submissions to review yet");
+                }
+              }}
+              disabled={submissions.length === 0}
+            >
+              <FileText className="h-6 w-6 text-orange-600" />
+              <div className="text-center">
+                <div className="font-medium">Review Submissions</div>
+                <div className="text-xs text-gray-500">
+                  {submissions.length} pending review
+                </div>
+              </div>
+            </Button>
+
+            {/* Manage Attendees */}
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-green-50 border-green-200"
+              onClick={() =>
+                router.push(`/organizer/events/${eventId}/attendees`)
+              }
+            >
+              <Users className="h-6 w-6 text-green-600" />
+              <div className="text-center">
+                <div className="font-medium">Manage Attendees</div>
+                <div className="text-xs text-gray-500">
+                  {attendees.length} registered
+                </div>
+              </div>
+            </Button>
+
+            {/* Session Management */}
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-indigo-50 border-indigo-200"
+              onClick={() =>
+                router.push(`/organizer/events/${eventId}/sessions`)
+              }
+            >
+              <Clock className="h-6 w-6 text-indigo-600" />
+              <div className="text-center">
+                <div className="font-medium">Manage Sessions</div>
+                <div className="text-xs text-gray-500">
+                  {event.sections?.length || 0} sessions
+                </div>
+              </div>
+            </Button>
+
+            {/* Event Analytics */}
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-teal-50 border-teal-200"
+              onClick={() =>
+                router.push(`/organizer/events/${eventId}/analytics`)
+              }
+            >
+              <BarChart3 className="h-6 w-6 text-teal-600" />
+              <div className="text-center">
+                <div className="font-medium">Analytics</div>
+                <div className="text-xs text-gray-500">View insights</div>
+              </div>
+            </Button>
+
+            {/* Export Data */}
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-gray-50 border-gray-200"
+              onClick={() => {
+                // Add export functionality
+                toast.info("Export functionality coming soon");
+              }}
+            >
+              <Download className="h-6 w-6 text-gray-600" />
+              <div className="text-center">
+                <div className="font-medium">Export Data</div>
+                <div className="text-xs text-gray-500">Download reports</div>
+              </div>
+            </Button>
+
+            {/* Delete Event */}
+            <Button
+              variant="outline"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-red-50 border-red-200 text-red-600"
+              onClick={handleDeleteEvent}
+            >
+              <Trash2 className="h-6 w-6 text-red-600" />
+              <div className="text-center">
+                <div className="font-medium">Delete Event</div>
+                <div className="text-xs text-gray-500">Permanent deletion</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Workflow Status */}
       {event.workflowStep && event.workflowStep < 4 && (
         <Alert className="mb-6 border-blue-200 bg-blue-50">
@@ -387,7 +577,6 @@ export default function EventDetailPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-6">
-
           {/* Configuration Details - NEW SECTION */}
           <Card className="mb-6">
             <CardHeader>
