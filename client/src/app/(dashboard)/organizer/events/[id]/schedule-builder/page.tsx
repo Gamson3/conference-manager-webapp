@@ -305,7 +305,7 @@ export default function ScheduleBuilderPage() {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => router.push(`/organizer/events/${conferenceId}/sessions`)}
+              onClick={() => router.push(`/organizer/create-event/sessions?eventId=${conferenceId}`)}
             >
               Manage Sessions
             </Button>
