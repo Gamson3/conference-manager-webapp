@@ -154,6 +154,7 @@ model Conference {
   feedback            ConferenceFeedback[]
   materials           ConferenceMaterial[]
   abstractSubmissions AbstractSubmission[]
+  presentations Presentation[]
 
   // ADD these two lines to your existing Conference model:
   categories       Category[]
@@ -272,8 +273,8 @@ model Presentation {
 
   status         PresentationStatus
   submissionType SubmissionType
-  sectionId      Int
-  section        Section            @relation(fields: [sectionId], references: [id])
+  sectionId      Int?
+  section        Section?           @relation(fields: [sectionId], references: [id])
   createdAt      DateTime           @default(now())
   lockedById     Int?
   lockedBy       User?              @relation("LockedByUser", fields: [lockedById], references: [id])
@@ -287,6 +288,7 @@ model Presentation {
   feedback          PresentationFeedback[]
 
   // ADD these fields to your existing Presentation model:
+  conferenceId       Int
   categoryId         Int?
   presentationTypeId Int?
   requestedDuration  Int?
@@ -297,6 +299,7 @@ model Presentation {
   // ADD these relations to your existing Presentation model:
   category         Category?         @relation("PresentationCategory", fields: [categoryId], references: [id])
   presentationType PresentationType? @relation("PresentationTypeRelation", fields: [presentationTypeId], references: [id])
+  conference   Conference @relation(fields: [conferenceId], references: [id]) 
 
   // ADD this relation:
   timeSlot TimeSlot?

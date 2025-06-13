@@ -717,10 +717,9 @@ export const getConferenceWithPeople = async (req: Request, res: Response): Prom
 // Discover conferences (public conferences)
 export const discoverConferences = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { page = 1, limit = 10, search, topics, status } = req.query;
+    const { page = 1, limit = 10, search, topics, status, includeCallForPapers = false } = req.query;
     
-    // GET OPTIONAL USER INFO (if authenticated) from optional auth middleware
-    const cognitoId = getUserCognitoId(req); // This will return null for guest users
+    const cognitoId = getUserCognitoId(req);
     let userId = null;
     
     if (cognitoId) {
@@ -734,9 +733,18 @@ export const discoverConferences = async (req: Request, res: Response): Promise<
     const now = new Date();
     
     let whereClause: any = {
-      status: 'published',   // Only show published conferences
-      endDate: { gte: now }  // Exclude conferences that have already ended
+      isPublic: true,
+      endDate: { gte: now }
     };
+
+    // Handle status filtering - include call_for_papers if requested
+    if (includeCallForPapers === 'true' || status === 'call_for_papers') {
+      whereClause.status = {
+        in: ['published', 'call_for_papers']
+      };
+    } else {
+      whereClause.status = 'published';
+    }
 
     if (search) {
       whereClause.OR = [
@@ -746,29 +754,11 @@ export const discoverConferences = async (req: Request, res: Response): Promise<
       ];
     }
 
-    if (topics) {
-      const topicsArray = (topics as string).split(',');
+    if (topics && typeof topics === 'string') {
+      const topicArray = topics.split(',').map(t => t.trim());
       whereClause.topics = {
-        hasSome: topicsArray
+        hasSome: topicArray
       };
-    }
-
-    if (status) {
-      if (status === 'upcoming') {
-        whereClause.startDate = { gt: now };
-        // Remove the endDate filter for upcoming since we already filter by startDate
-        delete whereClause.endDate;
-      } else if (status === 'ongoing') {
-        whereClause.AND = [
-          { startDate: { lte: now } },
-          { endDate: { gte: now } }
-        ];
-        // Remove the default endDate filter
-        delete whereClause.endDate;
-      } else if (status === 'past') {
-        // Only show past conferences if explicitly requested
-        whereClause.endDate = { lt: now };
-      }
     }
 
     const [conferences, total] = await Promise.all([
@@ -782,19 +772,17 @@ export const discoverConferences = async (req: Request, res: Response): Promise<
               organization: true
             }
           },
-          // // Include attendances only if user is authenticated
-          // ...(userId && {
-          //   attendances: {
-          //     where: { userId },
-          //     select: { id: true }
-          //   }
-          // }),
+          submissionSettings: {
+            select: {
+              submissionDeadline: true,
+              allowLateSubmissions: true
+            }
+          },
           _count: {
             select: {
               attendances: true
             }
           },
-          // Always include attendances for authenticated users
           attendances: userId ? {
             where: { userId: userId },
             select: { id: true }
@@ -803,7 +791,6 @@ export const discoverConferences = async (req: Request, res: Response): Promise<
         skip,
         take: Number(limit),
         orderBy: [
-          // Show upcoming conferences first
           { startDate: 'asc' },
           { createdAt: 'desc' }
         ] 
@@ -826,15 +813,11 @@ export const discoverConferences = async (req: Request, res: Response): Promise<
       attendeeCount: conference._count.attendances,
       capacity: conference.capacity,
       websiteUrl: conference.websiteUrl,
-      // FIX: Ensure isRegistered is always included for all conferences
+      status: conference.status, // Include status in response
+      submissionDeadline: conference.submissionSettings?.submissionDeadline || null,
+      allowLateSubmissions: conference.submissionSettings?.allowLateSubmissions || false,
       isRegistered: userId ? (conference.attendances && conference.attendances.length > 0) : false
     }));
-
-    console.log('[DISCOVER DEBUG] Response data:', {
-      userAuthenticated: !!userId,
-      conferencesCount: formattedConferences.length,
-      firstConferenceRegistered: formattedConferences[0]?.isRegistered || false
-    });
 
     res.json({
       conferences: formattedConferences,
@@ -844,15 +827,14 @@ export const discoverConferences = async (req: Request, res: Response): Promise<
         total,
         pages: Math.ceil(total / Number(limit))
       },
-      // ADD: User context info
       userContext: {
         isAuthenticated: !!userId,
         userRole: userId ? 'attendee' : 'guest'
       }
     });
   } catch (error: any) {
-    console.error("Error discovering conferences:", error);
-    res.status(500).json({ message: "Failed to discover conferences", error: error.message });
+    console.error("Error fetching conferences:", error);
+    res.status(500).json({ message: "Failed to fetch conferences", error: error.message });
   }
 };
 

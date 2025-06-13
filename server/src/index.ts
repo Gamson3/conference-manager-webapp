@@ -25,6 +25,7 @@ import categoryRoutes from "./routes/categoryRoutes";
 import presentationTypeRoutes from "./routes/presentationTypeRoutes";
 import submissionSettingsRoutes from "./routes/submissionSettingsRoutes";
 import workflowRoutes from "./routes/workflowRoutes";
+import submissionRoutes from './routes/submitPresentationRoutes';
 
 
 
@@ -60,6 +61,7 @@ app.use("/api", categoryRoutes);
 app.use("/api", presentationTypeRoutes);
 app.use("/api", submissionSettingsRoutes);
 app.use("/api", workflowRoutes);
+app.use('/api', submissionRoutes);
 
 
 
