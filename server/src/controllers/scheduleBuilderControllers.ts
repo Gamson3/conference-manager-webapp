@@ -560,3 +560,35 @@ export const unassignPresentationFromSection = async (req: Request, res: Respons
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+// Add this simple publish function at the end:
+export const publishSchedule = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { conferenceId } = req.params;
+
+    // Get conference
+    const conference = await prisma.conference.findUnique({
+      where: { id: parseInt(conferenceId) }
+    });
+
+    if (!conference) {
+      res.status(404).json({ message: 'Conference not found' });
+      return;
+    }
+
+    // Update conference status to published
+    await prisma.conference.update({
+      where: { id: parseInt(conferenceId) },
+      data: {
+        status: 'published',
+      }
+    });
+
+    res.json({ message: 'Schedule published successfully' });
+
+  } catch (error) {
+    console.error('Error publishing schedule:', error);
+    res.status(500).json({ message: 'Failed to publish schedule' });
+  }
+};

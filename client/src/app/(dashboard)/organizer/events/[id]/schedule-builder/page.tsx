@@ -276,6 +276,18 @@ export default function ScheduleBuilderPage() {
     );
   }
 
+  const publishSchedule = async () => {
+  try {
+    const api = await createAuthenticatedApi();
+    await api.post(`/api/schedule-builder/conferences/${conferenceId}/publish`);
+    toast.success('Schedule published successfully!');
+    router.push('/organizer/events');
+  } catch (error: any) {
+    console.error('Error publishing schedule:', error);
+    toast.error('Failed to publish schedule');
+  }
+};
+
   return (
     <DndContext
       collisionDetection={closestCenter}
@@ -309,7 +321,8 @@ export default function ScheduleBuilderPage() {
             >
               Manage Sessions
             </Button>
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button className="bg-green-600 hover:bg-green-700"
+              onClick={publishSchedule}>
               <PlayIcon className="h-4 w-4 mr-1" />
               Publish Schedule
             </Button>
