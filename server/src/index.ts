@@ -26,6 +26,7 @@ import presentationTypeRoutes from "./routes/presentationTypeRoutes";
 import submissionSettingsRoutes from "./routes/submissionSettingsRoutes";
 import workflowRoutes from "./routes/workflowRoutes";
 // import submissionRoutes from './routes/submitPresentationRoutes';
+import scheduleBuilderRoutes from './routes/scheduleBuilderRoutes';
 
 
 
@@ -50,6 +51,7 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes); // universal user route
 app.use("/events", eventRoutes);
+app.use('/api/schedule-builder', scheduleBuilderRoutes);
 app.use("/conferences", conferenceRoutes); // Public conference routes
 // app.use("/api", scheduleRoutes);            // Schedule and favorites (protected)
 app.use("/sections", sectionRoutes);
@@ -62,6 +64,7 @@ app.use("/api", presentationTypeRoutes);
 app.use("/api", submissionSettingsRoutes);
 app.use("/api", workflowRoutes);
 // app.use('/api', submissionRoutes);
+
 
 
 

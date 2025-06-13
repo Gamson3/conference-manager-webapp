@@ -67,7 +67,7 @@ export const getUnassignedPresentations = async (req: Request, res: Response): P
           presentations: []
         };
       }
-      
+
       acc[categoryName].presentations.push({
         id: presentation.id,
         title: presentation.title,
@@ -92,7 +92,7 @@ export const getUnassignedPresentations = async (req: Request, res: Response): P
         // Remove feedback count
         assignmentStatus: 'unassigned'
       });
-      
+
       return acc;
     }, {});
 
@@ -359,7 +359,7 @@ export const assignPresentationToSlot = async (req: Request, res: Response): Pro
       })
     ]);
 
-    res.json({ 
+    res.json({
       message: "Presentation assigned to time slot successfully",
       assignment: {
         presentationId: Number(id),
@@ -514,9 +514,9 @@ export const bulkAssignPresentations = async (req: Request, res: Response): Prom
     // Strategy 1: Auto-assign to available time slots
     if (assignmentStrategy === 'auto') {
       const availableSlots = section.timeSlots;
-      
+
       if (availableSlots.length < presentations.length) {
-        res.status(400).json({ 
+        res.status(400).json({
           message: `Not enough available time slots. Need ${presentations.length}, but only ${availableSlots.length} available.`,
           availableSlots: availableSlots.length,
           requiredSlots: presentations.length
@@ -681,12 +681,12 @@ export const getAssignmentSuggestions = async (req: Request, res: Response): Pro
       // Distribute presentations evenly across categories and time slots
       for (const presentation of unassignedPresentations) {
         // Find best matching slots (same category preferred)
-        const categorySlots = availableSlots.filter(slot => 
+        const categorySlots = availableSlots.filter(slot =>
           slot.section.category?.id === presentation.categoryId
         );
-        
+
         const suggestedSlot = categorySlots.length > 0 ? categorySlots[0] : availableSlots[0];
-        
+
         if (suggestedSlot) {
           suggestions.push({
             presentationId: presentation.id,
@@ -722,5 +722,563 @@ export const getAssignmentSuggestions = async (req: Request, res: Response): Pro
   } catch (error: any) {
     console.error("Error generating assignment suggestions:", error);
     res.status(500).json({ message: "Failed to generate suggestions", error: error.message });
+  }
+};
+
+// GET /api/conferences/:conferenceId/presentations/unscheduled - Get unscheduled presentations
+export const getUnscheduledPresentations = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { conferenceId } = req.params;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    // Verify conference access
+    const conference = await prisma.conference.findUnique({
+      where: { id: Number(conferenceId) },
+      select: { createdById: true }
+    });
+
+    if (!conference) {
+      res.status(404).json({ message: "Conference not found" });
+      return;
+    }
+
+    if (!isAdmin(req) && conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to view presentations" });
+      return;
+    }
+
+    // Get unscheduled approved presentations
+    const presentations = await prisma.presentation.findMany({
+      where: {
+        conferenceId: Number(conferenceId),
+        reviewStatus: 'APPROVED',
+        sectionId: null // Not assigned to any section
+      },
+      include: {
+        authors: {
+          where: { isPresenter: true },
+          include: {
+            internalUser: true
+          }
+        },
+        category: true,
+        presentationType: true
+      },
+      orderBy: { title: 'asc' }
+    });
+
+    // Format the response
+    const groupedByCategory = presentations.reduce((acc: any, presentation) => {
+      const categoryId = presentation.category?.id || 'uncategorized';
+      const categoryKey = `cat_${categoryId}`;
+
+      if (!acc[categoryKey]) {
+        acc[categoryKey] = {
+          category: presentation.category || {
+            id: 0,
+            name: 'Uncategorized',
+            color: '#6B7280'
+          },
+          presentations: []
+        };
+      }
+
+      // Format the presentation data
+      const formattedPresentation = {
+        id: presentation.id,
+        title: presentation.title,
+        abstract: presentation.abstract,
+        duration: presentation.duration,
+        status: presentation.status,
+        reviewStatus: presentation.reviewStatus,
+        submissionType: presentation.submissionType,
+        keywords: presentation.keywords,
+        affiliations: presentation.affiliations,
+        isScheduled: false,
+        authors: presentation.authors.map(author => ({
+          id: author.id,
+          authorName: author.authorName,
+          authorEmail: author.authorEmail,
+          affiliation: author.affiliation,
+          isPresenter: author.isPresenter,
+          isExternal: author.isExternal
+        })),
+        category: presentation.category ? {
+          id: presentation.category.id,
+          name: presentation.category.name,
+          color: presentation.category.color || '#6B7280'
+        } : {
+          id: 0,
+          name: 'Uncategorized',
+          color: '#6B7280'
+        },
+        presentationType: presentation.presentationType ? {
+          id: presentation.presentationType.id,
+          name: presentation.presentationType.name,
+          defaultDuration: presentation.presentationType.defaultDuration
+        } : null
+      };
+
+      acc[categoryKey].presentations.push(formattedPresentation);
+      return acc;
+    }, {});
+
+    // Convert to array format that frontend expects
+    const responseData = Object.values(groupedByCategory);
+
+    res.json(responseData);
+
+  } catch (error: any) {
+    console.error("Error fetching unscheduled presentations:", error);
+    res.status(500).json({ message: "Failed to fetch presentations", error: error.message });
+  }
+};
+
+// POST /api/presentations/:id/assign-section - Assign presentation to section
+export const assignPresentationToSection = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { sectionId } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    // Verify presentation exists
+    const presentation = await prisma.presentation.findUnique({
+      where: { id: Number(id) },
+      include: {
+        section: {
+          include: {
+            conference: { select: { createdById: true } }
+          }
+        }
+      }
+    });
+
+    if (!presentation) {
+      res.status(404).json({ message: "Presentation not found" });
+      return;
+    }
+
+    // Verify section exists and user has permission
+    const section = await prisma.section.findUnique({
+      where: { id: Number(sectionId) },
+      include: {
+        conference: { select: { createdById: true } }
+      }
+    });
+
+    if (!section) {
+      res.status(404).json({ message: "Section not found" });
+      return;
+    }
+
+    if (!isAdmin(req) && section.conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to assign to this section" });
+      return;
+    }
+
+    // Assign presentation to section
+    await prisma.presentation.update({
+      where: { id: Number(id) },
+      data: {
+        sectionId: Number(sectionId)
+      }
+    });
+
+    res.json({ message: "Presentation assigned successfully" });
+  } catch (error: any) {
+    console.error("Error assigning presentation:", error);
+    res.status(500).json({ message: "Failed to assign presentation", error: error.message });
+  }
+};
+
+// POST /api/presentations/:id/unassign-section - Unassign presentation from section
+export const unassignPresentationFromSection = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    // Verify presentation exists and user has permission
+    const presentation = await prisma.presentation.findUnique({
+      where: { id: Number(id) },
+      include: {
+        section: {
+          include: {
+            conference: { select: { createdById: true } }
+          }
+        }
+      }
+    });
+
+    if (!presentation) {
+      res.status(404).json({ message: "Presentation not found" });
+      return;
+    }
+
+    if (!presentation.section) {
+      res.status(400).json({ message: "Presentation is not assigned to any section" });
+      return;
+    }
+
+    if (!isAdmin(req) && presentation.section.conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to modify this presentation" });
+      return;
+    }
+
+    // Unassign presentation from section
+    await prisma.presentation.update({
+      where: { id: Number(id) },
+      data: {
+        sectionId: null
+      }
+    });
+
+    res.json({ message: "Presentation unassigned successfully" });
+  } catch (error: any) {
+    console.error("Error unassigning presentation:", error);
+    res.status(500).json({ message: "Failed to unassign presentation", error: error.message });
+  }
+};
+
+// GET /api/conferences/:conferenceId/timetable - Get timetable data for conference
+export const getTimetableData = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { conferenceId } = req.params;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    // Get conference with all related data
+    const conference = await prisma.conference.findUnique({
+      where: { id: Number(conferenceId) },
+      include: {
+        // Get categories with unscheduled presentations only
+        categories: {
+          include: {
+            presentations: {
+              where: {
+                reviewStatus: 'APPROVED',
+                sectionId: null  // Only unscheduled presentations
+              },
+              include: {
+                authors: {
+                  where: { isPresenter: true },
+                  include: { internalUser: true }
+                },
+                presentationType: true
+              },
+              orderBy: { title: 'asc' }
+            }
+          },
+          orderBy: { name: 'asc' }
+        },
+        // Get days with all sections
+        days: {
+          include: {
+            sections: {
+              include: {
+                presentations: {
+                  where: {
+                    reviewStatus: 'APPROVED',
+                    sectionId: { not: null }  // Only scheduled presentations
+                  },
+                  include: {
+                    authors: { where: { isPresenter: true } },
+                    category: true,
+                    presentationType: true
+                  },
+                  orderBy: { order: 'asc' }
+                }
+              },
+              orderBy: { order: 'asc' }
+            }
+          },
+          orderBy: { order: 'asc' }
+        }
+      }
+    });
+
+    if (!conference) {
+      res.status(404).json({ message: "Conference not found" });
+      return;
+    }
+
+    // Verify permissions
+    if (!isAdmin(req) && conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to view this conference" });
+      return;
+    }
+
+    // Calculate statistics
+    const totalPresentations = await prisma.presentation.count({
+      where: {
+        conferenceId: Number(conferenceId),
+        reviewStatus: 'APPROVED'
+      }
+    });
+
+    const scheduledPresentations = await prisma.presentation.count({
+      where: {
+        conferenceId: Number(conferenceId),
+        reviewStatus: 'APPROVED',
+        sectionId: { not: null }
+      }
+    });
+
+    const statistics = {
+      totalPresentations,
+      scheduledPresentations,
+      unscheduledPresentations: totalPresentations - scheduledPresentations,
+      schedulingProgress: totalPresentations > 0 ? (scheduledPresentations / totalPresentations) * 100 : 0
+    };
+
+    // Process days and separate fixed sessions from regular sections using correct SectionType
+    const processedDays = conference.days.map(day => {
+      const allSections = day.sections;
+
+      // Fixed sessions based on actual SectionType enum
+      const fixedSessions = allSections.filter(s =>
+        ['break', 'lunch', 'keynote', 'networking', 'opening', 'closing'].includes(s.type)
+      );
+
+      // Regular sections for presentations
+      const regularSections = allSections.filter(s =>
+        ['presentation', 'workshop', 'panel'].includes(s.type)
+      );
+
+      return {
+        id: day.id,
+        name: day.name,
+        date: day.date,
+        order: day.order,
+        fixedSessions: fixedSessions.map(session => ({
+          id: session.id,
+          name: session.name,
+          description: session.description,
+          startTime: session.startTime,
+          endTime: session.endTime,
+          room: session.room,
+          type: session.type,
+          capacity: session.capacity
+        })),
+        regularSections: regularSections.map(section => ({
+          id: section.id,
+          name: section.name,
+          description: section.description,
+          room: section.room,
+          capacity: section.capacity,
+          type: section.type,
+          order: section.order,
+          startTime: section.startTime,
+          endTime: section.endTime,
+          presentations: section.presentations.map(presentation => ({
+            id: presentation.id,
+            title: presentation.title,
+            duration: presentation.duration,
+            authors: presentation.authors.map(author => ({
+              id: author.id,
+              name: author.authorName,
+              email: author.authorEmail,
+              affiliation: author.affiliation,
+              isPresenter: author.isPresenter
+            })),
+            category: presentation.category ? {
+              id: presentation.category.id,
+              name: presentation.category.name,
+              color: presentation.category.color || '#6B7280'
+            } : null
+          }))
+        }))
+      };
+    });
+
+    // Format response
+    const responseData = {
+      conference: {
+        id: conference.id,
+        name: conference.name,
+        startDate: conference.startDate,
+        endDate: conference.endDate,
+        status: conference.status
+      },
+      // Categories with ONLY unscheduled presentations (left panel)
+      unscheduledByCategory: conference.categories
+        .filter(category => category.presentations.length > 0)
+        .map(category => ({
+          category: {
+            id: category.id,
+            name: category.name,
+            color: category.color || '#6B7280'
+          },
+          presentations: category.presentations.map(presentation => ({
+            id: presentation.id,
+            title: presentation.title,
+            abstract: presentation.abstract,
+            duration: presentation.duration,
+            status: presentation.status,
+            reviewStatus: presentation.reviewStatus,
+            submissionType: presentation.submissionType,
+            keywords: presentation.keywords || [],
+            authors: presentation.authors.map(author => ({
+              id: author.id,
+              name: author.authorName,
+              email: author.authorEmail,
+              affiliation: author.affiliation,
+              isPresenter: author.isPresenter,
+              isExternal: author.isExternal
+            })),
+            category: {
+              id: category.id,
+              name: category.name,
+              color: category.color || '#6B7280'
+            },
+            presentationType: presentation.presentationType ? {
+              id: presentation.presentationType.id,
+              name: presentation.presentationType.name,
+              defaultDuration: presentation.presentationType.defaultDuration
+            } : null
+          }))
+        })),
+      days: processedDays,
+      statistics
+    };
+
+    res.json(responseData);
+  } catch (error: any) {
+    console.error("Error fetching timetable data:", error);
+    res.status(500).json({ message: "Failed to fetch timetable data", error: error.message });
+  }
+};
+
+// POST /api/presentations/:id/schedule - Update the assignment function for proper scheduling
+export const scheduleToTimeSlot = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { sectionId, startTime, endTime } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    // Verify presentation exists and is unscheduled
+    const presentation = await prisma.presentation.findUnique({
+      where: { id: Number(id) },
+      include: {
+        conference: { select: { createdById: true } }
+      }
+    });
+
+    if (!presentation) {
+      res.status(404).json({ message: "Presentation not found" });
+      return;
+    }
+
+    if (presentation.sectionId !== null) {
+      res.status(400).json({ message: "Presentation is already scheduled" });
+      return;
+    }
+
+    // Verify section exists and user has permission
+    const section = await prisma.section.findUnique({
+      where: { id: Number(sectionId) },
+      include: {
+        conference: { select: { createdById: true } }
+      }
+    });
+
+    if (!section) {
+      res.status(404).json({ message: "Section not found" });
+      return;
+    }
+
+    if (!isAdmin(req) && section.conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to schedule to this section" });
+      return;
+    }
+
+    // Schedule presentation to specific time slot
+    await prisma.presentation.update({
+      where: { id: Number(id) },
+      data: {
+        sectionId: Number(sectionId),
+      }
+    });
+
+    res.json({ message: "Presentation scheduled successfully" });
+  } catch (error: any) {
+    console.error("Error scheduling presentation:", error);
+    res.status(500).json({ message: "Failed to schedule presentation", error: error.message });
+  }
+};
+
+// POST /api/presentations/:id/unschedule - Update the unassignment function
+export const unscheduleFromTimeSlot = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    // Verify presentation exists and is scheduled
+    const presentation = await prisma.presentation.findUnique({
+      where: { id: Number(id) },
+      include: {
+        section: {
+          include: {
+            conference: { select: { createdById: true } }
+          }
+        }
+      }
+    });
+
+    if (!presentation) {
+      res.status(404).json({ message: "Presentation not found" });
+      return;
+    }
+
+    if (!presentation.section) {
+      res.status(400).json({ message: "Presentation is not scheduled" });
+      return;
+    }
+
+    if (!isAdmin(req) && presentation.section.conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to unschedule this presentation" });
+      return;
+    }
+
+    // Unschedule presentation
+    await prisma.presentation.update({
+      where: { id: Number(id) },
+      data: {
+        sectionId: null,
+      }
+    });
+
+    res.json({ message: "Presentation unscheduled successfully" });
+  } catch (error: any) {
+    console.error("Error unscheduling presentation:", error);
+    res.status(500).json({ message: "Failed to unschedule presentation", error: error.message });
   }
 };

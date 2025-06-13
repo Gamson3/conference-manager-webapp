@@ -1,113 +1,155 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import {
+  DndContext,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  closestCenter,
+} from "@dnd-kit/core";
+import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  ArrowLeft, 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Users, 
-  Plus, 
-  Save,
-  Eye,
-  AlertTriangle,
-  CheckCircle,
-  GripVertical,
-  Trash2,
-  RotateCcw,
-  Download
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  ClockIcon,
+  MapPinIcon,
+  UsersIcon,
+  GripVerticalIcon,
+  EyeIcon,
+  MoveIcon,
+  PlayIcon,
+  AlertCircleIcon,
 } from "lucide-react";
-import { toast } from "sonner";
 import { createAuthenticatedApi } from "@/lib/utils";
-import { format, addMinutes, isSameDay, parseISO } from "date-fns";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
+// Types based on actual schema
 interface Presentation {
   id: number;
   title: string;
   abstract: string;
   duration: number;
-  speakers: string[];
-  category: string;
-  presentationType: string;
-  status: 'accepted' | 'pending' | 'rejected';
-  scheduledSectionId?: number;
-  scheduledOrder?: number;
+  authors: Array<{
+    id: number;
+    authorName: string;
+    authorEmail: string;
+    affiliation: string;
+    isPresenter: boolean;
+  }>;
+  category: {
+    id: number;
+    name: string;
+    color: string;
+  };
+  presentationType?: {
+    id: number;
+    name: string;
+    defaultDuration: number;
+  };
 }
 
 interface Section {
   id: number;
   name: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  room: string;
-  capacity: number;
-  type: 'presentation' | 'keynote' | 'break' | 'lunch';
-  categoryId?: number;
+  room?: string;
+  capacity?: number;
+  type: string;
+  startTime?: string;
+  endTime?: string;
   presentations: Presentation[];
 }
 
-interface ScheduleConflict {
-  type: 'speaker_conflict' | 'room_conflict' | 'duration_mismatch';
-  message: string;
-  presentations: number[];
+interface Day {
+  id: number;
+  name: string;
+  date: string;
+  order: number;
+  sections: Section[];
+}
+
+interface CategoryWithPresentations {
+  category: {
+    id: number;
+    name: string;
+    color: string;
+  };
+  presentations: Presentation[];
+}
+
+interface ScheduleData {
+  conference: {
+    id: number;
+    name: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+  };
+  days: Day[];
+  statistics: {
+    totalPresentations: number;
+    scheduledPresentations: number;
+    unscheduledPresentations: number;
+    schedulingProgress: number;
+  };
 }
 
 export default function ScheduleBuilderPage() {
-  const router = useRouter();
   const params = useParams();
-  const eventId = Number(params.id);
+  const router = useRouter();
+  const conferenceId = params.id as string;
 
-  const [event, setEvent] = useState<any>(null);
-  const [sections, setSections] = useState<Section[]>([]);
-  const [unscheduledPresentations, setUnscheduledPresentations] = useState<Presentation[]>([]);
-  const [scheduledPresentations, setScheduledPresentations] = useState<Presentation[]>([]);
-  const [conflicts, setConflicts] = useState<ScheduleConflict[]>([]);
+  // State
+  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
+  const [unscheduledByCategory, setUnscheduledByCategory] = useState<CategoryWithPresentations[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [viewMode, setViewMode] = useState<'timeline' | 'list'>('timeline');
+  const [selectedDay, setSelectedDay] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [draggedPresentation, setDraggedPresentation] = useState<Presentation | null>(null);
+  const [selectedPresentation, setSelectedPresentation] = useState<Presentation | null>(null);
 
-  useEffect(() => {
-    if (eventId) {
-      fetchScheduleData();
-    }
-  }, [eventId]);
-
+  // Fetch data using EXISTING endpoints
   const fetchScheduleData = async () => {
     try {
       setLoading(true);
       const api = await createAuthenticatedApi();
 
-      const [eventRes, sectionsRes, presentationsRes] = await Promise.all([
-        api.get(`/events/${eventId}`),
-        api.get(`/sections/conference/${eventId}`),
-        // api.get(`/events/${eventId}/presentations`),
-        api.get(`/api/conferences/${eventId}/presentations`).catch(() => ({ data: [] }))
+      // Use existing endpoints
+      const [scheduleRes, unscheduledRes] = await Promise.all([
+        api.get(`/api/schedule-builder/conferences/${conferenceId}`), // getScheduleOverview
+        api.get(`/api/schedule-builder/conferences/${conferenceId}/presentations/unscheduled`) // getUnscheduledPresentations
       ]);
 
-      setEvent(eventRes.data);
-      setSections(sectionsRes.data);
+      console.log('Schedule data:', scheduleRes.data);
+      console.log('Unscheduled data:', unscheduledRes.data);
 
-      // Separate scheduled and unscheduled presentations
-      const allPresentations = presentationsRes.data.filter((p: Presentation) => p.status === 'accepted');
-
-      const scheduled = allPresentations.filter((p: Presentation) => p.scheduledSectionId || p.sectionId);
-      const unscheduled = allPresentations.filter((p: Presentation) => !p.scheduledSectionId && !p.sectionId);
-
-      setScheduledPresentations(scheduled);
-      setUnscheduledPresentations(unscheduled);
+      setScheduleData(scheduleRes.data);
       
-      // Check for conflicts
-      detectConflicts(sectionsRes.data, scheduled);
+      // Ensure unscheduledRes.data is an array
+      const unscheduledData = Array.isArray(unscheduledRes.data) ? unscheduledRes.data : [];
+      setUnscheduledByCategory(unscheduledData);
 
-    } catch (error: any) {
+      // Set initial selections
+      if (scheduleRes.data?.days?.length > 0) {
+        setSelectedDay(scheduleRes.data.days[0].date);
+      }
+      if (unscheduledData.length > 0) {
+        setSelectedCategory(unscheduledData[0].category.id.toString());
+      }
+
+    } catch (error) {
       console.error('Error fetching schedule data:', error);
       toast.error('Failed to load schedule data');
     } finally {
@@ -115,570 +157,724 @@ export default function ScheduleBuilderPage() {
     }
   };
 
-  const detectConflicts = (sectionsList: Section[], presentationsList: Presentation[]) => {
-    const newConflicts: ScheduleConflict[] = [];
-
-    // Check for speaker conflicts (same speaker in overlapping time slots)
-    const speakerTimeSlots: { [speaker: string]: { startTime: string; endTime: string; presentationId: number }[] } = {};
-
-    presentationsList.forEach(presentation => {
-      const section = sectionsList.find(s => s.id === presentation.scheduledSectionId);
-      if (section) {
-        presentation.speakers.forEach(speaker => {
-          if (!speakerTimeSlots[speaker]) {
-            speakerTimeSlots[speaker] = [];
-          }
-          speakerTimeSlots[speaker].push({
-            startTime: section.startTime,
-            endTime: section.endTime,
-            presentationId: presentation.id
-          });
-        });
-      }
-    });
-
-    // Detect overlapping time slots for same speaker
-    Object.entries(speakerTimeSlots).forEach(([speaker, timeSlots]) => {
-      for (let i = 0; i < timeSlots.length; i++) {
-        for (let j = i + 1; j < timeSlots.length; j++) {
-          const slot1 = timeSlots[i];
-          const slot2 = timeSlots[j];
-          
-          if (timeSlotsOverlap(slot1.startTime, slot1.endTime, slot2.startTime, slot2.endTime)) {
-            newConflicts.push({
-              type: 'speaker_conflict',
-              message: `Speaker "${speaker}" has overlapping presentations`,
-              presentations: [slot1.presentationId, slot2.presentationId]
-            });
-          }
-        }
-      }
-    });
-
-    setConflicts(newConflicts);
+  // Handle drag start
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const presentation = findPresentationById(Number(active.id));
+    setDraggedPresentation(presentation);
   };
 
-  const timeSlotsOverlap = (start1: string, end1: string, start2: string, end2: string): boolean => {
-    const s1 = new Date(start1);
-    const e1 = new Date(end1);
-    const s2 = new Date(start2);
-    const e2 = new Date(end2);
+  // Handle drag end - assign presentation to section
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setDraggedPresentation(null);
+
+    if (!over) return;
+
+    const presentationId = Number(active.id);
+    const dropId = over.id.toString();
     
-    return s1 < e2 && s2 < e1;
-  };
-
-  const handleDragEnd = async (result: any) => {
-    const { source, destination, draggableId } = result;
-
-    if (!destination) return;
-
-    const presentationId = Number(draggableId.split('-')[1]);
+    // Parse drop target: "section-{sectionId}"
+    if (!dropId.startsWith('section-')) return;
     
-    // Handle moving from unscheduled to scheduled
-    if (source.droppableId === 'unscheduled' && destination.droppableId.startsWith('section-')) {
-      const sectionId = Number(destination.droppableId.split('-')[1]);
-      await schedulePresentation(presentationId, sectionId, destination.index);
-    }
-    // Handle moving between sections
-    else if (source.droppableId.startsWith('section-') && destination.droppableId.startsWith('section-')) {
-      const newSectionId = Number(destination.droppableId.split('-')[1]);
-      await reschedulePresentation(presentationId, newSectionId, destination.index);
-    }
-    // Handle moving from scheduled back to unscheduled
-    else if (source.droppableId.startsWith('section-') && destination.droppableId === 'unscheduled') {
-      await unschedulePresentation(presentationId);
-    }
-  };
+    const sectionId = Number(dropId.replace('section-', ''));
 
-  const schedulePresentation = async (presentationId: number, sectionId: number, order: number) => {
     try {
       const api = await createAuthenticatedApi();
       
-      await api.put(`/presentations/${presentationId}/schedule`, {
-        sectionId,
-        order
+      // Use existing endpoint
+      await api.post(`/api/schedule-builder/presentations/${presentationId}/assign-section`, {
+        sectionId
       });
 
-      // Update local state
-      const presentation = unscheduledPresentations.find(p => p.id === presentationId);
-      if (presentation) {
-        presentation.scheduledSectionId = sectionId;
-        presentation.scheduledOrder = order;
-        
-        setUnscheduledPresentations(prev => prev.filter(p => p.id !== presentationId));
-        setScheduledPresentations(prev => [...prev, presentation]);
-        
-        toast.success('Presentation scheduled successfully');
-      }
-
-      // Re-detect conflicts
-      detectConflicts(sections, [...scheduledPresentations, { ...presentation!, scheduledSectionId: sectionId }]);
+      toast.success('Presentation scheduled successfully!');
+      
+      // Refresh data
+      await fetchScheduleData();
 
     } catch (error: any) {
       console.error('Error scheduling presentation:', error);
-      toast.error('Failed to schedule presentation');
+      toast.error(error.response?.data?.message || 'Failed to schedule presentation');
     }
   };
 
-  const reschedulePresentation = async (presentationId: number, newSectionId: number, newOrder: number) => {
-    try {
-      const api = await createAuthenticatedApi();
-      
-      await api.put(`/presentations/${presentationId}/schedule`, {
-        sectionId: newSectionId,
-        order: newOrder
-      });
-
-      // Update local state
-      setScheduledPresentations(prev => 
-        prev.map(p => 
-          p.id === presentationId 
-            ? { ...p, scheduledSectionId: newSectionId, scheduledOrder: newOrder }
-            : p
-        )
-      );
-
-      toast.success('Presentation rescheduled successfully');
-
-    } catch (error: any) {
-      console.error('Error rescheduling presentation:', error);
-      toast.error('Failed to reschedule presentation');
-    }
-  };
-
+  // Unschedule presentation
   const unschedulePresentation = async (presentationId: number) => {
     try {
       const api = await createAuthenticatedApi();
       
-      await api.delete(`/presentations/${presentationId}/schedule`);
-
-      // Update local state
-      const presentation = scheduledPresentations.find(p => p.id === presentationId);
-      if (presentation) {
-        presentation.scheduledSectionId = undefined;
-        presentation.scheduledOrder = undefined;
-        
-        setScheduledPresentations(prev => prev.filter(p => p.id !== presentationId));
-        setUnscheduledPresentations(prev => [...prev, presentation]);
-        
-        toast.success('Presentation unscheduled');
-      }
+      // Use existing endpoint
+      await api.post(`/api/schedule-builder/presentations/${presentationId}/unassign-section`);
+      
+      toast.success('Presentation unscheduled successfully!');
+      await fetchScheduleData();
 
     } catch (error: any) {
       console.error('Error unscheduling presentation:', error);
-      toast.error('Failed to unschedule presentation');
+      toast.error(error.response?.data?.message || 'Failed to unschedule presentation');
     }
   };
 
-  const saveSchedule = async () => {
-    try {
-      setSaving(true);
-      const api = await createAuthenticatedApi();
-      
-      await api.post(`/events/${eventId}/schedule/publish`);
-      
-      toast.success('Schedule published successfully!');
-      
-    } catch (error: any) {
-      console.error('Error saving schedule:', error);
-      toast.error('Failed to publish schedule');
-    } finally {
-      setSaving(false);
+  // Helper function to find presentation by ID
+  const findPresentationById = (id: number): Presentation | null => {
+    if (!Array.isArray(unscheduledByCategory)) return null;
+    
+    for (const categoryData of unscheduledByCategory) {
+      if (categoryData?.presentations && Array.isArray(categoryData.presentations)) {
+        const presentation = categoryData.presentations.find(p => p.id === id);
+        if (presentation) return presentation;
+      }
     }
+    return null;
   };
 
-  const exportSchedule = async () => {
-    try {
-      const api = await createAuthenticatedApi();
-      const response = await api.get(`/events/${eventId}/schedule/export`, {
-        responseType: 'blob'
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${event?.name || 'conference'}-schedule.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      
-      toast.success('Schedule exported successfully');
-      
-    } catch (error: any) {
-      console.error('Error exporting schedule:', error);
-      toast.error('Failed to export schedule');
-    }
-  };
+  // Get current day data
+  const currentDay = scheduleData?.days?.find(day => day.date === selectedDay);
+  const selectedCategoryData = unscheduledByCategory.find(
+    cat => cat?.category?.id?.toString() === selectedCategory
+  );
+
+  // Separate fixed sessions from regular sections - with null checks
+  const fixedSessions = currentDay?.sections?.filter(s => 
+    s && ['break', 'lunch', 'keynote', 'networking', 'opening', 'closing'].includes(s.type)
+  ) || [];
+  
+  const regularSections = currentDay?.sections?.filter(s => 
+    s && ['presentation', 'workshop', 'panel'].includes(s.type)
+  ) || [];
+
+  useEffect(() => {
+    fetchScheduleData();
+  }, [conferenceId]);
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-96 bg-gray-200 rounded"></div>
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
+          <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-4">
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+            <div className="col-span-8">
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!event) {
+  if (!scheduleData) {
     return (
-      <div className="max-w-7xl mx-auto p-6 text-center">
-        <h2 className="text-2xl font-bold text-red-600 mb-4">Event not found</h2>
-        <Button onClick={() => router.push('/organizer/events')}>
-          Back to Events
-        </Button>
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="text-center py-12">
+          <AlertCircleIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500">Failed to load schedule data</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            onClick={() => router.push(`/organizer/events/${eventId}`)}
-            className="pl-0"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Event
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Schedule Builder</h1>
-            <p className="text-gray-600">{event.name}</p>
+    <DndContext
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={() => router.push(`/organizer/events/${conferenceId}`)}
+              className="p-0 hover:bg-transparent"
+            >
+              <ArrowLeftIcon className="h-4 w-4 mr-2" />
+              Back to Event
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">Schedule Builder</h1>
+              <p className="text-gray-600 mt-1">
+                Drag unscheduled presentations to sections to build your conference schedule
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/organizer/events/${conferenceId}/sessions`)}
+            >
+              Manage Sessions
+            </Button>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <PlayIcon className="h-4 w-4 mr-1" />
+              Publish Schedule
+            </Button>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setViewMode(viewMode === 'timeline' ? 'list' : 'timeline')}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            {viewMode === 'timeline' ? 'List View' : 'Timeline View'}
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={exportSchedule}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          
-          <Button
-            onClick={saveSchedule}
-            disabled={saving || conflicts.length > 0}
-            className="bg-primary-700 hover:bg-primary-800"
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Publishing...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Publish Schedule
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Conflicts Alert */}
-      {conflicts.length > 0 && (
-        <Alert className="mb-6 border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            <div className="font-medium mb-2">Schedule Conflicts Detected:</div>
-            <ul className="list-disc list-inside space-y-1">
-              {conflicts.map((conflict, index) => (
-                <li key={index}>{conflict.message}</li>
-              ))}
-            </ul>
-            <p className="mt-2 text-sm">Please resolve conflicts before publishing the schedule.</p>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{scheduledPresentations.length}</div>
-              <div className="text-sm text-gray-600">Scheduled</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{unscheduledPresentations.length}</div>
-              <div className="text-sm text-gray-600">Unscheduled</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{sections.length}</div>
-              <div className="text-sm text-gray-600">Time Slots</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className={`text-2xl font-bold ${conflicts.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                {conflicts.length}
+        {/* Statistics */}
+        {scheduleData.statistics && (
+          <Card className="mb-6 border-blue-200 bg-blue-50">
+            <CardContent className="py-4">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-blue-800">
+                    {scheduleData.statistics.scheduledPresentations || 0} / {scheduleData.statistics.totalPresentations || 0}
+                  </div>
+                  <div className="text-sm text-blue-600">Presentations Scheduled</div>
+                </div>
+                
+                <div>
+                  <div className="text-2xl font-bold text-orange-800">
+                    {scheduleData.statistics.unscheduledPresentations || 0}
+                  </div>
+                  <div className="text-sm text-orange-600">Unscheduled</div>
+                </div>
+                
+                <div>
+                  <div className="text-2xl font-bold text-green-800">
+                    {Math.round(scheduleData.statistics.schedulingProgress || 0)}%
+                  </div>
+                  <div className="text-sm text-green-600">Progress</div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div 
+                      className="bg-green-600 h-2 rounded-full" 
+                      style={{ width: `${scheduleData.statistics.schedulingProgress || 0}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
-              <div className="text-sm text-gray-600">Conflicts</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        )}
 
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
-          {/* Unscheduled Presentations Pool */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+        {/* Main Interface */}
+        <div className="grid grid-cols-12 gap-6 min-h-[600px]">
+          {/* Left Panel: Unscheduled Presentations */}
+          <div className="col-span-4">
+            <Card className="sticky top-0 max-h-[80vh]">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center">
+                  <CalendarIcon className="h-5 w-5 mr-2" />
                   Unscheduled Presentations
-                  <Badge variant="outline">{unscheduledPresentations.length}</Badge>
                 </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Drag these to sections to schedule them
+                </p>
               </CardHeader>
-              <CardContent>
-                <Droppable droppableId="unscheduled">
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={`space-y-2 min-h-96 p-2 rounded-lg border-2 border-dashed transition-colors ${
-                        snapshot.isDraggingOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
-                      }`}
-                    >
-                      {unscheduledPresentations.map((presentation, index) => (
-                        <Draggable
-                          key={presentation.id}
-                          draggableId={`presentation-${presentation.id}`}
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
+              
+              <CardContent className="flex-1">
+                {Array.isArray(unscheduledByCategory) && unscheduledByCategory.length > 0 ? (
+                  <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      {unscheduledByCategory.slice(0, 4).map((categoryData) => (
+                        categoryData?.category && (
+                          <TabsTrigger
+                            key={categoryData.category.id}
+                            value={categoryData.category.id.toString()}
+                            className="text-xs"
+                          >
                             <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`p-3 bg-white border rounded-lg shadow-sm cursor-move transition-shadow ${
-                                snapshot.isDragging ? 'shadow-lg rotate-2' : 'hover:shadow-md'
-                              }`}
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <h4 className="font-medium text-sm line-clamp-2">{presentation.title}</h4>
-                                  <p className="text-xs text-gray-600 mt-1">
-                                    {presentation.speakers.join(', ')}
-                                  </p>
-                                  <div className="flex items-center gap-2 mt-2">
-                                    <Badge variant="outline" className="text-xs">
-                                      {presentation.duration}min
-                                    </Badge>
-                                    <Badge variant="outline" className="text-xs">
-                                      {presentation.category}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                <GripVertical className="h-4 w-4 text-gray-400 ml-2" />
-                              </div>
-                            </div>
-                          )}
-                        </Draggable>
+                              className="w-2 h-2 rounded-full mr-1"
+                              style={{ backgroundColor: categoryData.category.color || '#6B7280' }}
+                            />
+                            {categoryData.category.name} ({categoryData.presentations?.length || 0})
+                          </TabsTrigger>
+                        )
                       ))}
-                      {provided.placeholder}
-                      
-                      {unscheduledPresentations.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                          <p className="text-sm">All presentations scheduled!</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </Droppable>
+                    </TabsList>
+
+                    {unscheduledByCategory.map((categoryData) => (
+                      categoryData?.category && (
+                        <TabsContent 
+                          key={categoryData.category.id} 
+                          value={categoryData.category.id.toString()}
+                          className="mt-0 max-h-[55vh] overflow-y-auto"
+                        >
+                          <div className="space-y-3">
+                            {Array.isArray(categoryData.presentations) && categoryData.presentations.map((presentation) => (
+                              <DraggablePresentationCard
+                                key={presentation.id}
+                                presentation={presentation}
+                                onView={() => setSelectedPresentation(presentation)}
+                              />
+                            ))}
+                          </div>
+                        </TabsContent>
+                      )
+                    ))}
+                  </Tabs>
+                ) : (
+                  <div className="text-center py-12">
+                    <CalendarIcon className="h-12 w-12 mx-auto text-green-500 mb-4" />
+                    <p className="text-green-600 font-medium mb-2">All presentations are scheduled!</p>
+                    <p className="text-gray-500 text-sm">Great job organizing the conference.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Schedule Grid */}
-          <div className="lg:col-span-3">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Conference Schedule
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                
-                {viewMode === 'timeline' ? (
-                  /* Timeline View */
-                  <div className="space-y-4">
-                    {sections.map((section) => (
-                      <div key={section.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="font-medium">{section.name}</h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {format(new Date(section.startTime), "MMM d, HH:mm")} - {format(new Date(section.endTime), "HH:mm")}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {section.room}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Users className="h-3 w-3" />
-                                {section.capacity} capacity
-                              </div>
-                            </div>
-                          </div>
-                          <Badge variant="outline" className="text-xs">
-                            {section.type}
-                          </Badge>
-                        </div>
-
-                        <Droppable droppableId={`section-${section.id}`}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                              className={`min-h-24 p-3 rounded-lg border-2 border-dashed transition-colors ${
-                                snapshot.isDraggingOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-gray-50'
-                              }`}
-                            >
-                              <div className="space-y-2">
-                                {scheduledPresentations
-                                  .filter(p => p.scheduledSectionId === section.id)
-                                  .sort((a, b) => (a.scheduledOrder || 0) - (b.scheduledOrder || 0))
-                                  .map((presentation, index) => (
-                                    <Draggable
-                                      key={presentation.id}
-                                      draggableId={`presentation-${presentation.id}`}
-                                      index={index}
-                                    >
-                                      {(provided, snapshot) => (
-                                        <div
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
-                                          className={`p-3 bg-white border rounded-lg shadow-sm cursor-move transition-shadow ${
-                                            snapshot.isDragging ? 'shadow-lg rotate-1' : 'hover:shadow-md'
-                                          }`}
-                                        >
-                                          <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                              <h4 className="font-medium text-sm line-clamp-2">{presentation.title}</h4>
-                                              <p className="text-xs text-gray-600 mt-1">
-                                                {presentation.speakers.join(', ')}
-                                              </p>
-                                              <div className="flex items-center gap-2 mt-2">
-                                                <Badge variant="outline" className="text-xs">
-                                                  {presentation.duration}min
-                                                </Badge>
-                                                <Badge variant="outline" className="text-xs">
-                                                  {presentation.category}
-                                                </Badge>
-                                              </div>
-                                            </div>
-                                            <div className="flex items-center gap-1 ml-2">
-                                              <GripVertical className="h-4 w-4 text-gray-400" />
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => unschedulePresentation(presentation.id)}
-                                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                                              >
-                                                <Trash2 className="h-3 w-3" />
-                                              </Button>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </Draggable>
-                                  ))}
-                              </div>
-                              {provided.placeholder}
-                              
-                              {scheduledPresentations.filter(p => p.scheduledSectionId === section.id).length === 0 && (
-                                <div className="text-center py-4 text-gray-400">
-                                  <p className="text-sm">Drop presentations here</p>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </Droppable>
-                      </div>
-                    ))}
+          {/* Right Panel: Conference Schedule */}
+          <div className="col-span-8">
+            <Card className="min-h-full">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ClockIcon className="h-5 w-5 mr-2" />
+                    Conference Schedule
                   </div>
-                ) : (
-                  /* List View */
-                  <div className="space-y-4">
-                    {sections.map((section) => {
-                      const sectionPresentations = scheduledPresentations.filter(p => p.scheduledSectionId === section.id);
-                      return (
-                        <div key={section.id} className="border rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-medium">{section.name}</h3>
-                            <Badge variant="outline">{sectionPresentations.length} presentations</Badge>
-                          </div>
-                          
-                          <div className="text-sm text-gray-600 mb-3">
-                            {format(new Date(section.startTime), "MMM d, HH:mm")} - {format(new Date(section.endTime), "HH:mm")} • {section.room}
-                          </div>
-                          
-                          {sectionPresentations.length > 0 ? (
-                            <div className="space-y-2">
-                              {sectionPresentations
-                                .sort((a, b) => (a.scheduledOrder || 0) - (b.scheduledOrder || 0))
-                                .map((presentation, index) => (
-                                  <div key={presentation.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
-                                    <div className="text-sm font-medium text-gray-500">
-                                      #{index + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                      <div className="font-medium text-sm">{presentation.title}</div>
-                                      <div className="text-xs text-gray-600">{presentation.speakers.join(', ')}</div>
-                                    </div>
-                                    <Badge variant="outline" className="text-xs">
-                                      {presentation.duration}min
-                                    </Badge>
-                                  </div>
-                                ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 italic">No presentations scheduled</p>
-                          )}
+                </CardTitle>
+
+                {/* Day Tabs */}
+                {Array.isArray(scheduleData.days) && scheduleData.days.length > 1 && (
+                  <Tabs value={selectedDay} onValueChange={setSelectedDay} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      {scheduleData.days.map((day) => (
+                        <TabsTrigger key={day.date} value={day.date}>
+                          {day.name} - {new Date(day.date).toLocaleDateString('en-US', { 
+                            weekday: 'short', 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                )}
+              </CardHeader>
+              
+              <CardContent className="pb-8">
+                {currentDay ? (
+                  <>
+                    {/* Fixed Sessions */}
+                    {fixedSessions.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="font-semibold text-lg mb-3">Fixed Sessions</h3>
+                        <div className="space-y-2">
+                          {fixedSessions.map((session) => (
+                            <FixedSessionCard key={session.id} session={session} />
+                          ))}
                         </div>
-                      );
-                    })}
+                      </div>
+                    )}
+
+                    {/* Regular Sections */}
+                    <div>
+                      <h3 className="font-semibold text-lg mb-3">Presentation Sections</h3>
+                      <div className="space-y-4">
+                        {regularSections.map((section) => (
+                          <SectionCard
+                            key={section.id}
+                            section={section}
+                            onPresentationView={setSelectedPresentation}
+                            onPresentationUnschedule={unschedulePresentation}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12">
+                    <CalendarIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500">No conference days configured</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
         </div>
-      </DragDropContext>
+
+        {/* Drag Overlay */}
+        <DragOverlay>
+          {draggedPresentation ? (
+            <DraggablePresentationCard
+              presentation={draggedPresentation}
+              isDragging={true}
+            />
+          ) : null}
+        </DragOverlay>
+
+        {/* Presentation Detail Dialog */}
+        <PresentationDetailDialog
+          presentation={selectedPresentation}
+          onClose={() => setSelectedPresentation(null)}
+        />
+      </div>
+    </DndContext>
+  );
+}
+
+// Draggable Presentation Card
+function DraggablePresentationCard({
+  presentation,
+  isDragging = false,
+  onView,
+}: {
+  presentation: Presentation;
+  isDragging?: boolean;
+  onView?: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging: isCurrentlyDragging,
+  } = useDraggable({
+    id: presentation.id,
+  });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "border rounded-lg bg-white shadow-sm transition-all hover:shadow-md overflow-hidden",
+        isCurrentlyDragging && "opacity-50",
+        isDragging && "rotate-2 shadow-lg"
+      )}
+    >
+      <div
+        {...listeners}
+        {...attributes}
+        className="p-3 cursor-grab active:cursor-grabbing"
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1">
+            <h4 className="font-medium text-sm leading-tight line-clamp-2">
+              {presentation.title}
+            </h4>
+            <p className="text-xs text-gray-500 mt-1">
+              {presentation.authors?.[0]?.authorName}
+              {presentation.authors && presentation.authors.length > 1 && ` +${presentation.authors.length - 1}`}
+            </p>
+          </div>
+          <GripVerticalIcon className="h-4 w-4 text-gray-400 ml-2 flex-shrink-0" />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Badge
+            variant="secondary"
+            className="text-xs"
+            style={{
+              backgroundColor: `${presentation.category?.color || '#6B7280'}20`,
+              color: presentation.category?.color || '#6B7280',
+            }}
+          >
+            {presentation.category?.name || 'Uncategorized'}
+          </Badge>
+          <span className="text-xs text-gray-500 flex items-center">
+            <ClockIcon className="h-3 w-3 mr-1" />
+            {presentation.duration || 0}min
+          </span>
+        </div>
+      </div>
+
+      <div className="px-3 pb-3 bg-gray-50/50">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-xs hover:bg-gray-100"
+          onClick={onView}
+        >
+          <EyeIcon className="h-3 w-3 mr-2" />
+          View Details
+        </Button>
+      </div>
     </div>
+  );
+}
+
+// Fixed Session Card
+function FixedSessionCard({ session }: { session: Section }) {
+  const getSessionColor = () => {
+    switch (session.type) {
+      case 'keynote': return 'bg-purple-100 border-purple-300 text-purple-800';
+      case 'break': return 'bg-orange-100 border-orange-300 text-orange-800';
+      case 'lunch': return 'bg-yellow-100 border-yellow-300 text-yellow-800';
+      case 'opening': return 'bg-indigo-100 border-indigo-300 text-indigo-800';
+      case 'closing': return 'bg-indigo-100 border-indigo-300 text-indigo-800';
+      case 'networking': return 'bg-green-100 border-green-300 text-green-800';
+      default: return 'bg-gray-100 border-gray-300 text-gray-800';
+    }
+  };
+
+  return (
+    <div className={cn("border rounded p-3", getSessionColor())}>
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h5 className="font-medium text-sm">{session.name}</h5>
+          {session.room && <p className="text-xs opacity-75 mt-1">{session.room}</p>}
+        </div>
+        <div className="text-xs opacity-75">
+          {session.startTime && session.endTime && (
+            `${new Date(session.startTime).toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit', 
+              hour12: false 
+            })} - ${new Date(session.endTime).toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit', 
+              hour12: false 
+            })}`
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Section Card (Droppable)
+function SectionCard({
+  section,
+  onPresentationView,
+  onPresentationUnschedule,
+}: {
+  section: Section;
+  onPresentationView: (presentation: any) => void;
+  onPresentationUnschedule: (presentationId: number) => void;
+}) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `section-${section.id}`,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "border rounded-lg bg-white transition-all min-h-[150px]",
+        isOver ? "border-blue-400 bg-blue-50 shadow-md" : "border-gray-200"
+      )}
+    >
+      <div className="p-4">
+        {/* Section Header */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-lg">{section.name}</h3>
+            <Badge variant="outline" className="text-xs">
+              {section.presentations?.length || 0} presentations
+            </Badge>
+          </div>
+          
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            {section.room && (
+              <span className="flex items-center">
+                <MapPinIcon className="h-4 w-4 mr-1" />
+                {section.room}
+              </span>
+            )}
+            {section.capacity && (
+              <span className="flex items-center">
+                <UsersIcon className="h-4 w-4 mr-1" />
+                {section.capacity}
+              </span>
+            )}
+            {section.startTime && section.endTime && (
+              <span className="flex items-center">
+                <ClockIcon className="h-4 w-4 mr-1" />
+                {new Date(section.startTime).toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit', 
+                  hour12: false 
+                })} - {new Date(section.endTime).toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit', 
+                  hour12: false 
+                })}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Drop Zone */}
+        <div className={cn(
+          "min-h-[100px] border-2 border-dashed rounded-lg p-3 transition-all",
+          isOver ? "border-blue-400 bg-blue-50" : "border-gray-200"
+        )}>
+          {!Array.isArray(section.presentations) || section.presentations.length === 0 ? (
+            <div className="text-center text-gray-400 py-8">
+              {isOver ? "Drop presentation here" : "No presentations scheduled"}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {section.presentations.map((presentation) => (
+                <ScheduledPresentationCard
+                  key={presentation.id}
+                  presentation={presentation}
+                  onView={() => onPresentationView(presentation)}
+                  onUnschedule={() => onPresentationUnschedule(presentation.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Scheduled Presentation Card
+function ScheduledPresentationCard({
+  presentation,
+  onView,
+  onUnschedule,
+}: {
+  presentation: any;
+  onView: () => void;
+  onUnschedule: () => void;
+}) {
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <h4 className="font-medium text-sm line-clamp-2">{presentation.title}</h4>
+          <p className="text-xs text-gray-500 mt-1">
+            {presentation.authors?.[0]?.authorName}
+            {presentation.authors && presentation.authors.length > 1 && ` +${presentation.authors.length - 1}`}
+          </p>
+          <div className="flex items-center gap-2 mt-2">
+            {presentation.category && (
+              <Badge
+                variant="outline"
+                className="text-xs"
+                style={{
+                  backgroundColor: `${presentation.category.color || '#6B7280'}20`,
+                  borderColor: presentation.category.color || '#6B7280',
+                  color: presentation.category.color || '#6B7280',
+                }}
+              >
+                {presentation.category.name}
+              </Badge>
+            )}
+            <span className="text-xs text-gray-500 flex items-center">
+              <ClockIcon className="h-3 w-3 mr-1" />
+              {presentation.duration || 0}min
+            </span>
+          </div>
+        </div>
+        <div className="flex gap-1 ml-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs px-2 py-1 h-auto"
+            onClick={onView}
+          >
+            <EyeIcon className="h-3 w-3 mr-1" />
+            View
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs px-2 py-1 h-auto"
+            onClick={onUnschedule}
+          >
+            <MoveIcon className="h-3 w-3 mr-1" />
+            Unschedule
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Presentation Detail Dialog
+function PresentationDetailDialog({
+  presentation,
+  onClose,
+}: {
+  presentation: Presentation | null;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open={!!presentation} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-white">
+        <DialogHeader>
+          <DialogTitle className="text-xl pr-8">
+            {presentation?.title}
+          </DialogTitle>
+        </DialogHeader>
+
+        {presentation && (
+          <div className="space-y-6 mt-4">
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                className="px-3 py-1"
+                style={{
+                  backgroundColor: `${presentation.category?.color || '#6B7280'}20`,
+                  color: presentation.category?.color || '#6B7280',
+                  border: `1px solid ${presentation.category?.color || '#6B7280'}40`,
+                }}
+              >
+                {presentation.category?.name || 'Uncategorized'}
+              </Badge>
+              {presentation.presentationType && (
+                <Badge variant="outline" className="px-3 py-1">
+                  {presentation.presentationType.name}
+                </Badge>
+              )}
+              <Badge variant="outline" className="px-3 py-1">
+                <ClockIcon className="h-3 w-3 mr-1" />
+                {presentation.duration || 0} minutes
+              </Badge>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold mb-3 text-gray-900">Authors</h4>
+              <div className="space-y-2">
+                {Array.isArray(presentation.authors) && presentation.authors.map((author, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between bg-white rounded p-3 border"
+                  >
+                    <div>
+                      <span className="font-medium text-gray-900">
+                        {author.authorName}
+                      </span>
+                      <p className="text-sm text-gray-600">
+                        {author.affiliation}
+                      </p>
+                    </div>
+                    {author.isPresenter && (
+                      <Badge
+                        variant="default"
+                        className="bg-blue-100 text-blue-800 border-blue-200"
+                      >
+                        Presenter
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold mb-3 text-gray-900">Abstract</h4>
+              <div className="bg-white rounded p-4 border">
+                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {presentation.abstract}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={onClose} className="px-6">
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
