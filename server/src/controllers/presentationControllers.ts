@@ -32,10 +32,9 @@ export const getSessionPresentations = async (req: Request, res: Response): Prom
     
     const presentations = await prisma.presentation.findMany({
       where: { 
-        sectionId: Number(sessionId) 
+        sectionId: Number(sessionId) // This stays the same - we want presentations assigned to this section
       },
       include: {
-        // Use PresentationAuthor instead of authorAssignments
         authors: {
           include: {
             internalUser: {
@@ -52,7 +51,7 @@ export const getSessionPresentations = async (req: Request, res: Response): Prom
         materials: {
           select: {
             id: true,
-            title: true,        // Use correct field names from schema
+            title: true,
             fileType: true,
             uploadedAt: true
           }
@@ -100,10 +99,10 @@ export const getSessionPresentations = async (req: Request, res: Response): Prom
   }
 };
 
-// Create new presentation
+// Create new presentation - UPDATED for new workflow
 export const createPresentation = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { title, abstract, duration, keywords, sectionId } = req.body;
+    const { title, abstract, duration, keywords, conferenceId, sectionId } = req.body;
     const organizerId = getUserId(req);
 
     if (!organizerId) {
@@ -111,34 +110,36 @@ export const createPresentation = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // Verify section exists and user has permission
-    const section = await prisma.section.findUnique({
-      where: { id: Number(sectionId) },
-      include: {
-        conference: {
-          select: {
-            createdById: true
-          }
-        }
+    // Verify conference exists and user has permission
+    const conference = await prisma.conference.findUnique({
+      where: { id: Number(conferenceId) },
+      select: {
+        id: true,
+        createdById: true
       }
     });
 
-    if (!section) {
-      res.status(404).json({ message: "Section not found" });
+    if (!conference) {
+      res.status(404).json({ message: "Conference not found" });
       return;
     }
 
     // For non-admin users, verify they are the conference creator
-    if (!isAdmin(req) && section.conference.createdById !== organizerId) {
-      res.status(403).json({ message: "Not authorized to create presentations for this section" });
+    if (!isAdmin(req) && conference.createdById !== organizerId) {
+      res.status(403).json({ message: "Not authorized to create presentations for this conference" });
       return;
     }
 
-    // Get the highest order number for this session
-    const lastPresentation = await prisma.presentation.findFirst({
-      where: { sectionId: Number(sectionId) },
-      orderBy: { order: 'desc' }
-    });
+    let order = 0;
+    
+    // If being assigned to a section, get the highest order number for that section
+    if (sectionId) {
+      const lastPresentation = await prisma.presentation.findFirst({
+        where: { sectionId: Number(sectionId) },
+        orderBy: { order: 'desc' }
+      });
+      order = (lastPresentation?.order || 0) + 1;
+    }
 
     const presentation = await prisma.presentation.create({
       data: {
@@ -146,14 +147,14 @@ export const createPresentation = async (req: Request, res: Response): Promise<v
         abstract,
         duration: Number(duration),
         keywords: keywords || [],
-        affiliations: [], // Add required affiliations field
-        sectionId: Number(sectionId),
-        order: (lastPresentation?.order || 0) + 1,
-        status: 'draft',
+        affiliations: [],
+        conferenceId: Number(conferenceId), // ✅ Direct conference relation
+        sectionId: sectionId ? Number(sectionId) : null, // ✅ Optional section
+        order,
+        status: sectionId ? 'scheduled' : 'submitted', // ✅ Status based on scheduling
         submissionType: 'internal'
       },
       include: {
-        // Use 'authors' instead of 'authorAssignments' for new presentations
         authors: {
           include: {
             internalUser: {
@@ -170,7 +171,7 @@ export const createPresentation = async (req: Request, res: Response): Promise<v
         materials: {
           select: {
             id: true,
-            title: true,        // Use correct field names
+            title: true,
             fileType: true,
             uploadedAt: true
           }
@@ -201,7 +202,12 @@ export const updatePresentation = async (req: Request, res: Response): Promise<v
     const existingPresentation = await prisma.presentation.findUnique({
       where: { id: Number(id) },
       include: {
-        section: {
+        conference: { // ✅ Use direct conference relation
+          select: {
+            createdById: true
+          }
+        },
+        section: { // ✅ Keep section as optional backup
           include: {
             conference: {
               select: {
@@ -218,8 +224,11 @@ export const updatePresentation = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // For non-admin users, verify they are the conference creator
-    if (!isAdmin(req) && existingPresentation.section.conference.createdById !== userId) {
+    // Check permission via direct conference relation first, then fallback to section
+    const conferenceCreatedById = existingPresentation.conference?.createdById || 
+                                 existingPresentation.section?.conference.createdById;
+
+    if (!isAdmin(req) && conferenceCreatedById !== userId) {
       res.status(403).json({ message: "Not authorized to update this presentation" });
       return;
     }
@@ -233,7 +242,6 @@ export const updatePresentation = async (req: Request, res: Response): Promise<v
         keywords: keywords || []
       },
       include: {
-        // Use 'authors' instead of 'authorAssignments'
         authors: {
           include: {
             internalUser: {
@@ -250,7 +258,7 @@ export const updatePresentation = async (req: Request, res: Response): Promise<v
         materials: {
           select: {
             id: true,
-            title: true,        // Use correct field names
+            title: true,
             fileType: true,
             uploadedAt: true
           }
@@ -280,7 +288,12 @@ export const deletePresentation = async (req: Request, res: Response): Promise<v
     const existingPresentation = await prisma.presentation.findUnique({
       where: { id: Number(id) },
       include: {
-        section: {
+        conference: { // ✅ Use direct conference relation
+          select: {
+            createdById: true
+          }
+        },
+        section: { // ✅ Keep section as optional backup
           include: {
             conference: {
               select: {
@@ -297,8 +310,11 @@ export const deletePresentation = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // For non-admin users, verify they are the conference creator
-    if (!isAdmin(req) && existingPresentation.section.conference.createdById !== userId) {
+    // Check permission via direct conference relation first, then fallback to section
+    const conferenceCreatedById = existingPresentation.conference?.createdById || 
+                                 existingPresentation.section?.conference.createdById;
+    
+    if (!isAdmin(req) && conferenceCreatedById !== userId) {
       res.status(403).json({ message: "Not authorized to delete this presentation" });
       return;
     }
@@ -376,9 +392,6 @@ export const assignAuthorsToPresentation = async (req: Request, res: Response): 
     const { authors } = req.body;
     const userId = getUserId(req);
 
-    console.log('Assigning authors to presentation:', id); // Debug log
-    console.log('Authors data:', authors); // Debug log
-
     if (!userId) {
       res.status(401).json({ message: "User not authenticated" });
       return;
@@ -388,9 +401,19 @@ export const assignAuthorsToPresentation = async (req: Request, res: Response): 
     const presentation = await prisma.presentation.findUnique({
       where: { id: Number(id) },
       include: {
-        section: {
+        conference: { // ✅ Use direct conference relation
+          select: {
+            id: true,
+            createdById: true
+          }
+        },
+        section: { // ✅ Keep section as optional backup
           include: {
-            conference: true  // Direct conference relation
+            conference: {
+              select: {
+                createdById: true
+              }
+            }
           }
         }
       }
@@ -401,8 +424,11 @@ export const assignAuthorsToPresentation = async (req: Request, res: Response): 
       return;
     }
 
-    // Check permissions using direct conference relation
-    if (!isAdmin(req) && presentation.section.conference.createdById !== userId) {
+    // Check permission via direct conference relation first, then fallback to section
+    const conferenceCreatedById = presentation.conference?.createdById || 
+                                 presentation.section?.conference.createdById;
+
+    if (!isAdmin(req) && conferenceCreatedById !== userId) {
       res.status(403).json({ message: "Not authorized to assign authors to this presentation" });
       return;
     }
@@ -412,13 +438,9 @@ export const assignAuthorsToPresentation = async (req: Request, res: Response): 
       where: { presentationId: Number(id) }
     });
 
-    console.log('Deleted existing authors for presentation:', id); // Debug log
-
     // Create new presentation authors
     const createdAuthors = await Promise.all(
       authors.map(async (author: any, index: number) => {
-        console.log('Creating author:', author); // Debug log
-        
         return prisma.presentationAuthor.create({
           data: {
             presentationId: Number(id),
@@ -433,8 +455,6 @@ export const assignAuthorsToPresentation = async (req: Request, res: Response): 
         });
       })
     );
-
-    console.log('Created authors:', createdAuthors); // Debug log
 
     res.json({ message: 'Authors assigned successfully', authors: createdAuthors });
   } catch (error: any) {

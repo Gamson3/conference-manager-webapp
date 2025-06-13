@@ -139,6 +139,7 @@ export const submitPresentation = async (req: Request, res: Response): Promise<v
         affiliations: [], // Add empty array as required by schema
         duration: requestedDuration || 20,
         sectionId: conference.sections[0].id, // Use sectionId directly
+        conferenceId: Number(conferenceId), // Add required conferenceId
         status: 'submitted',
         submissionType: 'external',
         reviewStatus: 'PENDING',
@@ -416,6 +417,12 @@ export const uploadPresentationFile = async (req: Request, res: Response): Promi
     // Check if file was uploaded
     if (!req.file) {
       res.status(400).json({ message: "No file uploaded" });
+      return;
+    }
+
+    // Check if presentation has a section
+    if (!presentation.section) {
+      res.status(400).json({ message: "Presentation is not assigned to a section" });
       return;
     }
     
@@ -714,7 +721,7 @@ export const deletePresentationMaterial = async (req: Request, res: Response): P
     
     // Check if user is author or conference organizer
     const isAuthor = material.presentation.authors.length > 0;
-    const isOrganizer = material.presentation.section.conference.createdById === user.id;
+    const isOrganizer = material.presentation.section?.conference.createdById === user.id;
     
     if (!isAuthor && !isOrganizer && !isAdmin(req)) {
       res.status(403).json({ message: "You don't have permission to delete this material" });

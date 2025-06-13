@@ -48,13 +48,10 @@ const NavBar = () => {
             scroll={false}
           >
             <div className="flex items-center gap-3">
-              <Image
-                src="/logo.svg"
-                alt="ConferenceMaster Logo"
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
+              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-md font-bold">C</span>
+                <span className="text-md font-bold text-secondary-500">M</span>
+              </div>
               <div className="text-xl font-bold">
                 CONFERENCE
                 <span className="text-secondary-500 hover:!text-primary-300">

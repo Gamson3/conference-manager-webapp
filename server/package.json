@@ -12,7 +12,6 @@
     "seed:presentations-complete": "npx tsx prisma/seed-presentations-complete.ts",
     "seed:full": "ts-node prisma/seed-full-conference.ts",
     "seed:test": "ts-node prisma/seed-cfp-conferences.ts",
-    "seed:presentations": "npx tsx prisma/seed-presentations",
     "prisma:generate": "prisma generate",
     "postprisma:generate": "shx cp -r node_modules/.prisma/client/index.d.ts ../client/src/types/prismaTypes.d.ts",
     "db:reset": "npx prisma migrate reset --force && npx prisma migrate dev && npm prisma:generate"

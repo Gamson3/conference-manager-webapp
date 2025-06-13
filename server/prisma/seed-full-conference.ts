@@ -328,6 +328,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'In this opening keynote, we explore the current state and future prospects of artificial general intelligence (AGI). We discuss the key challenges, breakthrough moments, and potential timeline for achieving human-level AI capabilities across diverse domains.',
       affiliations: ['Google DeepMind', 'University of Toronto'],
       keywords: ['AGI', 'artificial intelligence', 'machine learning', 'future technology'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: openingKeynote.id,
       order: 1,
       status: PresentationStatus.scheduled, // Use existing enum value
@@ -340,6 +341,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'This presentation explores the evolution of transformer architectures beyond their original application in natural language processing. We examine recent applications in computer vision, protein folding, and multimodal learning.',
       affiliations: ['Stanford University'],
       keywords: ['transformers', 'neural networks', 'attention mechanism', 'multimodal learning'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: mlFoundations.id,
       order: 1,
       status: PresentationStatus.scheduled,
@@ -351,6 +353,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'An in-depth look at federated learning techniques that enable collaborative model training while preserving data privacy. We present recent advances in federated optimization and real-world deployment challenges.',
       affiliations: ['New York University', 'Meta'],
       keywords: ['federated learning', 'privacy', 'distributed computing', 'optimization'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: mlFoundations.id,
       order: 2,
       status: PresentationStatus.scheduled,
@@ -362,6 +365,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'This talk addresses the critical need for interpretable machine learning models. We present novel techniques for explaining complex AI decisions and their applications in healthcare, finance, and autonomous systems.',
       affiliations: ['MIT'],
       keywords: ['explainable AI', 'interpretability', 'transparency', 'trust'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: mlFoundations.id,
       order: 3,
       status: PresentationStatus.scheduled,
@@ -374,6 +378,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'A hands-on tutorial on designing, training, and fine-tuning large language models. Participants will learn about data preparation, model architecture design, and efficient training strategies.',
       affiliations: ['Stanford University'],
       keywords: ['large language models', 'GPT', 'BERT', 'fine-tuning', 'training'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: nlpWorkshop.id,
       order: 1,
       status: PresentationStatus.scheduled,
@@ -385,6 +390,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'Learn advanced strategies for crafting effective prompts for large language models. This session covers chain-of-thought prompting, few-shot learning, and prompt optimization techniques.',
       affiliations: ['Google'],
       keywords: ['prompt engineering', 'few-shot learning', 'chain-of-thought', 'optimization'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: nlpWorkshop.id,
       order: 2,
       status: PresentationStatus.scheduled,
@@ -396,6 +402,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'Explore techniques for building NLP systems that work across multiple languages. We cover cross-lingual transfer learning, multilingual embeddings, and zero-shot language adaptation.',
       affiliations: ['MIT'],
       keywords: ['multilingual NLP', 'cross-lingual', 'transfer learning', 'embeddings'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: nlpWorkshop.id,
       order: 3,
       status: PresentationStatus.scheduled,
@@ -408,6 +415,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'A comprehensive overview of graph neural network architectures and their applications. We discuss GCNs, GraphSAGE, and attention-based graph networks with real-world case studies.',
       affiliations: ['University of Montreal'],
       keywords: ['graph neural networks', 'GNN', 'relational data', 'social networks'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: deepLearningSession.id,
       order: 1,
       status: PresentationStatus.scheduled,
@@ -419,6 +427,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'This presentation explores self-supervised learning techniques that leverage unlabeled data. We examine contrastive learning, masked language modeling, and their applications across domains.',
       affiliations: ['OpenAI'],
       keywords: ['self-supervised learning', 'contrastive learning', 'unlabeled data', 'representation learning'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: deepLearningSession.id,
       order: 2,
       status: PresentationStatus.scheduled,
@@ -430,6 +439,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'Learn about automated neural architecture search (NAS) techniques that can discover optimal network designs. We cover evolutionary algorithms, reinforcement learning-based NAS, and efficient search strategies.',
       affiliations: ['Stanford University'],
       keywords: ['neural architecture search', 'NAS', 'automated design', 'optimization'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: deepLearningSession.id,
       order: 3,
       status: PresentationStatus.scheduled,
@@ -442,6 +452,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'A panel discussion featuring leading experts in computer vision discussing the impact of foundation models like CLIP, DALL-E, and Stable Diffusion on the field of computer vision.',
       affiliations: ['Stanford University', 'NVIDIA Research', 'Microsoft Research'],
       keywords: ['computer vision', 'foundation models', 'CLIP', 'generative AI'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: computerVisionPanel.id,
       order: 1,
       status: PresentationStatus.scheduled,
@@ -454,6 +465,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'This talk explores the challenges and solutions in transferring AI capabilities from simulation to real-world robotic systems. We discuss sim-to-real transfer, domain adaptation, and embodied learning.',
       affiliations: ['Carnegie Mellon University'],
       keywords: ['embodied AI', 'robotics', 'sim-to-real', 'domain adaptation'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: roboticsSession.id,
       order: 1,
       status: PresentationStatus.scheduled,
@@ -465,6 +477,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'An examination of AI technologies powering autonomous vehicles, including perception systems, path planning algorithms, and safety considerations. We present recent advances and remaining challenges.',
       affiliations: ['Tesla AI'],
       keywords: ['autonomous vehicles', 'self-driving cars', 'perception', 'path planning'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: roboticsSession.id,
       order: 2,
       status: PresentationStatus.scheduled,
@@ -476,6 +489,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'This presentation discusses the integration of collaborative robots (cobots) in manufacturing environments. We explore safety protocols, AI-driven task allocation, and human-robot interaction design.',
       affiliations: ['Boston Dynamics'],
       keywords: ['human-robot collaboration', 'cobots', 'manufacturing', 'safety'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: roboticsSession.id,
       order: 3,
       status: PresentationStatus.scheduled,
@@ -488,6 +502,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'This keynote addresses the ethical implications of AI development and deployment. We discuss bias mitigation, fairness in AI systems, and the responsibility of researchers and practitioners in building beneficial AI.',
       affiliations: ['DAIR Institute'],
       keywords: ['AI ethics', 'fairness', 'bias', 'responsible AI', 'AI for good'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: ethicsKeynote.id,
       order: 1,
       status: PresentationStatus.scheduled,
@@ -500,6 +515,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'Industry leaders from major tech companies discuss their vision for the future of AI, including emerging applications, technological challenges, and societal impacts.',
       affiliations: ['Microsoft', 'Google', 'OpenAI'],
       keywords: ['industry perspective', 'future of AI', 'emerging applications', 'technology trends'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: futurePanel.id,
       order: 1,
       status: PresentationStatus.scheduled,
@@ -512,6 +528,7 @@ Join us for three days of inspiring presentations, workshops, and networking opp
       abstract: 'A summary of key insights from the conference and a look ahead to future research directions in artificial intelligence. Recognition of outstanding presentations and contributions.',
       affiliations: ['Stanford University', 'MIT'],
       keywords: ['conference summary', 'future directions', 'research trends', 'awards'],
+      conferenceId: conference.id, // ✅ Add this line
       sectionId: closingSession.id,
       order: 1,
       status: PresentationStatus.scheduled,

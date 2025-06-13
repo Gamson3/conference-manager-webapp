@@ -68,7 +68,10 @@ export const uploadPresentationMaterial = async (req: Request, res: Response): P
     const presentation = await prisma.presentation.findUnique({
       where: { id: Number(presentationId) },
       include: {
-        section: {
+        conference: { // ✅ Use direct conference relation
+          select: { createdById: true }
+        },
+        section: { // ✅ Keep section as optional backup
           include: {
             conference: {
               select: { createdById: true }
@@ -83,8 +86,11 @@ export const uploadPresentationMaterial = async (req: Request, res: Response): P
       return;
     }
 
-    // Check permissions
-    if (!isAdmin(req) && presentation.section.conference.createdById !== userId) {
+    // Check permissions via direct conference relation first, then fallback to section
+    const conferenceCreatedById = presentation.conference?.createdById || 
+                                 presentation.section?.conference.createdById;
+
+    if (!isAdmin(req) && conferenceCreatedById !== userId) {
       res.status(403).json({ message: "Not authorized to upload materials for this presentation" });
       return;
     }
@@ -174,7 +180,10 @@ export const deletePresentationMaterial = async (req: Request, res: Response): P
       include: {
         presentation: {
           include: {
-            section: {
+            conference: { // ✅ Use direct conference relation
+              select: { createdById: true }
+            },
+            section: { // ✅ Keep section as optional backup
               include: {
                 conference: {
                   select: { createdById: true }
@@ -191,8 +200,11 @@ export const deletePresentationMaterial = async (req: Request, res: Response): P
       return;
     }
 
-    // Check permissions
-    if (!isAdmin(req) && material.presentation.section.conference.createdById !== userId) {
+    // Check permissions via direct conference relation first, then fallback to section
+    const conferenceCreatedById = material.presentation.conference?.createdById || 
+                                 material.presentation.section?.conference.createdById;
+
+    if (!isAdmin(req) && conferenceCreatedById !== userId) {
       res.status(403).json({ message: "Not authorized to delete this material" });
       return;
     }

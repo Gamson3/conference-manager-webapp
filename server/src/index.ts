@@ -16,16 +16,16 @@ import userRoutes from "./routes/userRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import conferenceRoutes from "./routes/conferenceRoutes";
 import sectionRoutes from "./routes/sectionRoutes";
-import searchRoutes from "./routes/searchRoutes";
-import favoriteRoutes from "./routes/favoriteRoutes";
+// import searchRoutes from "./routes/searchRoutes";
+// import favoriteRoutes from "./routes/favoriteRoutes";
 import presentationRoutes from "./routes/presentationRoutes";
 import attendeeRoutes from "./routes/attendeeRoutes";
-import scheduleRoutes from "./routes/scheduleRoutes";
+// import scheduleRoutes from "./routes/scheduleRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import presentationTypeRoutes from "./routes/presentationTypeRoutes";
 import submissionSettingsRoutes from "./routes/submissionSettingsRoutes";
 import workflowRoutes from "./routes/workflowRoutes";
-import submissionRoutes from './routes/submitPresentationRoutes';
+// import submissionRoutes from './routes/submitPresentationRoutes';
 
 
 
@@ -51,17 +51,17 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes); // universal user route
 app.use("/events", eventRoutes);
 app.use("/conferences", conferenceRoutes); // Public conference routes
-app.use("/api", scheduleRoutes);            // Schedule and favorites (protected)
+// app.use("/api", scheduleRoutes);            // Schedule and favorites (protected)
 app.use("/sections", sectionRoutes);
-app.use("/search", searchRoutes); 
-app.use("/favorites", favoriteRoutes);
+// app.use("/search", searchRoutes); 
+// app.use("/favorites", favoriteRoutes);
 app.use("/api", presentationRoutes);
 app.use("/api/attendee", attendeeRoutes);
 app.use("/api", categoryRoutes);
 app.use("/api", presentationTypeRoutes);
 app.use("/api", submissionSettingsRoutes);
 app.use("/api", workflowRoutes);
-app.use('/api', submissionRoutes);
+// app.use('/api', submissionRoutes);
 
 
 
