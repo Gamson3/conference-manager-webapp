@@ -3,6 +3,7 @@ import {
   getScheduleOverview,
   getUnscheduledPresentations,
   assignPresentationToSection,
+  assignPresentationWithTruncation,
   unassignPresentationFromSection,
 } from "../controllers/scheduleBuilderControllers";
 import { authMiddleware } from '../middleware/authMiddleware';
@@ -13,6 +14,7 @@ const router = express.Router();
 router.get("/conferences/:conferenceId",  authMiddleware(["attendee", "organizer", "admin"]), getScheduleOverview);
 router.get("/conferences/:conferenceId/presentations/unscheduled", authMiddleware(["attendee", "organizer", "admin"]), getUnscheduledPresentations);
 router.post("/presentations/:id/assign-section", authMiddleware(["attendee", "organizer", "admin"]), assignPresentationToSection);
-router.post("/presentations/:id/unassign-section", authMiddleware(["attendee", "organizer", "admin"]), unassignPresentationFromSection);
+router.post("/presentations/:id/assign-section/confirm", authMiddleware(["attendee", "organizer", "admin"]), assignPresentationWithTruncation);
+router.delete("/presentations/:id/unassign-section", authMiddleware(["attendee", "organizer", "admin"]), unassignPresentationFromSection);
 
 export default router;

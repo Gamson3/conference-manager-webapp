@@ -204,7 +204,7 @@ export default function ScheduleBuilderPage() {
       const api = await createAuthenticatedApi();
       
       // Use existing endpoint
-      await api.post(`/api/schedule-builder/presentations/${presentationId}/unassign-section`);
+      await api.delete(`/api/schedule-builder/presentations/${presentationId}/unassign-section`);
       
       toast.success('Presentation unscheduled successfully!');
       await fetchScheduleData();
@@ -576,7 +576,7 @@ function DraggablePresentationCard({
           </Badge>
           <span className="text-xs text-gray-500 flex items-center">
             <ClockIcon className="h-3 w-3 mr-1" />
-            {presentation.duration || 0}min
+            {presentation.finalDuration || 0}min
           </span>
         </div>
       </div>
@@ -759,7 +759,7 @@ function ScheduledPresentationCard({
             )}
             <span className="text-xs text-gray-500 flex items-center">
               <ClockIcon className="h-3 w-3 mr-1" />
-              {presentation.duration || 0}min
+              {presentation.finalDuration || 0}min
             </span>
           </div>
         </div>
@@ -825,7 +825,7 @@ function PresentationDetailDialog({
               )}
               <Badge variant="outline" className="px-3 py-1">
                 <ClockIcon className="h-3 w-3 mr-1" />
-                {presentation.duration || 0} minutes
+                {presentation.finalDuration || 0} minutes
               </Badge>
             </div>
 

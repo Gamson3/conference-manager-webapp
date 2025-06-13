@@ -101,8 +101,11 @@ export const createSection = async (req: Request, res: Response): Promise<void> 
     
     if (startTime) {
       const sessionDate = new Date(startTime);
-      const sessionDateOnly = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate());
-      
+      const sessionDateOnly = new Date(Date.UTC(
+        sessionDate.getUTCFullYear(),
+        sessionDate.getUTCMonth(),
+        sessionDate.getUTCDate()
+      ))
       // Try to find existing day for this date
       let day = await prisma.day.findFirst({
         where: {
@@ -115,8 +118,11 @@ export const createSection = async (req: Request, res: Response): Promise<void> 
       if (!day) {
         // Calculate which day number this is
         const conferenceStartDate = new Date(conference.startDate);
-        const conferenceStartDateOnly = new Date(conferenceStartDate.getFullYear(), conferenceStartDate.getMonth(), conferenceStartDate.getDate());
-        
+        const conferenceStartDateOnly = new Date(Date.UTC(
+          conferenceStartDate.getUTCFullYear(),
+          conferenceStartDate.getUTCMonth(),
+          conferenceStartDate.getUTCDate()
+        ));
         const daysDiff = Math.floor((sessionDateOnly.getTime() - conferenceStartDateOnly.getTime()) / (1000 * 60 * 60 * 24));
         const dayNumber = daysDiff + 1;
         

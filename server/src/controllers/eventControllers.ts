@@ -822,3 +822,112 @@ export const unpublishConference = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to unpublish conference" });
   }
 };
+
+// Add this helper function to recalculate days
+const recalculateDays = async (conferenceId: number, startDate: Date, endDate: Date) => {
+  // Calculate number of days
+  const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  
+  // Get existing days
+  const existingDays = await prisma.day.findMany({
+    where: { conferenceId },
+    orderBy: { order: 'asc' }
+  });
+
+  // Update existing days or create new ones
+  for (let i = 0; i < daysDiff; i++) {
+    const dayDate = new Date(startDate);
+    dayDate.setUTCDate(startDate.getUTCDate() + i);
+    
+    const dayName = i === 0 ? "Day 1" : `Day ${i + 1}`;
+    const order = i + 1;
+
+    if (existingDays[i]) {
+      // Update existing day
+      await prisma.day.update({
+        where: { id: existingDays[i].id },
+        data: {
+          date: dayDate,
+          name: dayName,
+          order: order
+        }
+      });
+    } else {
+      // Create new day
+      await prisma.day.create({
+        data: {
+          conferenceId,
+          date: dayDate,
+          name: dayName,
+          order: order
+        }
+      });
+    }
+  }
+
+  // Delete excess days if conference duration was reduced
+  if (existingDays.length > daysDiff) {
+    const daysToDelete = existingDays.slice(daysDiff);
+    for (const day of daysToDelete) {
+      await prisma.day.delete({
+        where: { id: day.id }
+      });
+    }
+  }
+};
+
+// Update the updateDraft function to include day recalculation
+export const updateDraft = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, description, startDate, endDate, location, topics } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    const conference = await prisma.conference.findFirst({
+      where: {
+        id: Number(id),
+        createdById: Number(userId),
+        status: 'draft',
+      },
+    });
+
+    if (!conference) {
+      res.status(404).json({ message: "Conference draft not found or not authorized" });
+      return;
+    }
+    
+    const newStartDate = new Date(startDate);
+    const newEndDate = new Date(endDate);
+    
+    // Update conference
+    const updatedDraft = await prisma.conference.update({
+      where: { id: Number(id) },
+      data: {
+        name,
+        description,
+        startDate: newStartDate,
+        endDate: newEndDate,
+        location,
+        topics: topics || [],
+        status: 'draft',
+      },
+    });
+    
+    // Recalculate days if dates changed
+    if (conference.startDate?.getTime() !== newStartDate.getTime() || 
+        conference.endDate?.getTime() !== newEndDate.getTime()) {
+      console.log('Conference dates changed, recalculating days...');
+      await recalculateDays(Number(id), newStartDate, newEndDate);
+    }
+    
+    res.json(updatedDraft);
+  } catch (error) {
+    console.error("Error updating draft:", error);
+    res.status(500).json({ message: "Failed to update draft" });
+  }
+};
