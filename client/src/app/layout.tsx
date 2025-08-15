@@ -3,6 +3,7 @@ import { Source_Sans_3 as FontSans } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import { Toaster } from "@/components/ui/sonner";
+import { NavigationProvider } from '@/contexts/NavigationContext';
 
 const fontSans = FontSans({
   variable: "--font-sans",
@@ -25,7 +26,9 @@ export default function RootLayout({
       <body
         className={`${fontSans.variable} font-sans antialiased`}
       >
-        <Providers>{children}</Providers>
+        <NavigationProvider>
+          <Providers>{children}</Providers>
+        </NavigationProvider>
 
         <Toaster 
           position="top-right"
