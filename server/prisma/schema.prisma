@@ -76,6 +76,15 @@ enum SlotMode {
   MANUAL
 }
 
+// Add this enum for break types
+enum BreakType {
+  COFFEE_BREAK
+  LUNCH_BREAK
+  NETWORKING_BREAK
+  REST_BREAK
+  GENERAL_BREAK
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   cognitoId String   @unique // Cognito ID for authentication
@@ -294,6 +303,8 @@ model Presentation {
   requestedDuration  Int?
   finalDuration      Int?
   reviewStatus       ReviewStatus @default(PENDING)
+  reviewComments     String?      @db.Text  
+  reviewedAt         DateTime?
   assignedAt         DateTime?
 
   // ADD these relations to your existing Presentation model:
@@ -406,31 +417,6 @@ model ConferenceMaterial {
   conference Conference @relation(fields: [conferenceId], references: [id])
 }
 
-// Ticket types and pricing
-// model Ticket {
-//   id            Int              @id @default(autoincrement())
-//   name          String
-//   description   String?
-//   price         Decimal          @db.Decimal(10, 2)
-//   quantity      Int
-//   availableFrom DateTime
-//   availableTo   DateTime
-//   conferenceId  Int
-//   conference    Conference       @relation(fields: [conferenceId], references: [id])
-//   purchases     TicketPurchase[]
-// }
-
-// Ticket purchases by users
-// model TicketPurchase {
-//   id           Int      @id @default(autoincrement())
-//   ticketId     Int
-//   userId       Int
-//   purchaseDate DateTime @default(now())
-//   status       String   @default("completed") // completed, refunded, canceled
-
-//   ticket Ticket @relation(fields: [ticketId], references: [id])
-//   user   User   @relation(fields: [userId], references: [id])
-// }
 
 // Presentation materials
 model PresentationMaterial {
@@ -540,23 +526,26 @@ model PresentationType {
 
 model TimeSlot {
   id             Int      @id @default(autoincrement())
-  sectionId      Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   startTime      DateTime
   endTime        DateTime
   order          Int      @default(0)
+  sectionId      Int
   slotType       SlotType @default(PRESENTATION)
   isOccupied     Boolean  @default(false)
   presentationId Int?     @unique
-  title          String? // Add this field that was in the error
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  title          String?
+  
+  // Add break-specific fields
+  isFixed        Boolean   @default(false)
+  breakType      BreakType?
+  description    String?
 
-  section      Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section      Section      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   presentation Presentation? @relation(fields: [presentationId], references: [id])
 
-  @@map("time_slots") // Add this
-  @@index([sectionId, order])
-  @@index([startTime])
+  @@map("time_slots")
 }
 
 model Presenter {
