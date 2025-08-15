@@ -98,36 +98,40 @@ export default function EventDetailPage() {
         submissionRes,
         categoriesRes,
         presentationTypesRes,
-        sectionsRes, // Add this line
+        sectionsRes,
         submissionsRes,
         attendeesRes,
       ] = await Promise.all([
-        api.get(`/events/${eventId}`),
+        api.get(`/api/conferences/management/${eventId}`),
         api
-          .get(`/api/events/${eventId}/submission-settings`)
+          .get(`/api/conferences/${eventId}/submission-settings`)
           .catch(() => ({ data: null })),
         api
-          .get(`/api/events/${eventId}/categories`)
+          .get(`/api/conferences/${eventId}/categories`)
           .catch(() => ({ data: [] })),
         api
-          .get(`/api/events/${eventId}/presentation-types`)
+          .get(`/api/conferences/${eventId}/presentation-types`)
           .catch(() => ({ data: [] })),
-        api.get(`/sections/conference/${eventId}`).catch(() => ({ data: [] })), // Add this line
-        api.get(`/events/${eventId}/submissions`).catch(() => ({ data: [] })),
-        api.get(`/events/${eventId}/attendees`).catch(() => ({ data: [] })),
+        api.get(`/sections/conference/${eventId}`).catch(() => ({ data: [] })),
+        api
+          .get(`/api/conferences/${eventId}/submissions`)
+          .catch(() => ({ data: [] })),
+        api
+          .get(`/api/conferences/${eventId}/attendees`)
+          .catch(() => ({ data: [] })),
       ]);
 
       console.log("Presentation Types:", presentationTypesRes.data);
       console.log("Event Data:", eventRes.data);
       console.log("Categories:", categoriesRes.data);
-      console.log("Sections:", sectionsRes.data); // Add this line
+      console.log("Sections:", sectionsRes.data);
 
       setEvent({
         ...eventRes.data,
         submissionSettings: submissionRes.data,
         categories: categoriesRes.data,
         presentationTypes: presentationTypesRes.data,
-        sections: sectionsRes.data, // Add this line
+        sections: sectionsRes.data,
       });
       setSubmissions(submissionsRes.data);
       setAttendees(attendeesRes.data);
@@ -158,7 +162,7 @@ export default function EventDetailPage() {
       setLoading(true);
       const api = await createAuthenticatedApi();
 
-      await api.delete(`/events/${eventId}`);
+      await api.delete(`/api/conferences/management/${eventId}`);
 
       toast.success("Event deleted successfully");
       router.push("/organizer/events");
@@ -198,10 +202,8 @@ export default function EventDetailPage() {
       case 1:
         return "Event Details";
       case 2:
-        return "Sessions & Schedule";
-      case 3:
         return "Categories & Types";
-      case 4:
+      case 3:
         return "Published";
       default:
         return "Unknown";
@@ -238,7 +240,7 @@ export default function EventDetailPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-8">
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <Button
@@ -306,7 +308,7 @@ export default function EventDetailPage() {
                 <Button
                   variant="outline"
                   onClick={handleDeleteEvent}
-                  className="text-red-600"
+                  className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Event
@@ -351,9 +353,9 @@ export default function EventDetailPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Presentations</p>
+                <p className="text-sm text-gray-600">Approved Presentations</p>
                 <p className="text-2xl font-bold">
-                  {event._count?.presentations || 0}
+                  {submissions.filter((s:any) => s.reviewStatus === "APPROVED").length || 0}
                 </p>
               </div>
               <FileText className="h-8 w-8 text-purple-600" />
@@ -365,7 +367,7 @@ export default function EventDetailPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Submissions</p>
+                <p className="text-sm text-gray-600">Total Submissions</p>
                 <p className="text-2xl font-bold">{submissions.length}</p>
               </div>
               <Upload className="h-8 w-8 text-orange-600" />
@@ -384,7 +386,7 @@ export default function EventDetailPage() {
             {/* Schedule Builder */}
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-blue-50 border-blue-200"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-blue-100 border-blue-200"
               onClick={() =>
                 router.push(`/organizer/events/${eventId}/schedule-builder`)
               }
@@ -401,7 +403,7 @@ export default function EventDetailPage() {
             {/* Edit Event (Workflow) */}
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-purple-50 border-purple-200"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-purple-100 border-purple-200"
               onClick={() => {
                 // Determine which step to redirect to based on workflow
                 if (event.workflowStep === 1) {
@@ -436,7 +438,7 @@ export default function EventDetailPage() {
             {/* Review Submissions */}
             <Button
               variant="outline"
-              className={`h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-50 border-orange-200 ${
+              className={`h-auto p-4 flex flex-col items-center gap-2 hover:bg-orange-100 border-orange-200 ${
                 submissions.length === 0 ? "opacity-50 cursor-not-allowed" : ""
               }`}
               onClick={() => {
@@ -460,7 +462,7 @@ export default function EventDetailPage() {
             {/* Manage Attendees */}
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-green-50 border-green-200"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-green-100 border-green-200"
               onClick={() =>
                 router.push(`/organizer/events/${eventId}/attendees`)
               }
@@ -477,7 +479,7 @@ export default function EventDetailPage() {
             {/* Session Management */}
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-indigo-50 border-indigo-200"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-indigo-100 border-indigo-200"
               onClick={() =>
                 router.push(`/organizer/events/${eventId}/sessions`)
               }
@@ -494,7 +496,7 @@ export default function EventDetailPage() {
             {/* Event Analytics */}
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-teal-50 border-teal-200"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-teal-100 border-teal-200"
               onClick={() =>
                 router.push(`/organizer/events/${eventId}/analytics`)
               }
@@ -509,7 +511,7 @@ export default function EventDetailPage() {
             {/* Export Data */}
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-gray-50 border-gray-200"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-gray-200 border-gray-300"
               onClick={() => {
                 // Add export functionality
                 toast.info("Export functionality coming soon");
@@ -525,7 +527,7 @@ export default function EventDetailPage() {
             {/* Delete Event */}
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-red-50 border-red-200 text-red-600"
+              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-red-100 border-red-200 text-red-600 hover:text-red-700"
               onClick={handleDeleteEvent}
             >
               <Trash2 className="h-6 w-6 text-red-600" />
@@ -547,7 +549,7 @@ export default function EventDetailPage() {
               <div>
                 <span className="font-medium">Setup in progress:</span>
                 <span className="ml-2">
-                  Step {event.workflowStep}/4 -{" "}
+                  Step {event.workflowStep}/3 -{" "}
                   {getWorkflowStepName(event.workflowStep!)}
                 </span>
               </div>
@@ -558,11 +560,11 @@ export default function EventDetailPage() {
                     router.push(`/organizer/create-event?eventId=${eventId}`);
                   else if (event.workflowStep === 2)
                     router.push(
-                      `/organizer/create-event/sessions?eventId=${eventId}`
+                      `/organizer/create-event/categories?eventId=${eventId}`
                     );
                   else if (event.workflowStep === 3)
                     router.push(
-                      `/organizer/create-event/categories?eventId=${eventId}`
+                      `/organizer/create-event/publish?eventId=${eventId}`
                     );
                 }}
               >
@@ -766,7 +768,7 @@ export default function EventDetailPage() {
                         size="sm"
                         onClick={() =>
                           router.push(
-                            `/organizer/create-event/sessions?eventId=${eventId}`
+                            `/organizer/events/${eventId}/schedule-builder`
                           )
                         }
                       >
@@ -779,95 +781,239 @@ export default function EventDetailPage() {
                 {/* Submission Settings Tab */}
                 <TabsContent value="settings" className="mt-4">
                   {event.submissionSettings ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium text-gray-700">
-                            Submission Deadline
-                          </label>
-                          <p className="text-sm text-gray-600">
-                            {format(
-                              new Date(
-                                event.submissionSettings.submissionDeadline
-                              ),
-                              "PPP"
-                            )}
-                          </p>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Left Column - Core Settings */}
+                      <div className="space-y-4">
+                        <div className="p-4 border rounded-lg bg-gray-50">
+                          <h3 className="font-semibold text-gray-800 mb-3">
+                            Submission Requirements
+                          </h3>
 
-                        <div>
-                          <label className="text-sm font-medium text-gray-700">
-                            Abstract Requirements
-                          </label>
-                          <p className="text-sm text-gray-600">
-                            {event.submissionSettings.requireAbstract
-                              ? `Required (max ${event.submissionSettings.maxAbstractLength} chars)`
-                              : "Not required"}
-                          </p>
-                        </div>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Submission Deadline
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings.submissionDeadline
+                                  ? format(
+                                      new Date(
+                                        event.submissionSettings.submissionDeadline
+                                      ),
+                                      "PPP"
+                                    )
+                                  : "Not set"}
+                              </p>
+                            </div>
 
-                        <div>
-                          <label className="text-sm font-medium text-gray-700">
-                            File Requirements
-                          </label>
-                          <p className="text-sm text-gray-600">
-                            {event.submissionSettings.allowedFileTypes?.join(
-                              ", "
-                            ) || "Any"}
-                            (max {event.submissionSettings.maxFileSize}MB)
-                          </p>
-                        </div>
-                      </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Abstract
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings.requireAbstract
+                                  ? `Required (max ${
+                                      event.submissionSettings
+                                        .maxAbstractLength || 0
+                                    } words)`
+                                  : "Not required"}
+                              </p>
+                            </div>
 
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium text-gray-700">
-                            Review Process
-                          </label>
-                          <p className="text-sm text-gray-600 capitalize">
-                            {event.submissionSettings.reviewProcess?.replace(
-                              "_",
-                              " "
-                            ) || "Standard"}
-                          </p>
-                        </div>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Full Paper
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings.requireFullPaper
+                                  ? "Required"
+                                  : "Not required"}
+                              </p>
+                            </div>
 
-                        <div>
-                          <label className="text-sm font-medium text-gray-700">
-                            Author Requirements
-                          </label>
-                          <ul className="text-sm text-gray-600">
-                            {event.submissionSettings.requireAuthorBio && (
-                              <li>• Bio required</li>
-                            )}
-                            {event.submissionSettings.requireAffiliation && (
-                              <li>• Affiliation required</li>
-                            )}
-                            {event.submissionSettings.allowLateSubmissions && (
-                              <li>• Late submissions allowed</li>
-                            )}
-                            {!event.submissionSettings.requireAuthorBio &&
-                              !event.submissionSettings.requireAffiliation &&
-                              !event.submissionSettings
-                                .allowLateSubmissions && (
-                                <li className="text-gray-400">
-                                  • Standard requirements
-                                </li>
-                              )}
-                          </ul>
-                        </div>
-
-                        {event.submissionSettings.submissionGuidelines && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-700">
-                              Guidelines
-                            </label>
-                            <p className="text-sm text-gray-600">
-                              {event.submissionSettings.submissionGuidelines}
-                            </p>
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                File Size Limit
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {`${
+                                  event.submissionSettings.maxFileSize || 0
+                                } MB`}
+                              </p>
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </div>
+
+                      {/* Right Column - Author Requirements */}
+                      <div className="space-y-4">
+                        <div className="p-4 border rounded-lg bg-gray-50">
+                          <h3 className="font-semibold text-gray-800 mb-3">
+                            Author Requirements
+                          </h3>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Bio
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings.requireAuthorBio
+                                  ? "Required"
+                                  : "Optional"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Affiliation
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings.requireAffiliation
+                                  ? "Required"
+                                  : "Optional"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Presenter Designation
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings
+                                  .requirePresenterDesignation
+                                  ? "Required"
+                                  : "Optional"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Max Co-authors
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings.maxCoAuthors ||
+                                  "No limit"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Keywords Requirements */}
+                        <div className="p-4 border rounded-lg bg-gray-50">
+                          <h3 className="font-semibold text-gray-800 mb-3">
+                            Presentation Requirements
+                          </h3>
+
+                          <div className="space-y-2">
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Keywords
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings.requireKeywords
+                                  ? `Required (${
+                                      event.submissionSettings.minKeywords || 1
+                                    }-${
+                                      event.submissionSettings.maxKeywords || 5
+                                    })`
+                                  : "Optional"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Presentation Type Selection
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings
+                                  .requirePresentationType
+                                  ? "Required"
+                                  : "Optional"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-gray-700">
+                                Duration Requests
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {event.submissionSettings.allowDurationRequest
+                                  ? "Allowed"
+                                  : "Not allowed"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Guidelines - Full Width Below */}
+                      {(event.submissionSettings.submissionGuidelines ||
+                        event.submissionSettings.authorGuidelines ||
+                        event.submissionSettings.presentationGuidelines ||
+                        event.submissionSettings.reviewCriteria) && (
+                        <div className="col-span-1 md:col-span-2 mt-2">
+                          <div className="p-4 border rounded-lg">
+                            <h3 className="font-semibold text-gray-800 mb-3">
+                              Guidelines & Instructions
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {event.submissionSettings
+                                .submissionGuidelines && (
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">
+                                    Submission Guidelines
+                                  </label>
+                                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                    {
+                                      event.submissionSettings
+                                        .submissionGuidelines
+                                    }
+                                  </p>
+                                </div>
+                              )}
+
+                              {event.submissionSettings.authorGuidelines && (
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">
+                                    Author Guidelines
+                                  </label>
+                                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                    {event.submissionSettings.authorGuidelines}
+                                  </p>
+                                </div>
+                              )}
+
+                              {event.submissionSettings
+                                .presentationGuidelines && (
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">
+                                    Presentation Guidelines
+                                  </label>
+                                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                    {
+                                      event.submissionSettings
+                                        .presentationGuidelines
+                                    }
+                                  </p>
+                                </div>
+                              )}
+
+                              {event.submissionSettings.reviewCriteria && (
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">
+                                    Review Criteria
+                                  </label>
+                                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                    {event.submissionSettings.reviewCriteria}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-8">
