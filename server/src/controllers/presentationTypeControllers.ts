@@ -249,6 +249,60 @@ export const updatePresentationType = async (req: Request, res: Response): Promi
   }
 };
 
+// POST /api/presentation-types/:id/reassign - Reassign presentations from one type to another
+export const reassignPresentationType = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { targetTypeId } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    if (!targetTypeId) {
+      res.status(400).json({ message: "Target presentation type ID is required" });
+      return;
+    }
+
+    // Verify both presentation types exist
+    const [sourceType, targetType] = await Promise.all([
+      prisma.presentationType.findUnique({
+        where: { id: Number(id) },
+        include: { conference: { select: { createdById: true } } }
+      }),
+      prisma.presentationType.findUnique({
+        where: { id: Number(targetTypeId) }
+      })
+    ]);
+
+    if (!sourceType || !targetType) {
+      res.status(404).json({ message: "One or both presentation types not found" });
+      return;
+    }
+
+    if (!isAdmin(req) && sourceType.conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to modify this presentation type" });
+      return;
+    }
+
+    // Update all presentations from this type to the target type
+    await prisma.presentation.updateMany({
+      where: { presentationTypeId: Number(id) },
+      data: { presentationTypeId: Number(targetTypeId) }
+    });
+
+    res.status(200).json({ message: "Presentations reassigned successfully" });
+  } catch (error: any) {
+    console.error("Error reassigning presentations:", error);
+    res.status(500).json({
+      message: "Failed to reassign presentations",
+      error: error.message
+    });
+  }
+};
+
 // DELETE /api/presentation-types/:id - Delete presentation type
 export const deletePresentationType = async (req: Request, res: Response): Promise<void> => {
   try {
