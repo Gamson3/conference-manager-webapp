@@ -1,7 +1,7 @@
 import { usePathname } from 'next/navigation';
 import React from 'react'
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar';
-import { FileText, Heart, LayoutDashboard, Menu, Settings, Users, X } from 'lucide-react';
+import { FileText, Globe, Heart, LayoutDashboard, Menu, Plus, PlusSquare, Settings, Upload, Users, X } from 'lucide-react';
 import { NAVBAR_HEIGHT } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -15,14 +15,14 @@ const AppSidebar = ( { userType }: Appsidebarprops) => {
         userType === "organizer"
           ? [
               { icon: LayoutDashboard, label: "Dashboard", href: "/organizer/dashboard" },
-              { icon: Users, label: "Invite Users", href: "/organizer/users" },
-              {  icon: FileText, label: "Create Event", href: "/organizer/create-event" },
-              { icon: FileText, label: "Manage Events", href: "/organizer/events" },
-              {  icon: Settings, label: "Settings", href: "/organizer/settings" }
+              { icon: Upload, label: "Review Submissions", href: "/organizer/submissions" },
+              { icon: PlusSquare, label: "Create Event", href: "/organizer/create-event" },
+              { icon: Globe, label: "Manage Events", href: "/organizer/events" },
+              { icon: Settings, label: "Settings", href: "/organizer/settings" }
             ]
           : [
               { icon: LayoutDashboard, label: "Dashboard", href: "/attendee/dashboard" },
-              { icon: FileText, label: "Discover", href: "/attendee/discover" },
+              { icon: Globe, label: "Discover", href: "/attendee/discover" },
               { icon: Heart, label: "Favorites", href: "/attendee/favorites" },
               { icon: FileText, label: "My Events", href: "/attendee/view-event" },
               { icon: Settings, label: "Settings", href: "/attendee/settings" },
@@ -81,27 +81,30 @@ const AppSidebar = ( { userType }: Appsidebarprops) => {
                 <SidebarMenuButton
                   asChild
                   className={cn(
-                    "flex items-center px-7 py-7",
+                    "flex items-center rounded-none transition-all",
                     isActive
-                      ? "bg-gray-100"
-                      : "text-gray-600 hover:bg-gray-100",
-                    open ? "text-blue-600" : "ml-[5px]"
+                      ? "bg-gray-300 hover:bg-gray-300 text-blue-600 font-medium"
+                      : "text-gray-600 hover:bg-gray-300",
+                    open 
+                      ? "px-5 py-7 my-1" 
+                      : "p-2 mx-[5px] my-4 justify-center"
                   )}
                 >
                   <Link href={link.href} className="w-full" scroll={false}>
-                    <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "flex items-center",
+                      open ? "gap-3" : "justify-center"
+                    )}>
                       <link.icon
                         className={`h-5 w-5 ${
-                          isActive ? "text-blue-600" : "text-gray-600"
+                          isActive ? "text-blue-600" : "text-gray-500"
                         }`}
                       />
-                      <span
-                        className={`font-medium ${
-                          isActive ? "text-blue-600" : "text-gray-600"
-                        }`}
-                      >
-                        {link.label}
-                      </span>
+                      {open && (
+                        <span className={isActive ? "text-blue-600" : "text-gray-700"}>
+                          {link.label}
+                        </span>
+                      )}
                     </div>
                   </Link>
                 </SidebarMenuButton>
