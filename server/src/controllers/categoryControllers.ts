@@ -195,6 +195,60 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
   }
 };
 
+// Post /api/categories/:id/reassign - Reassign conference category
+export const reassignCategoryPresentations = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { targetCategoryId } = req.body;
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    if (!targetCategoryId) {
+      res.status(400).json({ message: "Target category ID is required" });
+      return;
+    }
+
+    // Verify both categories exist
+    const [sourceCategory, targetCategory] = await Promise.all([
+      prisma.category.findUnique({
+        where: { id: Number(id) },
+        include: { conference: { select: { createdById: true } } }
+      }),
+      prisma.category.findUnique({
+        where: { id: Number(targetCategoryId) }
+      })
+    ]);
+
+    if (!sourceCategory || !targetCategory) {
+      res.status(404).json({ message: "One or both categories not found" });
+      return;
+    }
+
+    if (!isAdmin(req) && sourceCategory.conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to modify this category" });
+      return;
+    }
+
+    // Update all presentations from this category to the target category
+    await prisma.presentation.updateMany({
+      where: { categoryId: Number(id) },
+      data: { categoryId: Number(targetCategoryId) }
+    });
+
+    res.status(200).json({ message: "Presentations reassigned successfully" });
+  } catch (error: any) {
+    console.error("Error reassigning presentations:", error);
+    res.status(500).json({ 
+      message: "Failed to reassign presentations", 
+      error: error.message 
+    });
+  }
+};
+
 // DELETE /api/categories/:id - Delete category
 export const deleteCategory = async (req: Request, res: Response): Promise<void> => {
   try {
