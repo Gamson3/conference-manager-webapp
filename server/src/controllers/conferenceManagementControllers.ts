@@ -77,27 +77,70 @@ export const getEventsByOrganizer = async (req: Request, res: Response) => {
         }
       }
     });
-    
-    res.json(events);
+
+    // For each conference, fetch pending reviews count
+    const eventsWithCounts = await Promise.all(events.map(async (event) => {
+      const pendingReviewsCount = await prisma.presentation.count({
+        where: {
+          conferenceId: event.id,
+          reviewStatus: "PENDING"
+        }
+      });
+      
+      return {
+        ...event,
+        pendingReviewsCount
+      };
+    }));
+    // Return the events with counts
+    res.json(eventsWithCounts);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// GET /events/:id - Get single event by ID
+// GET /api/conferences/management/:id - Get detailed conference for management
 export const getEventById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const event = await prisma.conference.findUnique({
-      where: { id: Number(id) },
-    });
-    if (!event) {
-      res.status(404).json({ message: "Event not found" });
+    const userId = getUserId(req);
+
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
-    res.json(event);
+
+    // Find the conference with all needed counts and relations
+    const conference = await prisma.conference.findUnique({
+      where: { id: Number(id) },
+      include: {
+        _count: {
+          select: {
+            attendances: true,
+            sections: true,
+            presentations: true,  // This was missing
+            categories: true,
+            presentationTypes: true
+          }
+        }
+      }
+    });
+
+    if (!conference) {
+      res.status(404).json({ message: "Conference not found" });
+      return;
+    }
+
+    // Check if user is an admin or the creator
+    if (!isAdmin(req) && conference.createdById !== userId) {
+      res.status(403).json({ message: "Not authorized to access this conference" });
+      return;
+    }
+
+    res.json(conference);
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    console.error("Error fetching conference details:", error);
+    res.status(500).json({ message: "Failed to fetch conference details" });
   }
 };
 

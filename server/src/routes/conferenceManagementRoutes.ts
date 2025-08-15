@@ -18,13 +18,13 @@ import {
   publishConference,
   unpublishConference,
   updateWorkflowProgress,
-} from "../controllers/eventControllers";
+} from "../controllers/conferenceManagementControllers";
 import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
 // ORGANIZER/ADMIN EVENT MANAGEMENT (for organizer dashboard)
-router.get("/", authMiddleware(["organizer", "admin"]), getEventsByOrganizer); 
+router.get("/organizer/:organizerId", authMiddleware(["organizer", "admin"]), getEventsByOrganizer);
 router.get("/:id", authMiddleware(["organizer", "admin"]), getEventById);
 router.post("/", authMiddleware(["organizer", "admin"]), createEvent);
 router.post("/drafts", authMiddleware(["organizer", "admin"]), saveEventDraft);
