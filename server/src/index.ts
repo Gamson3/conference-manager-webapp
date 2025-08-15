@@ -13,8 +13,8 @@ import { authMiddleware } from "./middleware/authMiddleware";
 //  route imports to be added when we have written them
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
-import eventRoutes from "./routes/eventRoutes";
-import conferenceRoutes from "./routes/conferenceRoutes";
+import conferenceManagementRoutes from "./routes/conferenceManagementRoutes";
+// import conferenceRoutes from "./routes/conferenceRoutes";
 import sectionRoutes from "./routes/sectionRoutes";
 // import searchRoutes from "./routes/searchRoutes";
 // import favoriteRoutes from "./routes/favoriteRoutes";
@@ -26,8 +26,8 @@ import presentationTypeRoutes from "./routes/presentationTypeRoutes";
 import submissionSettingsRoutes from "./routes/submissionSettingsRoutes";
 import workflowRoutes from "./routes/workflowRoutes";
 // import submissionRoutes from './routes/submitPresentationRoutes';
-import scheduleBuilderRoutes from './routes/scheduleBuilderRoutes';
-
+import scheduleBuilderRoutes from "./routes/scheduleBuilderRoutes";
+import presentationReviewRoutes from "./routes/presentationReviewRoutes";
 
 
 /* CONFIGURATIONS - setup files*/ 
@@ -50,9 +50,9 @@ app.get("/", (req, res) => {
 // where our routes will be created
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes); // universal user route
-app.use("/events", eventRoutes);
+app.use("/api/conferences/management", conferenceManagementRoutes); // Admin/organizer endpoints
 app.use('/api/schedule-builder', scheduleBuilderRoutes);
-app.use("/conferences", conferenceRoutes); // Public conference routes
+// app.use("/api/conferences", conferenceRoutes); // Public conference endpoints
 // app.use("/api", scheduleRoutes);            // Schedule and favorites (protected)
 app.use("/sections", sectionRoutes);
 // app.use("/search", searchRoutes); 
@@ -64,8 +64,7 @@ app.use("/api", presentationTypeRoutes);
 app.use("/api", submissionSettingsRoutes);
 app.use("/api", workflowRoutes);
 // app.use('/api', submissionRoutes);
-
-
+app.use("/api", presentationReviewRoutes);
 
 
 /* SERVER */
