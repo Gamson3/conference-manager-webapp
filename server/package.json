@@ -6,12 +6,15 @@
     "build": "rimraf dist && npx tsc",
     "start": "npm run build && node dist/index.js",
     "dev": "npm run build && concurrently \"npx tsc -w\" \"nodemon --exec ts-node src/index.ts\"",
+    
     "seed": "ts-node prisma/seed.ts",
     "clear:seed": "ts-node prisma/clear-seed.ts",
     "seed:setup": "npx tsx prisma/seed-setup-conference.ts",
-    "seed:presentations-complete": "npx tsx prisma/seed-presentations-complete.ts",
     "seed:full": "ts-node prisma/seed-full-conference.ts",
-    "seed:test": "ts-node prisma/seed-cfp-conferences.ts",
+    
+    "seed:create": "ts-node prisma/seed1-setup-conference.ts",
+    "seed:presentations-complete": "npx tsx prisma/seed2-presentations-schedule-builder.ts",
+    "seed:presentations-review": "ts-node prisma/seed3-presentations-review-workflow.ts",
     "prisma:generate": "prisma generate",
     "postprisma:generate": "shx cp -r node_modules/.prisma/client/index.d.ts ../client/src/types/prismaTypes.d.ts",
     "db:reset": "npx prisma migrate reset --force && npx prisma migrate dev && npm prisma:generate"
@@ -39,8 +42,9 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
-    "@types/jsonwebtoken": "^9.0.9",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.15.16",
