@@ -31,6 +31,7 @@ const generateDaysFromConference = (startDate: Date, endDate: Date) => {
 };
 
 // Get schedule overview with dynamically generated days
+// Update the getScheduleOverview function to include breaks
 export const getScheduleOverview = async (req: Request, res: Response): Promise<void> => {
   try {
     const { conferenceId } = req.params;
@@ -42,7 +43,8 @@ export const getScheduleOverview = async (req: Request, res: Response): Promise<
         id: true,
         name: true,
         startDate: true,
-        endDate: true
+        endDate: true,
+        status: true
       }
     });
 
@@ -99,45 +101,26 @@ export const getScheduleOverview = async (req: Request, res: Response): Promise<
 
       return {
         ...day,
-        sections: daySections.map(section => ({
-          id: section.id,
-          title: section.name,
-          type: section.type,
-          startTime: section.startTime?.toISOString(),
-          endTime: section.endTime?.toISOString(),
-          isFixed: true, // All sections are considered fixed
-          presentations: section.timeSlots
-            .filter(slot => slot.presentation)
+        sections: daySections.map(section => {
+          // Separate presentations and breaks from timeSlots
+          const presentations = section.timeSlots
+            .filter(slot => slot.presentation && slot.slotType === 'PRESENTATION')
             .map(slot => {
               const presentation = slot.presentation!;
               return {
                 id: presentation.id,
                 title: presentation.title,
+                abstract: presentation.abstract,
                 finalDuration: presentation.finalDuration || 0,
-                presenters: presentation.authors.map((authorRel: any) => {
-                  if (authorRel.presenter) {
-                    return {
-                      id: authorRel.presenter.id,
-                      name: authorRel.presenter.name,
-                      email: authorRel.presenter.email,
-                      affiliation: authorRel.presenter.affiliation
-                    };
-                  } else if (authorRel.internalUser) {
-                    return {
-                      id: authorRel.internalUser.id,
-                      name: authorRel.internalUser.name,
-                      email: authorRel.internalUser.email,
-                      affiliation: authorRel.internalUser.organization
-                    };
-                  } else {
-                    return {
-                      id: authorRel.id,
-                      name: authorRel.authorName,
-                      email: authorRel.authorEmail,
-                      affiliation: authorRel.affiliation
-                    };
-                  }
-                }),
+                duration: presentation.duration || 0,
+                scheduledTime: slot.startTime.toISOString(),
+                authors: presentation.authors.map((authorRel: any) => ({
+                  id: authorRel.id,
+                  authorName: authorRel.authorName || authorRel.presenter?.name || authorRel.internalUser?.name,
+                  authorEmail: authorRel.authorEmail || authorRel.presenter?.email || authorRel.internalUser?.email,
+                  affiliation: authorRel.affiliation || authorRel.presenter?.affiliation || authorRel.internalUser?.organization,
+                  isPresenter: authorRel.isPresenter || false
+                })),
                 category: presentation.category,
                 timeSlot: {
                   id: slot.id,
@@ -145,8 +128,35 @@ export const getScheduleOverview = async (req: Request, res: Response): Promise<
                   endTime: slot.endTime.toISOString()
                 }
               };
-            })
-        }))
+            });
+
+          // Extract breaks from timeSlots
+          const breaks = section.timeSlots
+            .filter(slot => slot.slotType === 'BREAK')
+            .map(slot => ({
+              id: slot.id,
+              title: slot.title || 'Break',
+              startTime: slot.startTime.toISOString(),
+              endTime: slot.endTime.toISOString(),
+              duration: Math.round((slot.endTime.getTime() - slot.startTime.getTime()) / 60000),
+              type: slot.breakType || 'COFFEE_BREAK',
+              sectionId: slot.sectionId
+            }));
+
+          return {
+            id: section.id,
+            name: section.name,
+            title: section.name, // For compatibility
+            type: section.type,
+            room: section.room,
+            capacity: section.capacity,
+            startTime: section.startTime?.toISOString(),
+            endTime: section.endTime?.toISOString(),
+            isFixed: true,
+            presentations,
+            breaks // Include breaks in the response
+          };
+        })
       };
     });
 
@@ -175,15 +185,17 @@ export const getScheduleOverview = async (req: Request, res: Response): Promise<
     const scheduleData = {
       conference: {
         id: conference.id,
-        title: conference.name,
-        startDate: conference.startDate,
-        endDate: conference.endDate
+        name: conference.name,
+        title: conference.name, // For compatibility
+        startDate: conference.startDate.toISOString(),
+        endDate: conference.endDate.toISOString(),
+        status: conference.status
       },
       days: daysWithSections,
       statistics
     };
 
-    console.log(`Generated ${daysWithSections.length} days from ${conference.startDate.toISOString().split('T')[0]} to ${conference.endDate.toISOString().split('T')[0]}`);
+    console.log(`Generated ${daysWithSections.length} days with breaks included`);
     
     res.json(scheduleData);
 
@@ -330,7 +342,7 @@ const calculateNextAvailableSlot = async (sectionId: number, presentationDuratio
 // Assign presentation to section
 export const assignPresentationToSection = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id: presentationId } = req.params;
+    const { presentationId } = req.params;
     const { sectionId } = req.body;
 
     if (!sectionId) {
@@ -435,7 +447,7 @@ export const assignPresentationToSection = async (req: Request, res: Response): 
 // Assign with confirmed truncation
 export const assignPresentationWithTruncation = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id: presentationId } = req.params;
+    const { presentationId } = req.params;
     const { sectionId, confirmedDuration } = req.body;
 
     if (!sectionId || !confirmedDuration) {
@@ -522,7 +534,7 @@ export const assignPresentationWithTruncation = async (req: Request, res: Respon
 // Unassign presentation from section
 export const unassignPresentationFromSection = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id: presentationId } = req.params;
+    const { presentationId } = req.params;
 
     console.log(`Attempting to unschedule presentation ${presentationId}`);
 
@@ -590,5 +602,283 @@ export const publishSchedule = async (req: Request, res: Response): Promise<void
   } catch (error) {
     console.error('Error publishing schedule:', error);
     res.status(500).json({ message: 'Failed to publish schedule' });
+  }
+};
+
+// New controller functions for break management
+
+// Create a break slot within a section
+export const createBreakSlot = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Get sectionId from URL params, not body
+    const { sectionId } = req.params;
+    const { title, duration, breakType, startTime } = req.body;
+
+    console.log('Creating break with params:', { sectionId, title, duration, breakType, startTime });
+
+    if (!sectionId || !title || !duration || !startTime || !breakType) {
+      res.status(400).json({ 
+        message: 'Section ID, title, duration, break type, and start time are required',
+        received: { sectionId, title, duration, breakType, startTime }
+      });
+      return;
+    }
+
+    // Validate date format and parse
+    let parsedStartTime: Date;
+    try {
+      parsedStartTime = new Date(startTime);
+      if (isNaN(parsedStartTime.getTime())) {
+        throw new Error('Invalid date');
+      }
+    } catch (error) {
+      res.status(400).json({ message: 'Invalid startTime format' });
+      return;
+    }
+
+    // Get section to validate
+    const section = await prisma.section.findUnique({
+      where: { id: parseInt(sectionId) },
+      include: {
+        timeSlots: {
+          orderBy: { startTime: 'asc' }
+        }
+      }
+    });
+
+    if (!section) {
+      res.status(404).json({ message: 'Section not found' });
+      return;
+    }
+
+    // Calculate break timing with more intelligent defaults
+    let breakStartTime: Date;
+    
+    // If startTime is provided, use it
+    if (startTime) {
+      breakStartTime = new Date(startTime);
+    } 
+    // Otherwise, find a logical insertion point
+    else {
+      // If there are existing time slots, put the break after the last one
+      if (section.timeSlots.length > 0) {
+        const lastSlot = section.timeSlots[section.timeSlots.length - 1];
+        breakStartTime = new Date(lastSlot.endTime);
+      } 
+      // If no time slots, use section start time
+      else {
+        breakStartTime = section.startTime || new Date();
+      }
+    }
+
+    // Calculate end time based on duration
+    const breakEndTime = new Date(breakStartTime.getTime() + duration * 60000);
+
+    // Validate that the break fits within the section's time bounds
+    if (section.endTime && breakEndTime > section.endTime) {
+      res.status(400).json({ 
+        message: 'Break extends beyond section end time',
+        sectionEnd: section.endTime,
+        breakEnd: breakEndTime
+      });
+      return;
+    }
+
+    // Create the break slot
+    const breakSlot = await prisma.timeSlot.create({
+      data: {
+        sectionId: parseInt(sectionId),
+        startTime: breakStartTime,
+        endTime: breakEndTime,
+        title: title,
+        slotType: 'BREAK',
+        isFixed: true,
+        breakType: breakType || 'COFFEE_BREAK',
+        description: `${duration} minute break`
+      }
+    });
+
+    res.json({
+      message: 'Break created successfully',
+      breakSlot: {
+        id: breakSlot.id,
+        title: breakSlot.title,
+        startTime: breakSlot.startTime.toISOString(),
+        endTime: breakSlot.endTime.toISOString(),
+        duration: duration,
+        type: breakSlot.breakType
+      }
+    });
+
+  } catch (error) {
+    console.error('Error creating break:', error);
+    // Fix the TypeScript error by properly checking the error type
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ message: 'Internal server error', error: errorMessage });
+  }
+};
+
+// Update break slot
+export const updateBreakSlot = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { title, duration, startTime, breakType } = req.body;
+
+    const breakSlot = await prisma.timeSlot.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!breakSlot || breakSlot.slotType !== 'BREAK') {
+      res.status(404).json({ message: 'Break slot not found' });
+      return;
+    }
+
+    const newStartTime = startTime ? new Date(startTime) : breakSlot.startTime;
+    const newEndTime = new Date(newStartTime.getTime() + (duration || 15) * 60000);
+
+    const updatedBreak = await prisma.timeSlot.update({
+      where: { id: parseInt(id) },
+      data: {
+        title: title || breakSlot.title,
+        startTime: newStartTime,
+        endTime: newEndTime,
+        breakType: breakType || breakSlot.breakType,
+        description: `${duration || 15} minute break`
+      }
+    });
+
+    res.json({
+      message: 'Break updated successfully',
+      breakSlot: {
+        id: updatedBreak.id,
+        title: updatedBreak.title,
+        startTime: updatedBreak.startTime.toISOString(),
+        endTime: updatedBreak.endTime.toISOString(),
+        duration: Math.round((updatedBreak.endTime.getTime() - updatedBreak.startTime.getTime()) / 60000),
+        type: updatedBreak.breakType
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating break:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Delete break slot
+export const deleteBreakSlot = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const breakSlot = await prisma.timeSlot.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!breakSlot || breakSlot.slotType !== 'BREAK') {
+      res.status(404).json({ message: 'Break slot not found' });
+      return;
+    }
+
+    await prisma.timeSlot.delete({
+      where: { id: parseInt(id) }
+    });
+
+    res.json({ message: 'Break deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting break:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Get schedule overview with breaks included
+export const getScheduleOverviewWithBreaks = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { conferenceId } = req.params;
+
+    const conference = await prisma.conference.findUnique({
+      where: { id: parseInt(conferenceId) },
+      include: {
+        days: {
+          orderBy: { order: 'asc' },
+          include: {
+            sections: {
+              orderBy: { order: 'asc' },
+              include: {
+                presentations: {
+                  include: {
+                    authors: true,
+                    category: true,
+                    presentationType: true
+                  }
+                },
+                timeSlots: {
+                  where: {
+                    slotType: 'BREAK'
+                  },
+                  orderBy: { startTime: 'asc' }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!conference) {
+      res.status(404).json({ message: 'Conference not found' });
+      return;
+    }
+
+    // Transform the data to include breaks as a separate array
+    const transformedDays = conference.days.map(day => ({
+      ...day,
+      sections: day.sections.map(section => ({
+        ...section,
+        breaks: section.timeSlots.map(slot => ({
+          id: slot.id,
+          title: slot.title,
+          startTime: slot.startTime.toISOString(),
+          endTime: slot.endTime.toISOString(),
+          duration: Math.round((slot.endTime.getTime() - slot.startTime.getTime()) / 60000),
+          type: slot.breakType,
+          sectionId: slot.sectionId
+        })),
+        timeSlots: undefined // Remove timeSlots from the response
+      }))
+    }));
+
+    // Calculate statistics
+    const totalPresentations = conference.days.reduce((total, day) => 
+      total + day.sections.reduce((sectionTotal, section) => 
+        sectionTotal + section.presentations.length, 0), 0);
+
+    const scheduledPresentations = conference.days.reduce((total, day) => 
+      total + day.sections.reduce((sectionTotal, section) => 
+        sectionTotal + section.presentations.filter(p => p.status === 'scheduled').length, 0), 0);
+
+    const unscheduledPresentations = totalPresentations - scheduledPresentations;
+    const schedulingProgress = totalPresentations > 0 ? (scheduledPresentations / totalPresentations) * 100 : 0;
+
+    res.json({
+      conference: {
+        id: conference.id,
+        name: conference.name,
+        startDate: conference.startDate.toISOString(),
+        endDate: conference.endDate.toISOString(),
+        status: conference.status
+      },
+      days: transformedDays,
+      statistics: {
+        totalPresentations,
+        scheduledPresentations,
+        unscheduledPresentations,
+        schedulingProgress
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching schedule overview:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
