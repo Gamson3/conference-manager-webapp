@@ -3,6 +3,7 @@
 # temporary files
 /temporary  
 /(nondashboard-sample)
+/events
 
 # dependencies
 /node_modules
