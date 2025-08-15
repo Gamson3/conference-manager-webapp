@@ -13,8 +13,8 @@ async function getIdToken() {
 export async function createEvent(eventData: Partial<Conference> & { createdById: number }) {
   try {
     const api = await createAuthenticatedApi();
-    
-    const response = await api.post('/events', {
+
+    const response = await api.post('/api/conferences/management', {
       ...eventData,
       // Ensure these fields are included
       status: eventData.status || 'draft',
@@ -34,7 +34,7 @@ export async function createEvent(eventData: Partial<Conference> & { createdById
 export async function updateEvent(eventId: number, eventData: Partial<Conference>) {
   try {
     const token = await getIdToken();
-    const response = await axios.put(`${API_BASE}/events/${eventId}`, eventData, {
+    const response = await axios.put(`${API_BASE}/api/conferences/management/${eventId}`, eventData, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -52,7 +52,7 @@ export async function updateEvent(eventId: number, eventData: Partial<Conference
 export async function deleteEvent(id: number) {
   try {
     const api = await createAuthenticatedApi();
-    await api.delete(`/events/${id}`);
+    await api.delete(`/api/conferences/management/${id}`);
     return { success: true };
 
   } catch (error: any) {
@@ -79,9 +79,9 @@ export const saveEventDraft = async (eventData: any) => {
         (typeof eventData.topics === 'string' ? 
           eventData.topics.split(',').map((t: string) => t.trim()).filter(Boolean) : [])
     };
-    
-    const response = await api.post('/events/drafts', formattedData);
-    
+
+    const response = await api.post('/api/conferences/management/drafts', formattedData);
+
     return {
       success: true,
       data: response.data

@@ -2,7 +2,7 @@
 // To make any Api calls
 
 import { createNewUserInDatabase, withToast } from "@/lib/utils";
-import { User } from "@/types/prismaTypes";
+import { User, Conference } from "@/types/prismaTypes";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
@@ -92,27 +92,27 @@ export const api = createApi({
         },
       }),
 
-    getOrganizerEvents: build.query<Event[], { organizerId: number }>({
-      query: ({ organizerId }) => `/events?organizerId=${organizerId}`,
+    getOrganizerEvents: build.query<Conference[], { organizerId: number }>({
+      query: ({ organizerId }) => `/api/conferences/management/organizer/${organizerId}`,
     }),
 
-    createEvent: build.mutation<Event, Partial<Event> & { createdById: number }>({
+    createEvent: build.mutation<Conference, Partial<Conference> & { createdById: number }>({
       query: (eventData) => ({
-        url: `/events`,
+        url: `/api/conferences/management`,
         method: "POST",
         body: eventData,
       }),
     }),
-    updateEvent: build.mutation<Event, { id: number; data: Partial<Event> }>({
+    updateEvent: build.mutation<Conference, { id: number; data: Partial<Conference> }>({
       query: ({ id, data }) => ({
-        url: `/events/${id}`,
+        url: `/api/conferences/management/${id}`,
         method: "PUT",
         body: data,
       }),
     }),
     deleteEvent: build.mutation<{ message: string }, number>({
       query: (id) => ({
-        url: `/events/${id}`,
+        url: `/api/conferences/management/${id}`,
         method: "DELETE",
       }),
     }),
