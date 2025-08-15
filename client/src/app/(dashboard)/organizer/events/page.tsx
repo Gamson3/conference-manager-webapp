@@ -19,8 +19,10 @@ import {
   PlusIcon,
   Loader2 
 } from "lucide-react";
+import { useNavigation } from '@/contexts/NavigationContext';
 
 const ManageEventsPage = () => {
+  const { setPreviousPage } = useNavigation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("upcoming");
   
@@ -99,17 +101,21 @@ const ManageEventsPage = () => {
     );
   }
 
+  const handleCreateEvent = () => {
+    // Set current page as previous before navigating
+    setPreviousPage(window.location.pathname);
+    router.push('/organizer/create-event');
+  };
+
   return (
-    <div className="p-8">
+    <div className="max-w-6xl mx-auto p-8">
       {/* Header with Create Button - Always visible */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-primary-800">Your Conferences & Events</h1>
-        <Link href="/organizer/create-event">
-          <Button className="text-white bg-primary-700 hover:bg-primary-700 cursor-pointer">
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Create New Event
-          </Button>
-        </Link>
+        <Button onClick={handleCreateEvent} className="text-white bg-primary-700 hover:bg-primary-700 cursor-pointer">
+          <PlusIcon className="h-4 w-4 mr-2" />
+          Create New Event
+        </Button>
       </div>
 
       {/* No events yet */}
