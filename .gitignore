@@ -1,3 +1,8 @@
+# temporary files
+/temporary  
+/(nondashboard-sample)
+/events
+
 # Logs
 logs
 *.log
