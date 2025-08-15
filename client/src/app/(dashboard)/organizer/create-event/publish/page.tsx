@@ -165,15 +165,15 @@ export default function PublishEventPage() {
 
       const [eventRes, categoriesRes, typesRes, submissionRes] =
         await Promise.all([
-          api.get(`/events/${eventId}`),
+          api.get(`/api/conferences/management/${eventId}`),
           api
-            .get(`/api/events/${eventId}/categories`)
+            .get(`/api/conferences/${eventId}/categories`)
             .catch(() => ({ data: [] })),
           api
-            .get(`/api/events/${eventId}/presentation-types`)
+            .get(`/api/conferences/${eventId}/presentation-types`)
             .catch(() => ({ data: [] })),
           api
-            .get(`/api/events/${eventId}/submission-settings`)
+            .get(`/api/conferences/${eventId}/submission-settings`)
             .catch(() => ({ data: null })),
         ]);
 
@@ -233,7 +233,7 @@ export default function PublishEventPage() {
     }
   };
 
-  // ✅ FIXED: Update function to accept parameters with fallbacks
+  // Update function to accept parameters with fallbacks
   const validateConfiguration = (
     eventData: Event | null = event,
     categoriesData: any[] = categories,
@@ -269,16 +269,16 @@ export default function PublishEventPage() {
 
       // 1. Save submission settings to dedicated table
       await api.put(
-        `/api/events/${eventId}/submission-settings`,
+        `/api/conferences/${eventId}/submission-settings`,
         submissionSettings
       );
 
       // 2. Update event status to call_for_papers
-      await api.put(`/events/${eventId}`, {
+      await api.put(`/api/conferences/management/${eventId}`, {
         status: "call_for_papers",
       });
 
-      toast.success("🎉 Conference published! Now accepting submissions.");
+      toast.success("Conference published");
       router.push(`/organizer/events/${eventId}`);
     } catch (error: any) {
       console.error("Error publishing event:", error);
@@ -308,6 +308,7 @@ export default function PublishEventPage() {
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
+      {/* Workflow Component */}
       <CreateEventWorkflow
         currentStep={4}
         eventId={eventId || undefined}
@@ -327,11 +328,11 @@ export default function PublishEventPage() {
             className="p-0 h-8 hover:bg-transparent"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Categories
+            Back
           </Button>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <div>
             <h1 className="text-3xl font-bold">
               Publish Conference & Configure Submissions
@@ -341,9 +342,6 @@ export default function PublishEventPage() {
               accepting papers.
             </p>
           </div>
-          <Badge variant="outline" className="text-sm">
-            Step 4 of 4
-          </Badge>
         </div>
       </div>
 
@@ -366,89 +364,87 @@ export default function PublishEventPage() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Conference Summary */}
-        <div className="space-y-6">
-          {/* Event Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                Conference Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      {/* Conference Information - Top Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Conference Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Conference Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg">{event?.name}</h3>
+              <p className="text-gray-600 text-sm mt-1">
+                {event?.description}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <h3 className="font-semibold text-lg">{event?.name}</h3>
-                <p className="text-gray-600 text-sm mt-1">
-                  {event?.description}
-                </p>
+                <span className="text-gray-500">Date:</span>
+                <br />
+                <span>
+                  {event?.startDate
+                    ? new Date(event.startDate).toLocaleDateString()
+                    : "Not set"}
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-500">Date:</span>
-                  <br />
-                  <span>
-                    {event?.startDate
-                      ? new Date(event.startDate).toLocaleDateString()
-                      : "Not set"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-500">Location:</span>
-                  <br />
-                  <span>{event?.location || "Not set"}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Conference Structure */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5 text-primary" />
-                Conference Structure
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <FolderIcon className="h-8 w-8 mx-auto text-blue-600 mb-2" />
-                  <div className="text-2xl font-bold text-blue-600">
-                    {categories.length}
-                  </div>
-                  <div className="text-sm text-blue-700">Categories</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <PresentationIcon className="h-8 w-8 mx-auto text-purple-600 mb-2" />
-                  <div className="text-2xl font-bold text-purple-600">
-                    {presentationTypes.length}
-                  </div>
-                  <div className="text-sm text-purple-700">
-                    Presentation Types
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Submission Configuration */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5 text-primary" />
-                Submission Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Submission Deadline */}
               <div>
-                <Label htmlFor="submission-deadline">
-                  Submission Deadline *
-                </Label>
+                <span className="text-gray-500">Location:</span>
+                <br />
+                <span>{event?.location || "Not set"}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Conference Structure */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5 text-primary" />
+              Conference Structure
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <FolderIcon className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+                <div className="text-2xl font-bold text-blue-600">
+                  {categories.length}
+                </div>
+                <div className="text-sm text-blue-700">Categories</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <PresentationIcon className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+                <div className="text-2xl font-bold text-purple-600">
+                  {presentationTypes.length}
+                </div>
+                <div className="text-sm text-purple-700">
+                  Presentation Types
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Submission Settings - Full Width Below */}
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-primary" />
+              Submission Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Top row - Deadline and File Settings side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="submission-deadline">Submission Deadline <span className="text-red-600">*</span></Label>
                 <Input
                   id="submission-deadline"
                   type="date"
@@ -462,65 +458,81 @@ export default function PublishEventPage() {
                   className="mt-1"
                 />
               </div>
+              <div>
+                <Label htmlFor="max-file-size">Max File Size (MB)</Label>
+                <Input
+                  id="max-file-size"
+                  type="number"
+                  value={submissionSettings.maxFileSize}
+                  onChange={(e) =>
+                    setSubmissionSettings((prev) => ({
+                      ...prev,
+                      maxFileSize: Number(e.target.value),
+                    }))
+                  }
+                  className="mt-1"
+                />
+              </div>
+            </div>
 
-              {/* Requirements */}
-              <div className="space-y-4">
-                <h4 className="font-medium">Submission Requirements</h4>
+            {/* Submission Requirements section - keep as is */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Submission Requirements</h4>
 
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="require-abstract"
-                    checked={submissionSettings.requireAbstract}
-                    onCheckedChange={(checked) =>
-                      setSubmissionSettings((prev) => ({
-                        ...prev,
-                        requireAbstract: checked as boolean,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="require-abstract" className="cursor-pointer">
-                    Require Abstract
-                  </Label>
-                </div>
-
-                {submissionSettings.requireAbstract && (
-                  <div className="ml-6">
-                    <Label htmlFor="max-abstract">
-                      Max Abstract Length (words)
-                    </Label>
-                    <Input
-                      id="max-abstract"
-                      type="number"
-                      value={submissionSettings.maxAbstractLength}
-                      onChange={(e) =>
-                        setSubmissionSettings((prev) => ({
-                          ...prev,
-                          maxAbstractLength: Number(e.target.value),
-                        }))
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="require-paper"
-                    checked={submissionSettings.requireFullPaper}
-                    onCheckedChange={(checked) =>
-                      setSubmissionSettings((prev) => ({
-                        ...prev,
-                        requireFullPaper: checked as boolean,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="require-paper" className="cursor-pointer">
-                    Require Full Paper
-                  </Label>
-                </div>
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="require-abstract"
+                  checked={submissionSettings.requireAbstract}
+                  onCheckedChange={(checked) =>
+                    setSubmissionSettings((prev) => ({
+                      ...prev,
+                      requireAbstract: checked as boolean,
+                    }))
+                  }
+                />
+                <Label htmlFor="require-abstract" className="cursor-pointer">
+                  Require Abstract
+                </Label>
               </div>
 
-              {/* Author Requirements Section */}
+              {submissionSettings.requireAbstract && (
+                <div className="ml-6">
+                  <Label htmlFor="max-abstract">Max Abstract Length (words)</Label>
+                  <Input
+                    id="max-abstract"
+                    type="number"
+                    value={submissionSettings.maxAbstractLength}
+                    onChange={(e) =>
+                      setSubmissionSettings((prev) => ({
+                        ...prev,
+                        maxAbstractLength: Number(e.target.value),
+                      }))
+                    }
+                    className="mt-1"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="require-paper"
+                  checked={submissionSettings.requireFullPaper}
+                  onCheckedChange={(checked) =>
+                    setSubmissionSettings((prev) => ({
+                      ...prev,
+                      requireFullPaper: checked as boolean,
+                    }))
+                  }
+                />
+                <Label htmlFor="require-paper" className="cursor-pointer">
+                  Require Full Paper
+                </Label>
+              </div>
+            </div>
+
+            {/* Requirements Cards - side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Author Requirements Card */}
               <Card>
                 <CardHeader>
                   <CardTitle>Author Requirements</CardTitle>
@@ -551,9 +563,7 @@ export default function PublishEventPage() {
                         }))
                       }
                     />
-                    <Label htmlFor="require-affiliation">
-                      Require Affiliation
-                    </Label>
+                    <Label htmlFor="require-affiliation">Require Affiliation</Label>
                   </div>
 
                   <div className="flex items-center space-x-3">
@@ -591,7 +601,7 @@ export default function PublishEventPage() {
                 </CardContent>
               </Card>
 
-              {/* Presentation Requirements Section */}
+              {/* Presentation Requirements Card */}
               <Card>
                 <CardHeader>
                   <CardTitle>Presentation Requirements</CardTitle>
@@ -612,7 +622,7 @@ export default function PublishEventPage() {
                   </div>
 
                   {submissionSettings.requireKeywords && (
-                    <div className="ml-6 grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="min-keywords">Minimum Keywords</Label>
                         <Input
@@ -675,106 +685,93 @@ export default function PublishEventPage() {
                         }))
                       }
                     />
-                    <Label htmlFor="allow-duration">
-                      Allow Duration Requests
-                    </Label>
+                    <Label htmlFor="allow-duration">Allow Duration Requests</Label>
                   </div>
                 </CardContent>
               </Card>
+            </div>
 
-              {/* File Settings */}
-              <div>
-                <Label htmlFor="max-file-size">Max File Size (MB)</Label>
-                <Input
-                  id="max-file-size"
-                  type="number"
-                  value={submissionSettings.maxFileSize}
-                  onChange={(e) =>
-                    setSubmissionSettings((prev) => ({
-                      ...prev,
-                      maxFileSize: Number(e.target.value),
-                    }))
-                  }
-                  className="mt-1"
-                />
-              </div>
+            {/* Guidelines section - 2-column layout */}
+            <div>
+              <h4 className="font-medium mb-4">Guidelines & Instructions</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left column */}
+                <div className="space-y-6">
+                  <div>
+                    <Label htmlFor="guidelines">Submission Guidelines</Label>
+                    <Textarea
+                      id="guidelines"
+                      value={submissionSettings.submissionGuidelines}
+                      onChange={(e) =>
+                        setSubmissionSettings((prev) => ({
+                          ...prev,
+                          submissionGuidelines: e.target.value,
+                        }))
+                      }
+                      placeholder="Provide detailed instructions for authors submitting to your conference..."
+                      rows={4}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="author-guidelines">Author Guidelines</Label>
+                    <Textarea
+                      id="author-guidelines"
+                      value={submissionSettings.authorGuidelines}
+                      onChange={(e) =>
+                        setSubmissionSettings((prev) => ({
+                          ...prev,
+                          authorGuidelines: e.target.value,
+                        }))
+                      }
+                      placeholder="Provide guidelines specifically for authors..."
+                      rows={4}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
 
-              {/* Submission Guidelines */}
-              <div>
-                <Label htmlFor="guidelines">Submission Guidelines</Label>
-                <Textarea
-                  id="guidelines"
-                  value={submissionSettings.submissionGuidelines}
-                  onChange={(e) =>
-                    setSubmissionSettings((prev) => ({
-                      ...prev,
-                      submissionGuidelines: e.target.value,
-                    }))
-                  }
-                  placeholder="Provide detailed instructions for authors submitting to your conference..."
-                  rows={4}
-                  className="mt-1"
-                />
+                {/* Right column */}
+                <div className="space-y-6">
+                  <div>
+                    <Label htmlFor="presentation-guidelines">
+                      Presentation Guidelines
+                    </Label>
+                    <Textarea
+                      id="presentation-guidelines"
+                      value={submissionSettings.presentationGuidelines}
+                      onChange={(e) =>
+                        setSubmissionSettings((prev) => ({
+                          ...prev,
+                          presentationGuidelines: e.target.value,
+                        }))
+                      }
+                      placeholder="Provide guidelines for the presentation format, length, etc..."
+                      rows={4}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="review-criteria">Review Criteria</Label>
+                    <Textarea
+                      id="review-criteria"
+                      value={submissionSettings.reviewCriteria}
+                      onChange={(e) =>
+                        setSubmissionSettings((prev) => ({
+                          ...prev,
+                          reviewCriteria: e.target.value,
+                        }))
+                      }
+                      placeholder="Specify the criteria on which submissions will be reviewed..."
+                      rows={4}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
               </div>
-
-              {/* Author Guidelines - NEW SECTION */}
-              <div>
-                <Label htmlFor="author-guidelines">Author Guidelines</Label>
-                <Textarea
-                  id="author-guidelines"
-                  value={submissionSettings.authorGuidelines}
-                  onChange={(e) =>
-                    setSubmissionSettings((prev) => ({
-                      ...prev,
-                      authorGuidelines: e.target.value,
-                    }))
-                  }
-                  placeholder="Provide guidelines specifically for authors..."
-                  rows={4}
-                  className="mt-1"
-                />
-              </div>
-
-              {/* Presentation Guidelines - NEW SECTION */}
-              <div>
-                <Label htmlFor="presentation-guidelines">
-                  Presentation Guidelines
-                </Label>
-                <Textarea
-                  id="presentation-guidelines"
-                  value={submissionSettings.presentationGuidelines}
-                  onChange={(e) =>
-                    setSubmissionSettings((prev) => ({
-                      ...prev,
-                      presentationGuidelines: e.target.value,
-                    }))
-                  }
-                  placeholder="Provide guidelines for the presentation format, length, etc..."
-                  rows={4}
-                  className="mt-1"
-                />
-              </div>
-
-              {/* Review Criteria - NEW SECTION */}
-              <div>
-                <Label htmlFor="review-criteria">Review Criteria</Label>
-                <Textarea
-                  id="review-criteria"
-                  value={submissionSettings.reviewCriteria}
-                  onChange={(e) =>
-                    setSubmissionSettings((prev) => ({
-                      ...prev,
-                      reviewCriteria: e.target.value,
-                    }))
-                  }
-                  placeholder="Specify the criteria on which submissions will be reviewed..."
-                  rows={4}
-                  className="mt-1"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Ready to Publish Banner */}

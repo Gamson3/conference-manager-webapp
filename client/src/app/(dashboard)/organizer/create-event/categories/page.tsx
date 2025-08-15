@@ -20,7 +20,6 @@ import {
   FolderIcon,
   PlusIcon,
   EditIcon,
-  TrashIcon,
   ArrowLeftIcon,
   PresentationIcon,
   ClockIcon,
@@ -29,11 +28,13 @@ import {
   CheckCircle,
   ArrowLeft,
   Info,
+  Trash2,
 } from "lucide-react";
 import { createAuthenticatedApi } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import CreateEventWorkflow from "@/components/workflow/CreateEventWorkflow";
+import { ReassignmentDialog } from "@/components/organizer/ReassignmentDialog";
 
 interface Category {
   id: number;
@@ -65,7 +66,6 @@ interface PresentationType {
 export default function SetupCategoriesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const eventId = searchParams?.get("eventId");
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -99,6 +99,13 @@ export default function SetupCategoriesPage() {
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [showReassignDialog, setShowReassignDialog] = useState(false);
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
+    null
+  );
+  const [deletingType, setDeletingType] = useState<PresentationType | null>(
+    null
+  );
 
   // Color options for categories
   const colorOptions = [
@@ -137,10 +144,10 @@ export default function SetupCategoriesPage() {
 
       const [categoriesRes, typesRes] = await Promise.all([
         api
-          .get(`/api/events/${eventId}/categories`)
+          .get(`/api/conferences/${eventId}/categories`)
           .catch(() => ({ data: [] })),
         api
-          .get(`/api/events/${eventId}/presentation-types`)
+          .get(`/api/conferences/${eventId}/presentation-types`)
           .catch(() => ({ data: [] })),
       ]);
 
@@ -196,17 +203,20 @@ export default function SetupCategoriesPage() {
         );
         toast.success("Category updated successfully");
       } else {
-        const response = await api.post(`/api/events/${eventId}/categories`, {
-          ...categoryForm,
-          order: categories.length + 1,
-        });
+        const response = await api.post(
+          `/api/conferences/${eventId}/categories`,
+          {
+            ...categoryForm,
+            order: categories.length + 1,
+          }
+        );
         setCategories([...categories, response.data]);
         toast.success("Category created successfully");
 
         // Update workflow when first category is created
         if (categories.length === 0) {
           try {
-            await api.put(`/api/events/${eventId}/workflow`, {
+            await api.put(`/api/conferences/management/${eventId}/workflow`, {
               workflowStep: 3,
               workflowStatus: "in_progress",
             });
@@ -226,6 +236,20 @@ export default function SetupCategoriesPage() {
   };
 
   const handleDeleteCategory = async (categoryId: number) => {
+    const categoryToDelete = categories.find((c) => c.id === categoryId);
+    if (!categoryToDelete) return;
+
+    const presentationCount = categoryToDelete._count?.presentations || 0;
+
+    if (presentationCount > 0) {
+      // Show reassignment dialog instead of confirming deletion
+      setDeletingCategory(categoryToDelete);
+      setDeletingType(null); // Reset the other type
+      setShowReassignDialog(true);
+      return;
+    }
+
+    // Regular delete flow for categories without presentations
     if (!confirm("Are you sure you want to delete this category?")) return;
 
     try {
@@ -291,7 +315,7 @@ export default function SetupCategoriesPage() {
         toast.success("Presentation type updated successfully");
       } else {
         const response = await api.post(
-          `/api/events/${eventId}/presentation-types`,
+          `/api/conferences/${eventId}/presentation-types`,
           {
             ...typeForm,
             order: presentationTypes.length + 1,
@@ -304,7 +328,7 @@ export default function SetupCategoriesPage() {
         if (presentationTypes.length === 0) {
           try {
             const api = await createAuthenticatedApi();
-            await api.put(`/api/events/${eventId}/workflow`, {
+            await api.put(`/api/conferences/management/${eventId}/workflow`, {
               workflowStep: 3,
               workflowStatus: "in_progress",
             });
@@ -326,6 +350,20 @@ export default function SetupCategoriesPage() {
   };
 
   const handleDeleteType = async (typeId: number) => {
+    const typeToDelete = presentationTypes.find((t) => t.id === typeId);
+    if (!typeToDelete) return;
+
+    const presentationCount = typeToDelete._count?.presentations || 0;
+
+    if (presentationCount > 0) {
+      // Show reassignment dialog instead of confirming deletion
+      setDeletingType(typeToDelete);
+      setDeletingCategory(null); // Reset the other type
+      setShowReassignDialog(true);
+      return;
+    }
+
+    // Regular delete flow for types without presentations
     if (!confirm("Are you sure you want to delete this presentation type?"))
       return;
 
@@ -344,12 +382,25 @@ export default function SetupCategoriesPage() {
     }
   };
 
+  // Add this function to handle deletion completion
+  const handleDeleteComplete = () => {
+    if (deletingCategory) {
+      setCategories(categories.filter((cat) => cat.id !== deletingCategory.id));
+    } else if (deletingType) {
+      setPresentationTypes(
+        presentationTypes.filter((type) => type.id !== deletingType.id)
+      );
+    }
+    setDeletingCategory(null);
+    setDeletingType(null);
+  };
+
   const handleContinueToNextStep = async (): Promise<void> => {
     try {
       setSaving(true);
       const api = await createAuthenticatedApi();
 
-      await api.put(`/api/events/${eventId}/workflow`, {
+      await api.put(`/api/conferences/management/${eventId}/workflow`, {
         workflowStep: 4,
         workflowStatus: "ready_to_publish",
       });
@@ -365,7 +416,7 @@ export default function SetupCategoriesPage() {
   };
 
   const handleGoBack = () => {
-    router.push(`/organizer/create-event/sessions?eventId=${eventId}`);
+    router.push(`/organizer/create-event?eventId=${eventId}`);
   };
 
   if (loading) {
@@ -404,7 +455,7 @@ export default function SetupCategoriesPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto py-8 px-4">
       {/* Workflow Component */}
       <CreateEventWorkflow
         currentStep={3}
@@ -421,10 +472,10 @@ export default function SetupCategoriesPage() {
             className="p-0 h-8 hover:bg-transparent"
           >
             <ArrowLeftIcon className="h-4 w-4 mr-1" />
-            Back to Sessions
+            Back
           </Button>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <div>
             <h1 className="text-3xl font-bold">Setup Categories & Types</h1>
             <p className="text-gray-600 mt-2">
@@ -432,9 +483,6 @@ export default function SetupCategoriesPage() {
               conference content.
             </p>
           </div>
-          <Badge variant="outline" className="text-sm">
-            Step 3 of 4
-          </Badge>
         </div>
       </div>
 
@@ -514,12 +562,22 @@ export default function SetupCategoriesPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteCategory(category.id)}
-                              disabled={
+                              className={
                                 (category._count?.presentations || 0) > 0
+                                  ? "cursor-pointer"
+                                  : ""
                               }
                             >
-                              <TrashIcon className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
+
+                            {(category._count?.presentations || 0) > 0 && (
+                              <div className="absolute right-0 bottom-full mb-2 w-52 p-2 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                                Click to reassign{" "}
+                                {category._count?.presentations} presentations
+                                before deleting
+                              </div>
+                            )}
                           </div>
                         </div>
                       </CardHeader>
@@ -602,10 +660,21 @@ export default function SetupCategoriesPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteType(type.id)}
-                              disabled={(type._count?.presentations || 0) > 0}
+                              className={
+                                (type._count?.presentations || 0) > 0
+                                  ? "cursor-pointer"
+                                  : ""
+                              }
                             >
-                              <TrashIcon className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
+
+                            {(type._count?.presentations || 0) > 0 && (
+                              <div className="absolute right-0 bottom-full mb-2 w-52 p-2 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                                Click to reassign {type._count?.presentations}{" "}
+                                presentations before deleting
+                              </div>
+                            )}
                           </div>
                         </div>
                       </CardHeader>
@@ -843,17 +912,12 @@ export default function SetupCategoriesPage() {
         </Button>
 
         <div className="flex items-center gap-2">
-          {/* {(categories.length === 0 || presentationTypes.length === 0) && (
-            <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-1 mb-2">
-              💡 Create at least one category and one presentation type to
-              continue
-            </div>
-          )} */}
           {(categories.length === 0 || presentationTypes.length === 0) && (
             <div className="relative group">
               <Info className="h-4 w-4 text-red-600 cursor-pointer" />
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-max px-2 py-1 text-xs text-amber-800 bg-amber-100 border border-amber-200 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                Create at least one category and one presentation type to continue
+                Create at least one category and one presentation type to
+                continue
               </div>
             </div>
           )}
@@ -876,6 +940,19 @@ export default function SetupCategoriesPage() {
           </Button>
         </div>
       </div>
+
+      <ReassignmentDialog
+        open={showReassignDialog}
+        onOpenChange={setShowReassignDialog}
+        itemToDelete={deletingCategory || deletingType}
+        itemType={deletingCategory ? "category" : "presentationType"}
+        otherItems={
+          deletingCategory
+            ? categories.filter((c) => c.id !== deletingCategory.id)
+            : presentationTypes.filter((t) => t.id !== deletingType?.id)
+        }
+        onDeleteComplete={handleDeleteComplete}
+      />
     </div>
   );
 }

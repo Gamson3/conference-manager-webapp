@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useGetAuthUserQuery } from '@/state/api';
+import { useNavigation } from '@/contexts/NavigationContext'; // Move this to the top
 import { createEvent, saveEventDraft } from '@/lib/actions/events';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, MapPin, Calendar, Clock, Loader2, Tag, ArrowRight, CheckCircle } from 'lucide-react';
@@ -20,6 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from 'sonner';
 import { createAuthenticatedApi } from '@/lib/utils';
 import CreateEventWorkflow from '@/components/workflow/CreateEventWorkflow';
+import { CancelButton } from '@/components/cancel-button';
 
 // Modern timezone handling - using native Intl API
 const getTimezones = () => {
@@ -110,27 +112,40 @@ const eventSchema = z.object({
 export default function CreateEventPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const eventId = searchParams?.get('eventId') || undefined;
   
-  // If we have an eventId, we're editing step 1, otherwise creating new
+  // Move ALL hooks to the very top, before any other logic
+  const { goToPreviousPage } = useNavigation();
+  const { data: authUser, isLoading: userLoading } = useGetAuthUserQuery();
+  
+  // All other hooks should come after the context hooks
+  const eventId = searchParams?.get('eventId') || undefined;
   const [isEditing, setIsEditing] = useState(!!eventId);
   const [currentWorkflowStep, setCurrentWorkflowStep] = useState(1);
-  
-  const { data: authUser, isLoading: userLoading } = useGetAuthUserQuery();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [descriptionLength, setDescriptionLength] = useState(0);
+  const [workflowStep, setWorkflowStep] = useState(1);
+  const [isDraftSaving, setIsDraftSaving] = useState(false);
   
-  // Add new state for workflow draft tracking
-const [workflowStep, setWorkflowStep] = useState(1);
-const [isDraftSaving, setIsDraftSaving] = useState(false);
-  
-  // Get timezones with proper formatting
+  // Memoized values
   const timezones = useMemo(() => getTimezones(), []);
   const userTimezone = useMemo(() => getUserTimezone(), []);
   
-  // Use React Hook Form with zod validation
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    startDate: '',
+    startTime: '09:00',
+    endDate: '',
+    endTime: '17:00',
+    location: '',
+    timezone: userTimezone,
+    topics: '',
+  });
+
+  // Form hook
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -141,40 +156,12 @@ const [isDraftSaving, setIsDraftSaving] = useState(false);
       endDate: '',
       endTime: '17:00',
       location: '',
-      timezone: userTimezone, // Use user's actual timezone
+      timezone: userTimezone,
       topics: '',
     },
   });
 
-  // For backward compatibility with existing code
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    startDate: '',
-    startTime: '09:00',
-    endDate: '',
-    endTime: '17:00',
-    location: '',
-    timezone: userTimezone, // Use user's actual timezone
-    topics: '',
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    if (name === 'description') {
-      setDescriptionLength(value.length);
-    }
-    
-    form.setValue(name as any, value);
-  };
-
-  // Calculate event duration for display
+  // Calculate event duration - this should come after all useState hooks
   const eventDuration = useMemo(() => {
     if (formData.startDate && formData.endDate && formData.startTime && formData.endTime) {
       const start = new Date(`${formData.startDate}T${formData.startTime}`);
@@ -195,7 +182,7 @@ const [isDraftSaving, setIsDraftSaving] = useState(false);
     return null;
   }, [formData.startDate, formData.endDate, formData.startTime, formData.endTime]);
 
-  // Auto-sync dates and times
+  // ALL useEffect hooks should come after all useState and useMemo hooks
   useEffect(() => {
     if (formData.startDate && (!formData.endDate || formData.endDate < formData.startDate)) {
       setFormData(prev => ({ ...prev, endDate: formData.startDate }));
@@ -203,145 +190,34 @@ const [isDraftSaving, setIsDraftSaving] = useState(false);
     }
   }, [formData.startDate, formData.endDate, form]);
 
-  // Update the form submission to include workflow fields
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  const validationResult = await form.trigger();
-  if (!validationResult) return;
-  
-  try {
-    setIsLoading(true);
-    setError(null);
-
-    const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
-    const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
-
-    if (endDateTime < startDateTime) {
-      setError('End date and time must be after start date and time');
-      return;
-    }
-
-    const topics = formData.topics 
-      ? formData.topics.split(',').map(topic => topic.trim()).filter(Boolean)
-      : [];
-
-    const { startTime, endTime, ...eventDataWithoutTimes } = formData;
-    const eventData = {
-      ...eventDataWithoutTimes,
-      topics,
-      startDate: startDateTime.toISOString(),
-      endDate: endDateTime.toISOString(),
-      createdById: authUser?.userInfo?.id,
-      status: 'draft',
-      workflowStep: 2,
-      workflowStatus: 'in_progress'
-    };
-
-    if (isEditing && eventId) {
-      // Update existing draft
-      const api = await createAuthenticatedApi();
-      await api.put(`/events/${eventId}/draft`, eventData);
-      toast.success('Event details updated!');
-    } else {
-      // Create new draft event
-      const response = await createEvent({
-        ...eventData,
-        status: 'draft',
-        workflowStep: 1
-      });
-      
-      if (response.success) {
-        toast.success('Event created! Let\'s set up sessions...');
-        router.push(`/organizer/create-event/sessions?eventId=${response.data.id}`);
-        return;
-      }
-    }
-    
-    // If editing, continue to next step
-    if (eventId) {
-      router.push(`/organizer/create-event/sessions?eventId=${eventId}`);
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    toast.error('Failed to save event details');
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-// Enhanced draft saving with workflow step tracking
-const handleSaveDraft = async () => {
-  try {
-    if (!formData.name.length) {
-      setError('Event name is required even for drafts');
-      return;
-    }
-    
-    setIsDraftSaving(true);
-    setError(null);
-
-    let startDateTime = null;
-    let endDateTime = null;
-    
-    try {
-      if (formData.startDate && formData.startTime) {
-        startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
-      }
-      if (formData.endDate && formData.endTime) {
-        endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
-      }
-    } catch (err) {
-      console.warn("Date parsing issue:", err);
-    }
-
-    const topics = formData.topics 
-      ? formData.topics.split(',').map(topic => topic.trim()).filter(Boolean)
-      : [];
-
-    const { startTime, endTime, ...eventDataWithoutTimes } = formData;
-    const draftData = {
-      ...eventDataWithoutTimes,
-      topics,
-      status: 'draft',
-      createdById: authUser?.userInfo?.id,
-      startDate: startDateTime ? startDateTime.toISOString() : formData.startDate,
-      endDate: endDateTime ? endDateTime.toISOString() : formData.endDate,
-      // Add workflow tracking
-      workflowStep: 1, // Still on step 1
-      workflowStatus: 'draft'
-    };
-
-    const response = await saveEventDraft(draftData);
-
-    if (response.success) {
-      toast.success("Draft saved successfully!");
-      router.push('/organizer/events');
-    } else {
-      setError(response.error || 'Failed to save draft');
-    }
-  } catch (err) {
-    console.error('Save draft error:', err);
-    setError('An unexpected error occurred while saving draft');
-  } finally {
-    setIsDraftSaving(false);
-  }
-};
-
-  // Add useEffect to load existing event data if editing
   useEffect(() => {
     if (eventId && isEditing) {
       loadEventData();
     }
   }, [eventId, isEditing]);
 
+  // Function definitions (these don't use hooks so they can come after)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    if (name === 'description') {
+      setDescriptionLength(value.length);
+    }
+    
+    form.setValue(name as any, value);
+  };
+
   const loadEventData = async () => {
     try {
       const api = await createAuthenticatedApi();
-      const response = await api.get(`/events/${eventId}`);
+      const response = await api.get(`/api/conferences/management/${eventId}`);
       const event = response.data;
       
-      // Populate form with existing data
       const startDate = event.startDate ? new Date(event.startDate) : null;
       const endDate = event.endDate ? new Date(event.endDate) : null;
       
@@ -360,7 +236,6 @@ const handleSaveDraft = async () => {
       setFormData(formData);
       setCurrentWorkflowStep(event.workflowStep || 1);
       
-      // Update form values
       Object.entries(formData).forEach(([key, value]) => {
         form.setValue(key as any, value);
       });
@@ -372,6 +247,131 @@ const handleSaveDraft = async () => {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const validationResult = await form.trigger();
+    if (!validationResult) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+      const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+
+      if (endDateTime < startDateTime) {
+        setError('End date and time must be after start date and time');
+        return;
+      }
+
+      const topics = formData.topics 
+        ? formData.topics.split(',').map(topic => topic.trim()).filter(Boolean)
+        : [];
+
+      const { startTime, endTime, ...eventDataWithoutTimes } = formData;
+      const eventData = {
+        ...eventDataWithoutTimes,
+        topics,
+        startDate: startDateTime.toISOString(),
+        endDate: endDateTime.toISOString(),
+        createdById: authUser?.userInfo?.id,
+        status: 'draft',
+        workflowStep: 2,
+        workflowStatus: 'in_progress'
+      };
+
+      if (isEditing && eventId) {
+        // Update existing draft
+        const api = await createAuthenticatedApi();
+        await api.put(`/api/conferences/management/${eventId}/draft`, eventData);
+        toast.success('Event details updated!');
+      } else {
+        // Create new draft event
+        const response = await createEvent({
+          ...eventData,
+          status: 'draft',
+          workflowStep: 1
+        });
+        
+        if (response.success) {
+          // toast.success('Event created! Let\'s set up sessions...');
+          router.push(`/organizer/create-event/categories?eventId=${response.data.id}`);
+          return;
+        }
+      }
+      
+      // If editing, continue to next step
+      if (eventId) {
+        router.push(`/organizer/create-event/categories?eventId=${eventId}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to save event details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Enhanced draft saving with workflow step tracking
+  const handleSaveDraft = async () => {
+    try {
+      if (!formData.name.length) {
+        setError('Event name is required even for drafts');
+        return;
+      }
+      
+      setIsDraftSaving(true);
+      setError(null);
+
+      let startDateTime = null;
+      let endDateTime = null;
+      
+      try {
+        if (formData.startDate && formData.startTime) {
+          startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+        }
+        if (formData.endDate && formData.endTime) {
+          endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+        }
+      } catch (err) {
+        console.warn("Date parsing issue:", err);
+      }
+
+      const topics = formData.topics 
+        ? formData.topics.split(',').map(topic => topic.trim()).filter(Boolean)
+        : [];
+
+      const { startTime, endTime, ...eventDataWithoutTimes } = formData;
+      const draftData = {
+        ...eventDataWithoutTimes,
+        topics,
+        status: 'draft',
+        createdById: authUser?.userInfo?.id,
+        startDate: startDateTime ? startDateTime.toISOString() : formData.startDate,
+        endDate: endDateTime ? endDateTime.toISOString() : formData.endDate,
+        // Add workflow tracking
+        workflowStep: 1, // Still on step 1
+        workflowStatus: 'draft'
+      };
+
+      const response = await saveEventDraft(draftData);
+
+      if (response.success) {
+        toast.success("Draft saved successfully!");
+        router.push('/organizer/events');
+      } else {
+        setError(response.error || 'Failed to save draft');
+      }
+    } catch (err) {
+      console.error('Save draft error:', err);
+      setError('An unexpected error occurred while saving draft');
+    } finally {
+      setIsDraftSaving(false);
+    }
+  };
+
+  // Early returns should come AFTER all hooks
   if (userLoading) {
     return <LoadingSkeleton />;
   }
@@ -382,16 +382,23 @@ const handleSaveDraft = async () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 min-h-screen">
+    <div className="max-w-6xl mx-auto py-8 px-4 min-h-screen">
+      {/* Workflow Component */}
+      <CreateEventWorkflow 
+        currentStep={currentWorkflowStep} 
+        eventId={eventId}
+        showCancelButton={true}
+      />
+
       {/* Header */}
       <div className="flex items-center gap-2 mb-8">
         <Button 
           variant="ghost" 
           className="p-0 h-8 hover:bg-transparent hover:text-primary" 
-          onClick={() => router.push("/organizer/events")}
+          onClick={() => goToPreviousPage('/organizer/events')}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          <span className="text-sm font-medium">Events</span>
+          <span className="text-sm font-medium">Back</span>
         </Button>
         <span className="text-gray-400">/</span>
         <span className="text-sm font-medium">
@@ -410,13 +417,6 @@ const handleSaveDraft = async () => {
           }
         </p>
       </div>
-
-      {/* Workflow Component */}
-      <CreateEventWorkflow 
-        currentStep={currentWorkflowStep} 
-        eventId={eventId}
-        showCancelButton={true}
-      />
 
       {error && (
         <div className="mb-6 text-red-600 border border-red-200 rounded-lg p-4 bg-red-50">
@@ -573,7 +573,7 @@ const handleSaveDraft = async () => {
                   <strong>Duration:</strong> {eventDuration}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  You'll create detailed daily schedules in the next step.
+                  You'll build your detailed schedule using the Schedule Builder after setting up presentation types.
                 </p>
               </div>
             )}
@@ -638,29 +638,13 @@ const handleSaveDraft = async () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/organizer/events')}
+            onClick={() => goToPreviousPage('/organizer/events')}
             disabled={isLoading || isSavingDraft}
           >
             Cancel
           </Button>
           
           <div className="flex gap-3">
-            <Button 
-              type="button"
-              variant="outline"
-              onClick={handleSaveDraft}
-              disabled={isLoading || isSavingDraft}
-            >
-              {isSavingDraft ? (
-                <div className="flex items-center">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </div>
-              ) : (
-                "Save Draft"
-              )}
-            </Button>
-            
             <Button 
               type="submit"
               disabled={isLoading || isSavingDraft}
@@ -673,7 +657,7 @@ const handleSaveDraft = async () => {
                 </div>
               ) : (
                 <div className="flex items-center">
-                  {isEditing ? 'Update & Continue to Sessions' : 'Create Event & Setup Sessions'}
+                  {isEditing ? 'Update & Proceed' : 'Create Event & Proceed'}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </div>
               )}
