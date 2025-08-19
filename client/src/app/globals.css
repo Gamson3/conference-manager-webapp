@@ -375,3 +375,42 @@ button[aria-disabled="true"],
 }
 
 
+/* Animation for Attention-Grabbing Effect on Submission Help Button */
+
+@keyframes ping-slow {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+}
+
+.animate-ping-slow {
+  animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.help-button-glow {
+  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  animation: help-button-pulse 2s infinite;
+}
+
+@keyframes help-button-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+
