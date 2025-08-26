@@ -40,7 +40,7 @@ async function main() {
       name: 'Admin User',
       email: 'admin@conference.com',
       password: hashedPassword,
-      role: Role.admin,
+      roles: [Role.admin],
       bio: 'System administrator with expertise in conference management.',
       organization: 'Conference Management Inc.',
       jobTitle: 'System Administrator'
@@ -54,7 +54,7 @@ async function main() {
       name: 'Dr. Sarah Johnson',
       email: 'sarah.johnson@university.edu',
       password: hashedPassword,
-      role: Role.organizer,
+      roles: [Role.organizer],
       bio: 'Professor of Computer Science with 15 years of experience in AI research and conference organization.',
       organization: 'Stanford University',
       jobTitle: 'Professor of Computer Science',
@@ -68,7 +68,7 @@ async function main() {
       name: 'Prof. Michael Chen',
       email: 'michael.chen@tech.edu',
       password: hashedPassword,
-      role: Role.organizer,
+      roles: [Role.organizer],
       bio: 'Leading researcher in machine learning and neural networks, with over 100 published papers.',
       organization: 'MIT',
       jobTitle: 'Professor of Electrical Engineering',
@@ -84,7 +84,7 @@ async function main() {
         name: 'Alice Williams',
         email: 'alice.williams@student.edu',
         password: hashedPassword,
-        role: Role.attendee,
+        roles: [Role.attendee],
         bio: 'PhD student researching natural language processing.',
         organization: 'UC Berkeley',
         jobTitle: 'PhD Student'
@@ -96,7 +96,7 @@ async function main() {
         name: 'Bob Rodriguez',
         email: 'bob.rodriguez@company.com',
         password: hashedPassword,
-        role: Role.attendee,
+        roles: [Role.attendee],
         bio: 'Senior software engineer specializing in AI applications.',
         organization: 'Google',
         jobTitle: 'Senior Software Engineer'
@@ -108,7 +108,7 @@ async function main() {
         name: 'Carol Lee',
         email: 'carol.lee@research.org',
         password: hashedPassword,
-        role: Role.attendee,
+        roles: [Role.attendee],
         bio: 'Research scientist focused on computer vision and robotics.',
         organization: 'OpenAI',
         jobTitle: 'Research Scientist'

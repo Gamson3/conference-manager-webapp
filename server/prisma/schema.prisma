@@ -15,6 +15,7 @@ datasource db {
 
 enum Role {
   attendee
+  presenter
   organizer
   admin
 }
@@ -91,7 +92,7 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      Role
+  roles     Role[]   @default([attendee]) // Changed from single role to roles array
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
