@@ -1,162 +1,260 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { SearchIcon } from "lucide-react";
-import { createAuthenticatedApi } from "@/lib/utils";
-import { toast } from "sonner";
-import { motion } from "framer-motion";
-import ConferenceCard from "@/components/ConferenceCard";
+import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { api } from '@/state/api';
+import { format } from 'date-fns';
+import { MapPin, Calendar, Users, Search, Filter } from 'lucide-react';
+import DashboardPageLayout from '@/components/DashboardPageLayout';
 
-interface Conference {
-  id: number;
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  venue?: string;
-  topics?: string[];
-  organizer: string;
-  attendeeCount: number;
-  capacity?: number;
-  websiteUrl?: string;
-  isRegistered?: boolean;
-}
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
-export default function DiscoverConferencesPage() {
-  const router = useRouter();
-  const [conferences, setConferences] = useState<Conference[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userContext, setUserContext] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+import ConferenceCard from '@/components/ConferenceCard';
+import { EmptyStateNoResults } from '@/components/shared/EmptyStates';
 
-  useEffect(() => {
-    const fetchConferences = async () => {
-      try {
-        setIsLoading(true);
-        
-        let response;
-        let isAuthenticatedRequest = false;
-        
-        // Try authenticated API first
-        try {
-          const api = await createAuthenticatedApi();
-          response = await api.get('/api/attendee/discover');
-          isAuthenticatedRequest = true;
-        } catch (authError) {
-          // Fallback to public API for guest users
-          const publicResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/attendee/discover`);
-          const data = await publicResponse.json();
-          response = { data };
-          isAuthenticatedRequest = false;
-        }
-        
-        // Handle different response structures
-        const conferenceData = response.data?.conferences || response.conferences || [];
-        const userContextData = response.data?.userContext || {
-          isAuthenticated: isAuthenticatedRequest,
-          userRole: isAuthenticatedRequest ? 'attendee' : 'guest'
-        };
-        
-        setConferences(conferenceData);
-        setUserContext(userContextData);
-        
-        console.log('[DEBUG] Discover page data:', {
-          conferencesCount: conferenceData.length,
-          userContext: userContextData,
-          firstConferenceRegistered: conferenceData[0]?.isRegistered,
-          authenticatedRequest: isAuthenticatedRequest
-        });
-        
-      } catch (error: any) {
-        console.error("Error fetching conferences:", error);
-        toast.error("Couldn't load conferences");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+export default function ConferenceDiscoveryPage() {
+  // State for search and filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+  const [sortOrder, setSortOrder] = useState('startDate-asc');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Parse sort order into API parameters
+  const [sortField, sortDirection] = sortOrder.split('-');
+
+  // Get search params for URL filtering
+  const searchParams = useSearchParams();
+  
+  // Query conferences with current filters
+  const { data: conferencesData, isLoading, isFetching } = api.useConferencesQuery({
+    search: searchTerm || undefined,
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    page: currentPage,
+    limit: 9,
+    sort: sortField,
+    order: sortDirection as 'asc' | 'desc',
+  });
+
+  // Query featured conferences for tabs
+  const { data: featuredData } = api.useFeaturedConferencesQuery();
+  
+  // Query categories for filter dropdown
+  const { data: categoriesData } = api.useConferenceCategoriesQuery();
+
+  // Handle search input
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset to first page on new search
+  };
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Render loading skeletons
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array(6).fill(0).map((_, i) => (
+        <Card key={i} className="h-[380px]">
+          <CardHeader className="pb-2">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-6 w-5/6" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-[160px] w-full mb-4" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-10 w-full" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+
+  // Render conferences grid
+  const renderConferenceGrid = () => {
+    if (isLoading) return renderSkeletons();
     
-    fetchConferences();
-  }, []);
-
-  // Handle registration changes from ConferenceCard
-  const handleRegistrationChange = (conferenceId: number, isRegistered: boolean) => {
-    setConferences(prev => 
-      prev.map(conf => 
-        conf.id === conferenceId 
-          ? { ...conf, isRegistered, attendeeCount: isRegistered ? conf.attendeeCount + 1 : conf.attendeeCount - 1 }
-          : conf
-      )
+    if (!conferencesData || conferencesData.conferences.length === 0) {
+      return <EmptyStateNoResults message="No conferences found matching your criteria" />;
+    }
+    
+    return (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {conferencesData.conferences.map((conference: any) => (
+            <ConferenceCard 
+              key={conference.id} 
+              conference={conference}
+              showActions
+            />
+          ))}
+        </div>
+        
+        {/* Pagination */}
+        {conferencesData.pagination.totalPages > 1 && (
+          <div className="flex justify-center mt-8">
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Previous
+              </Button>
+              
+              {Array.from({ length: conferencesData.pagination.totalPages }, (_, i) => i + 1).map(page => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  onClick={() => handlePageChange(page)}
+                >
+                  {page}
+                </Button>
+              ))}
+              
+              <Button
+                variant="outline"
+                disabled={currentPage === conferencesData.pagination.totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </>
     );
   };
 
-  const filtered = conferences.filter((conf) =>
-    conf.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conf.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conf.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (conf.topics || []).some((t) =>
-      t.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+  // Search form action component
+  const searchForm = (
+    <form onSubmit={handleSearch} className="flex gap-2">
+      <div className="relative flex-grow">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search conferences..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-8 w-full md:w-[300px]"
+        />
+      </div>
+      <Button type="submit" className="shrink-0">Search</Button>
+    </form>
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
-            Discover Conferences
-          </h1>
-          <div className="relative w-full sm:w-auto max-w-sm">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search conferences..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-      </motion.div>
+    <DashboardPageLayout
+      title="Discover Conferences"
+      description="Browse upcoming conferences, filter by category, or search for specific topics."
+      className="space-y-6"
+    >
+      {/* Header with flexible search form placement */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        {searchForm}
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-72 rounded-lg" />
-          ))}
+        <div className="flex md:flex-row gap-2 w-full md:w-auto">
+          <Select value={sortOrder} onValueChange={setSortOrder}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              <SelectItem value="startDate-asc">Date: Upcoming</SelectItem>
+              <SelectItem value="startDate-desc">Date: Recent</SelectItem>
+              <SelectItem value="name-asc">Name: A-Z</SelectItem>
+              <SelectItem value="name-desc">Name: Z-A</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              <SelectItem value="all">All Categories</SelectItem>
+              {categoriesData?.map(category => (
+                <SelectItem key={category.name} value={category.name}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      ) : filtered.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((conf, index) => (
-            <motion.div
-              key={conf.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <ConferenceCard 
-                conf={conf} 
-                userContext={userContext}
-                onRegistrationChange={handleRegistrationChange}
-              />
-            </motion.div>
-          ))}
+      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <TabsList className="bg-muted/60">
+            <TabsTrigger value="all">All Conferences</TabsTrigger>
+            <TabsTrigger value="popular">Popular</TabsTrigger>
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+          </TabsList>
+          
         </div>
-      ) : (
-        <div className="text-center py-16 px-6 bg-gray-50 rounded-lg">
-          <h2 className="text-xl font-semibold mb-2">No conferences found</h2>
-          <p className="text-gray-500 mb-6 max-w-md mx-auto">
-            Try adjusting your search or check back later for new events.
-          </p>
-        </div>
-      )}
-    </div>
+
+        <TabsContent value="all" className="mt-0">
+          {renderConferenceGrid()}
+        </TabsContent>
+        
+        <TabsContent value="popular" className="mt-0">
+          {featuredData ? (
+            featuredData.popular.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredData.popular.map(conference => (
+                  <ConferenceCard 
+                    key={conference.id} 
+                    conference={conference}
+                    showActions
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyStateNoResults message="No popular conferences found" />
+            )
+          ) : (
+            renderSkeletons()
+          )}
+        </TabsContent>
+        
+        <TabsContent value="upcoming" className="mt-0">
+          {featuredData ? (
+            featuredData.upcoming.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredData.upcoming.map(conference => (
+                  <ConferenceCard 
+                    key={conference.id} 
+                    conference={conference}
+                    showActions
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyStateNoResults message="No upcoming conferences found" />
+            )
+          ) : (
+            renderSkeletons()
+          )}
+        </TabsContent>
+      </Tabs>
+    </DashboardPageLayout>
   );
 }
