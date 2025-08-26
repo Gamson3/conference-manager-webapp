@@ -1,30 +1,15 @@
-// For public-facing routes (that don't require authentication)
-
 import express from "express";
-import { 
-  getPublicConferences, 
-  getPublicConferenceDetails,
-  getPublicConferenceMaterials
-} from "../controllers/conferenceControllers";
-// import {
-//   searchConferencePresentations,
-//   getSearchSuggestions
-// } from "../controllers/searchControllers";
-import { authMiddleware } from "../middleware/authMiddleware";
-import { getConferenceParticipants } from '../controllers/attendeeControllers';
+import { getPublicConferences, getConferenceDetails, getFeaturedConferences, getConferenceCategories } from "../controllers/conferenceControllers";
+import { optionalAuthMiddleware } from "../middleware/optionalAuthMiddleware";
 
 const router = express.Router();
 
-// Public conference routes
+// Public routes (no auth required)
 router.get("/", getPublicConferences);
-router.get("/:id", getPublicConferenceDetails);
-router.get("/:id/materials", getPublicConferenceMaterials);
+router.get("/featured", getFeaturedConferences);
+router.get("/categories", getConferenceCategories);
 
-// Conference participants
-router.get('/:id/participants', getConferenceParticipants);
-
-// // Search routes (conference-specific)
-// router.get("/:id/search", authMiddleware(["attendee", "organizer", "admin"]), searchConferencePresentations);
-// router.get("/:id/search/suggestions", authMiddleware(["attendee", "organizer", "admin"]), getSearchSuggestions);
+// Routes with optional authentication
+router.get("/:id", optionalAuthMiddleware, getConferenceDetails);
 
 export default router;
