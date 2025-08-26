@@ -576,7 +576,7 @@ export const getEventAttendees = async (req: Request, res: Response) => {
             id: true,
             name: true,
             email: true,
-            role: true,
+            roles: true,
           }
         }
       },
