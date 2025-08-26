@@ -1,283 +1,343 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Heart, 
-  TreePine, 
-  ExternalLink, 
-  Clock, 
-  Calendar,
-  MapPin,
-  Users,
-  Search
-} from 'lucide-react';
-import { createAuthenticatedApi } from '@/lib/utils';
-import { toast } from 'sonner';
-import { motion } from 'framer-motion';
-import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
+import { Search, Calendar, User, Heart, ArrowRight, Presentation, Tag } from 'lucide-react';
+import DashboardPageLayout from '@/components/DashboardPageLayout';
+import { api } from '@/state/api';
+import { useAuth } from '@/app/(auth)/authContext';
 
-interface FavoritePresentation {
-  id: number;
-  createdAt: string;
-  presentation: {
-    id: number;
-    title: string;
-    abstract: string;
-    keywords: string[];
-    duration: number;
-    authors: Array<{
-      authorName: string;
-      affiliation?: string;
-      isPresenter: boolean;
-    }>;
-    section: {
-      id: number;
-      name: string;
-      type: string;
-      startTime?: string;
-      endTime?: string;
-      day: {
-        id: number;
-        name: string;
-        date: string;
-        conference: {
-          id: number;
-          name: string;
-          startDate: string;
-          endDate: string;
-        };
-      };
-    };
-  };
-}
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+
 
 export default function FavoritesPage() {
   const router = useRouter();
-  const [favorites, setFavorites] = useState<FavoritePresentation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const { isAuthenticated } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('presentations');
+  const [currentPage, setCurrentPage] = useState(1);
+  
 
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
-
-  const fetchFavorites = async () => {
-    try {
-      const api = await createAuthenticatedApi();
-      const response = await api.get('/api/attendee/favorites');
-      setFavorites(response.data);
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
-      toast.error('Failed to load favorites');
-    } finally {
-      setLoading(false);
-    }
+  // Handle search input
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset to first page on new search
   };
+  
+  // Fetch user's favorite presentations
+  const { data: favoritePresentations, isLoading: presentationsLoading } = 
+    api.useGetUserFavoritePresentationsQuery();
+  
+  // Fetch user's favorite conferences
+  const { data: favoriteConferences, isLoading: conferencesLoading } = 
+    api.useConferenceFavoritesQuery();
+    
+  // Toggle favorite mutations
+  const [togglePresentationFavorite] = api.useTogglePresentationFavoriteMutation();
+  const [toggleConferenceFavorite] = api.useToggleConferenceFavoriteMutation();
 
-  const handleJumpToTree = (favorite: FavoritePresentation) => {
-    const { day, id: sectionId } = favorite.presentation.section;
-    const { conference } = day;
-    // const url = `/attendee/conferences/${conference.id}?tab=schedule&expandDay=${day.id}&expandSection=${sectionId}&highlight=${favorite.presentation.id}`;
-    const url = `/attendee/conferences/${conference.id}/tree?expandDay=${day.id}&expandSection=${sectionId}&highlight=${favorite.presentation.id}`;
-    router.push(url);
-  };
+  // Filtered presentations based on search term
+  const filteredPresentations = favoritePresentations?.filter(favorite => {
+    const presentation = favorite.presentation;
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      presentation.title.toLowerCase().includes(searchLower) ||
+      presentation.authors.some(a => a.authorName.toLowerCase().includes(searchLower)) ||
+      presentation.conference.name.toLowerCase().includes(searchLower)
+    );
+  });
+  
+  // Filtered conferences based on search term
+  const filteredConferences = favoriteConferences?.filter(conference => {
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      conference.name.toLowerCase().includes(searchLower) ||
+      (conference.description && conference.description.toLowerCase().includes(searchLower)) ||
+      (conference.location && conference.location.toLowerCase().includes(searchLower))
+    );
+  });
 
-  const handleRemoveFavorite = async (presentationId: number) => {
+  // Handle removing a presentation from favorites
+  const handleRemovePresentationFavorite = async (presentationId: number) => {
     try {
-      const api = await createAuthenticatedApi();
-      await api.delete(`/api/presentations/${presentationId}/favorite`);
-      setFavorites(prev => prev.filter(fav => fav.presentation.id !== presentationId));
+      await togglePresentationFavorite({
+        presentationId,
+        isFavorite: false
+      }).unwrap();
+      
       toast.success('Removed from favorites');
     } catch (error) {
       console.error('Error removing favorite:', error);
       toast.error('Failed to remove from favorites');
     }
   };
-
-  const filteredFavorites = favorites.filter(favorite =>
-    favorite.presentation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    favorite.presentation.abstract.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    favorite.presentation.keywords.some(keyword =>
-      keyword.toLowerCase().includes(searchTerm.toLowerCase())
-    ) ||
-    favorite.presentation.authors.some(author =>
-      author.authorName.toLowerCase().includes(searchTerm.toLowerCase())
-    ) ||
-    favorite.presentation.section.day.conference.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
+  
+  // Handle removing a conference from favorites
+  const handleRemoveConferenceFavorite = async (conferenceId: number) => {
+    try {
+      await toggleConferenceFavorite({
+        conferenceId,
+        isFavorite: false
+      }).unwrap();
+      
+      toast.success('Removed from favorites');
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+      toast.error('Failed to remove from favorites');
+    }
+  };
+  
+  // Navigate to conference details and open the presentation in the tree view
+  const navigateToPresentation = (conferenceId: number, presentationId: number) => {
+    // Set the selected presentation ID in localStorage so the tree view can open it
+    localStorage.setItem('selectedPresentationId', presentationId.toString());
+    // Navigate to the conference page with the schedule tab active
+    router.push(`/attendee/conferences/${conferenceId}?tab=schedule`);
+  };
+  
+  // Render loading state
+  if (presentationsLoading || conferencesLoading) {
     return (
-      <div className="container mx-auto px-4 py-6">
-        <Skeleton className="h-8 w-48 mb-6" />
+      <DashboardPageLayout
+        title="My Favorites"
+        description="Manage your saved presentations and conferences"
+        className="space-y-6"
+      >
         <div className="grid gap-6">
           {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-48 w-full" />
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-10 w-32" />
+              </CardFooter>
+            </Card>
           ))}
         </div>
-      </div>
+      </DashboardPageLayout>
     );
   }
 
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            <Heart className="h-8 w-8 text-red-500 mr-3" />
-            My Favorites
-          </h1>
-          <p className="text-gray-600 mt-2">
-            {favorites.length} presentation{favorites.length !== 1 ? 's' : ''} saved
-          </p>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+  // Search form action component
+  const searchForm = (
+    <form onSubmit={handleSearch} className="flex gap-2">
+      <div className="relative flex-grow">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search your favorites..."
+          placeholder="Search conferences..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          className="pl-8 w-full md:w-[300px]"
         />
       </div>
+      <Button type="submit" className="shrink-0">Search</Button>
+    </form>
+  );
 
-      {filteredFavorites.length === 0 ? (
-        <div className="text-center py-16">
-          <Heart className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-600 mb-2">
-            {searchTerm ? 'No matching favorites' : 'No favorites yet'}
-          </h2>
-          <p className="text-gray-500 mb-6 max-w-md mx-auto">
-            {searchTerm 
-              ? 'Try adjusting your search terms'
-              : 'Start exploring conferences and presentations to build your favorites list'
-            }
-          </p>
-          {!searchTerm && (
-            <Button 
-              onClick={() => router.push('/attendee/discover')}
-              className="border-primary hover:shadow-lg border-l border-r hover:bg-primary-100"
-          >
-            Discover Conferences
-          </Button>
-          )}
+  return (
+    <DashboardPageLayout
+      title="My Favorites"
+      description="Manage your saved presentations and conferences"
+      className="space-y-6"
+    >
+      {/* Search and filter */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        {/* <div className="relative w-full md:w-auto">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search your favorites..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-full md:w-[300px]"
+          />
+        </div> */}
+        {searchForm}
+        
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex justify-start w-full md:w-auto gap-4 mb-4">
+          <TabsList>
+            <TabsTrigger value="presentations">Presentations</TabsTrigger>
+            <TabsTrigger value="conferences">Conferences</TabsTrigger>
+          </TabsList>
         </div>
-      ) : (
-        <div className="grid gap-6">
-          {filteredFavorites.map((favorite, index) => (
-            <motion.div
-              key={favorite.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">
-                        {favorite.presentation.title}
-                      </CardTitle>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge variant="outline" className="text-xs">
-                          {favorite.presentation.section.type}
-                        </Badge>
-                        {favorite.presentation.duration && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {favorite.presentation.duration} min
+        
+        {/* Favorites content */}
+        <TabsContent value="presentations" className="mt-0">
+          {!filteredPresentations || filteredPresentations.length === 0 ? (
+            <div className="text-center py-16 bg-muted/20 rounded-lg">
+              <div className="mb-4 bg-primary-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto">
+                <Presentation className="h-10 w-10 text-primary-500" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No favorited presentations</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                When you find interesting presentations, mark them as favorites to view them here.
+              </p>
+              <Button onClick={() => router.push('/attendee/discover')}>
+                Discover Conferences
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {filteredPresentations.map(favorite => (
+                <Card key={favorite.id} className="overflow-hidden group hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row gap-4 justify-between">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center text-sm text-muted-foreground mb-1">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {format(new Date(favorite.createdAt), 'MMM d, yyyy')}
+                          <span className="mx-2">•</span>
+                          <Badge variant="outline" className="text-xs">
+                            {favorite.presentation.conference.name}
+                          </Badge>
+                        </div>
+                        
+                        <h3 className="text-lg font-semibold group-hover:text-primary-600 transition-colors">
+                          {favorite.presentation.title}
+                        </h3>
+                        
+                        {favorite.presentation.authors.length > 0 && (
+                          <div className="flex items-center text-sm mb-2">
+                            <User className="h-4 w-4 mr-1 text-muted-foreground" />
+                            <span>
+                              {favorite.presentation.authors
+                                .map(author => author.authorName)
+                                .join(', ')}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {favorite.presentation.category && (
+                          <Badge 
+                            className="mt-1"
+                            style={{ 
+                              backgroundColor: favorite.presentation.category.color 
+                                ? `${favorite.presentation.category.color}20` 
+                                : undefined,
+                              color: favorite.presentation.category.color || undefined
+                            }}
+                          >
+                            <Tag className="h-3 w-3 mr-1" />
+                            {favorite.presentation.category.name}
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center text-sm text-gray-500 space-x-4">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {new Date(favorite.presentation.section.day.date).toLocaleDateString()}
-                        </div>
-                        {favorite.presentation.section.startTime && (
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {new Date(favorite.presentation.section.startTime).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </div>
-                        )}
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-1" />
-                          {favorite.presentation.authors.filter(a => a.isPresenter).length} presenter(s)
-                        </div>
+                      
+                      <div className="flex flex-row md:flex-col gap-2 items-center md:items-end justify-end">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-rose-500 border-rose-200 hover:bg-rose-50"
+                          onClick={() => handleRemovePresentationFavorite(favorite.presentation.id)}
+                        >
+                          <Heart className="h-4 w-4 mr-2 fill-rose-500" />
+                          Remove
+                        </Button>
+                        
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          onClick={() => navigateToPresentation(
+                            favorite.presentation.conferenceId,
+                            favorite.presentation.id
+                          )}
+                        >
+                          View in Schedule <ArrowRight className="h-4 w-4 ml-1" />
+                        </Button>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="conferences" className="mt-0">
+          {!filteredConferences || filteredConferences.length === 0 ? (
+            <div className="text-center py-16 bg-muted/20 rounded-lg">
+              <div className="mb-4 bg-primary-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto">
+                <Calendar className="h-10 w-10 text-primary-500" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No favorited conferences</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                When you find interesting conferences, mark them as favorites to view them here.
+              </p>
+              <Button onClick={() => router.push('/attendee/discover')}>
+                Discover Conferences
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {filteredConferences.map(conference => (
+                <Card key={conference.id} className="overflow-hidden">
+                  {/* Use your ConferenceCard component here */}
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{conference.name}</CardTitle>
+                    {conference.startDate && conference.endDate && (
+                      <CardDescription>
+                        {format(new Date(conference.startDate), 'MMM d')} - {format(new Date(conference.endDate), 'MMM d, yyyy')}
+                      </CardDescription>
+                    )}
+                  </CardHeader>
+                  
+                  <CardContent className="pb-2">
+                    {conference.location && (
+                      <div className="text-sm mb-2">{conference.location}</div>
+                    )}
+                    {conference.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {conference.description}
+                      </p>
+                    )}
+                  </CardContent>
+                  
+                  <CardFooter className="flex justify-between">
+                    <Button 
+                      variant="outline" 
                       size="sm"
-                      onClick={() => handleRemoveFavorite(favorite.presentation.id)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      className="text-rose-500 border-rose-200 hover:bg-rose-50"
+                      onClick={() => handleRemoveConferenceFavorite(conference.id)}
                     >
-                      <Heart className="h-4 w-4 fill-current" />
+                      <Heart className="h-4 w-4 mr-2 fill-rose-500" />
+                      Remove
                     </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-600 line-clamp-3">
-                      {favorite.presentation.abstract}
-                    </p>
                     
-                    <div className="space-y-1 text-xs text-gray-500">
-                      <p><strong>Conference:</strong> {favorite.presentation.section.day.conference.name}</p>
-                      <p><strong>Day:</strong> {favorite.presentation.section.day.name}</p>
-                      <p><strong>Section:</strong> {favorite.presentation.section.name}</p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {favorite.presentation.keywords.slice(0, 3).map((keyword, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">
-                          {keyword}
-                        </Badge>
-                      ))}
-                      {favorite.presentation.keywords.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{favorite.presentation.keywords.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleJumpToTree(favorite)}
-                        className="flex-1"
-                      >
-                        <TreePine className="h-3 w-3 mr-1" />
-                        View in Schedule
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => router.push(`/attendee/presentations/${favorite.presentation.id}`)}
-                        className="flex-1"
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Details
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => router.push(`/attendee/conferences/${conference.id}`)}
+                    >
+                      View Details
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+      
+    </DashboardPageLayout>
   );
 }
