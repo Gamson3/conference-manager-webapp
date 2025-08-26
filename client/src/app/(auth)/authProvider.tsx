@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Amplify } from 'aws-amplify';
 import { Authenticator, Heading, Radio, RadioGroupField, useAuthenticator, View } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { usePathname, useRouter } from 'next/navigation';
 import { fetchUserAttributes } from 'aws-amplify/auth';
 
+// Configure Amplify
 Amplify.configure({
   Auth: {
     Cognito: {
@@ -120,45 +121,85 @@ const formFields = {
   },
 };
 
-// Update the AuthProvider logic to handle the middleware redirect properly
+
 const Auth = ({ children }: { children: React.ReactNode }) => {
   const { user, authStatus } = useAuthenticator((context) => [context.user, context.authStatus]);
   const router = useRouter();
   const pathname = usePathname();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const redirectedRef = useRef(false);
+  const lastPathRef = useRef(pathname);
 
+  // Simplified page checks
   const isAuthPage = pathname.match(/^\/(signin|signup)$/);
-  const isDashboardPage = pathname.startsWith('/organizer') || pathname.startsWith('/attendee');
-  const isAuthCheckPage = pathname === '/auth-check';
+  const isDashboardPage = pathname.startsWith('/organizer') || 
+                          pathname.startsWith('/attendee') || 
+                          pathname.startsWith('/presenter');
 
-  // Handle redirect from auth pages to dashboard ONLY
+  // Improved redirection logic with prevention of multiple redirects
   useEffect(() => {
-    const handlePostLogin = async () => {
-      if (user && authStatus === 'authenticated' && isAuthPage && !isRedirecting) {
-        try {
-          setIsRedirecting(true);
-          
-          const userAttributes = await fetchUserAttributes();
-          const userRole = userAttributes['custom:role'] || 'attendee';
-          
-          console.log('[AUTH PROVIDER] Post-login redirect to:', `/${userRole}/dashboard`);
-          router.replace(`/${userRole}/dashboard`);
-        } catch (error) {
-          console.error('[AUTH PROVIDER] Post-login error:', error);
-          router.replace('/attendee/dashboard');
-        } finally {
-          setTimeout(() => setIsRedirecting(false), 2000);
-        }
+      // Skip if we're already processing a redirect
+      if (isRedirecting || lastPathRef.current === pathname) {
+        return;
       }
-    };
 
-    handlePostLogin();
-  }, [user, authStatus, isAuthPage, router, isRedirecting]);
+      lastPathRef.current = pathname;
 
-  // ✅ REMOVED: Dashboard redirect logic that was causing issues
-  // Let middleware handle authentication checks, not the auth provider
+      const handleAuthRouting = async () => {
+        // Prevent multiple simultaneous auth checks
+        if (redirectedRef.current) return;
+        redirectedRef.current = true;
 
-  // Show loading state only during initial configuration
+        try {
+          // Case 1: Authenticated user on auth pages - redirect to dashboard
+          if (user && authStatus === 'authenticated' && isAuthPage) {
+            
+            setIsRedirecting(true);
+
+            try{
+              const userAttributes = await fetchUserAttributes();
+              const userRole = userAttributes['custom:role'] || 'attendee';
+              const dashboardPath = `/${userRole}/dashboard`;
+
+              // Only log once and only redirect if we're not already there
+              console.log('[AUTH] Redirecting to dashboard:', dashboardPath);
+              router.replace(dashboardPath);
+
+            } catch (error) {
+              // If there's an error getting attributes, sign out and redirect to signin
+              console.error('[AUTH] Error getting user attributes:', error);
+              // Here you could add signOut() from 'aws-amplify/auth' if you want to force logout
+              router.replace('/signin')
+            }
+            
+            // Reset redirect flag after a timeout to prevent immediate re-triggers
+            setTimeout(() => {
+              setIsRedirecting(false);
+            }, 2000); // Longer timeout to ensure navigation completes
+    
+            return;
+          }
+
+          // Case 2: Unauthenticated user on protected pages - redirect to signin
+          if ((!user || authStatus !== 'authenticated') && isDashboardPage) {
+            console.log('[AUTH] Protected page accessed without auth, redirecting to signin');
+            router.replace('/signin');
+            return;
+          }
+        } finally {
+          // Reset the redirect flag after a delay
+          setTimeout(() => {
+            redirectedRef.current = false;
+          }, 1000);
+        }
+      };
+
+      handleAuthRouting();
+      // No dependencies on router to avoid loops
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authStatus, isAuthPage, isDashboardPage, pathname]);
+
+  // Loading state during configuration
   if (authStatus === 'configuring') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
@@ -171,42 +212,30 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // Show loading state during post-login redirect
-  if (isAuthPage && isRedirecting) {
+  // Loading state during redirections
+  if (isRedirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
         <div className="text-center p-8 max-w-md w-full mx-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Redirecting to dashboard...</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Redirecting...</h3>
           <p className="text-gray-600">Please wait a moment</p>
         </div>
       </div>
     );
   }
 
-  // For auth-check page, let it handle its own logic
-  if (isAuthCheckPage) {
-    return <>{children}</>;
-  }
-
-  // ✅ SIMPLIFIED: For dashboard pages, just render if user is authenticated
-  if (isDashboardPage) {
-    if (authStatus === 'authenticated' && user) {
-      return <>{children}</>;
-    } else {
-      // ✅ FIXED: Redirect to signin instead of auth-check
-      console.log('[AUTH PROVIDER] Dashboard accessed without auth, redirecting to signin');
-      router.replace('/signin');
+  // For auth pages, show the authenticator
+  if (isAuthPage) {
+    // If already authenticated, don't show login again (will be redirected by the useEffect)
+    if (user && authStatus === 'authenticated') {
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
       );
     }
-  }
-
-  // For auth pages, show the authenticator
-  if (isAuthPage) {
+    
     return (
       <div className="h-full">
         <Authenticator
@@ -220,7 +249,7 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // For all other pages (public pages), just render
+// For all other cases, just render children
   return <>{children}</>;
 };
 

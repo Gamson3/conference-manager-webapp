@@ -4,28 +4,55 @@ import NavBar from "@/components/NavBar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import Sidebar from "@/components/AppSidebar";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
-import { useGetAuthUserQuery } from "@/state/api";
+// import { useGetAuthUserQuery } from "@/state/api";
+import { useAuth } from "../(auth)/authContext";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  const { data: authUser, isLoading } = useGetAuthUserQuery();
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirect non-authenticated users (fallback protection)
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace('/signin');
+    }
+  }, [user, isLoading, router]);
 
   // If still loading user data, show loading
-  // if (isLoading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
-  //       <div className="text-center bg-white p-8 rounded-2xl shadow-xl">
-  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-  //         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-  //           Loading Dashboard...
-  //         </h3>
-  //         <p className="text-gray-600">Please wait a moment</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
+      <div className="text-center p-8 max-w-md w-full mx-4">
+        <div className="relative mb-6">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary-100 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+        
+        <h3 className="text-xl font-semibold text-gray-900 mb-3">
+          Loading...
+        </h3>
+        
+        <p className="text-gray-600 mb-4">
+          Please wait a moment
+        </p>
 
-  // Simple layout without auth logic (middleware handles it)
-  const userRole = authUser?.userRole?.toLowerCase() || 'attendee';
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-primary-600 h-2 rounded-full transition-all duration-1000 ease-out animate-pulse"
+            style={{ width: '70%' }}
+          ></div>
+        </div>
+      </div>
+    </div>
+    );
+  }
+
+  // User should be available here because auth is handled by AuthProvider
+  const userRole = user?.roles?.[0] || 'attendee';
 
   return (
     <SidebarProvider>
