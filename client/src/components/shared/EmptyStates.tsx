@@ -234,6 +234,16 @@ export function NoPresentationsState({
   );
 }
 
+export function EmptyStateNoResults({ message = "No results found" }: { message: string }) {
+  return (
+    <div className="text-center py-12">
+      <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+      <h3 className="text-lg font-semibold mb-2">No Results</h3>
+      <p className="text-gray-500">{message}</p>
+    </div>
+  );
+}
+
 export default function EmptyStates({ 
   variant = 'general', 
   title, 
