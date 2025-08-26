@@ -6,18 +6,19 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-// import { authMiddleware } from "./middleware/authMiddleware";
 import { authMiddleware } from "./middleware/authMiddleware";
+import { autoHealAuthMiddleware } from "./middleware/autoHealAuthMiddleware";
+
 
 /* ROUTE IMPORT */  
 //  route imports to be added when we have written them
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import conferenceManagementRoutes from "./routes/conferenceManagementRoutes";
-// import conferenceRoutes from "./routes/conferenceRoutes";
+import conferenceRoutes from "./routes/conferenceRoutes";
 import sectionRoutes from "./routes/sectionRoutes";
 // import searchRoutes from "./routes/searchRoutes";
-// import favoriteRoutes from "./routes/favoriteRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";
 import presentationRoutes from "./routes/presentationRoutes";
 import attendeeRoutes from "./routes/attendeeRoutes";
 // import scheduleRoutes from "./routes/scheduleRoutes";
@@ -40,6 +41,7 @@ app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
+// app.use(cors(corsOptions));
 
 
 // Health check
@@ -47,16 +49,20 @@ app.get("/", (req, res) => {
   res.send("This is home route");  // test for whether our home route works
 });
 
+
+// Apply auto-heal middleware BEFORE auth routes
+app.use(autoHealAuthMiddleware());
+
 // where our routes will be created
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes); // universal user route
 app.use("/api/conferences/management", conferenceManagementRoutes); // Admin/organizer endpoints
-app.use('/api/schedule-builder', scheduleBuilderRoutes);
-// app.use("/api/conferences", conferenceRoutes); // Public conference endpoints
+app.use("/api/schedule-builder", scheduleBuilderRoutes);
+app.use("/api/conferences", conferenceRoutes); // Public conference endpoints
 // app.use("/api", scheduleRoutes);            // Schedule and favorites (protected)
 app.use("/sections", sectionRoutes);
 // app.use("/search", searchRoutes); 
-// app.use("/favorites", favoriteRoutes);
+app.use("/api/favorites", favoriteRoutes);
 app.use("/api", presentationRoutes);
 app.use("/api/attendee", attendeeRoutes);
 app.use("/api", categoryRoutes);

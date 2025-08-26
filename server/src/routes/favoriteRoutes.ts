@@ -1,10 +1,20 @@
-// // import express from "express";
-// // import { getUserFavoriteePresentations } from "../controllers/scheduleControllers";
-// import { authMiddleware } from "../middleware/authMiddleware";
+import express from "express";
+import { 
+  getUserFavoriteConferences,
+  getUserFavoritePresentations,
+  togglePresentationFavorite,
+  toggleConferenceFavorite
+} from "../controllers/favoriteControllers";
+import { authMiddleware } from "../middleware/authMiddleware";
 
-// const router = express.Router();
+const router = express.Router();
 
-// // User favorites
-// // router.get("/presentations", authMiddleware(["attendee", "organizer", "admin"]), getUserFavoriteePresentations);
+// User favorites - conferences
+router.get("/conferences", authMiddleware(["attendee", "organizer", "admin"]), getUserFavoriteConferences);
+router.post("/conferences/:conferenceId", authMiddleware(["attendee", "organizer", "admin"]), toggleConferenceFavorite);
 
-// export default router;
+// User favorites - presentations
+router.get("/presentations", authMiddleware(["attendee", "organizer", "admin"]), getUserFavoritePresentations);
+router.post("/presentations/:presentationId", authMiddleware(["attendee", "organizer", "admin"]), togglePresentationFavorite);
+
+export default router;
