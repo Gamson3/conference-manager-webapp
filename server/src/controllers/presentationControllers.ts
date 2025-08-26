@@ -288,12 +288,12 @@ export const deletePresentation = async (req: Request, res: Response): Promise<v
     const existingPresentation = await prisma.presentation.findUnique({
       where: { id: Number(id) },
       include: {
-        conference: { // ✅ Use direct conference relation
+        conference: { // Use direct conference relation
           select: {
             createdById: true
           }
         },
-        section: { // ✅ Keep section as optional backup
+        section: { // Keep section as optional backup
           include: {
             conference: {
               select: {
@@ -485,8 +485,8 @@ export const searchUsers = async (req: Request, res: Response): Promise<void> =>
           },
           // Role filter - only attendees and organizers
           {
-            role: {
-              in: ['attendee', 'organizer']
+            roles: {
+              hasSome: ['attendee', 'organizer']
             }
           }
         ]
@@ -499,7 +499,7 @@ export const searchUsers = async (req: Request, res: Response): Promise<void> =>
       },
       take: 20,
       orderBy: [
-        { role: 'asc' }, // Show organizers first, then attendees
+        { roles: 'asc' }, // Show organizers first, then attendees
         { name: 'asc' }  // Then alphabetically by name
       ]
     });

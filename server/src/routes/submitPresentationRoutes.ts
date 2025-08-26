@@ -17,19 +17,19 @@ import {
 const router = express.Router();
 
 // Presenter dashboard and profile endpoints
-router.get('/presenter/dashboard', authMiddleware(["organizer", "attendee", "admin"]), getPresenterDashboard);
-router.post('/presenter/profile', authMiddleware(["organizer", "attendee", "admin"]), createPresenterProfile);
-router.put('/presenter/profile', authMiddleware(["organizer", "attendee", "admin"]), updatePresenterProfile);
+router.get('/presenter/dashboard', authMiddleware(["presenter"]), getPresenterDashboard);
+router.post('/presenter/profile', authMiddleware(["presenter"]), createPresenterProfile);
+router.put('/presenter/profile', authMiddleware(["presenter"]), updatePresenterProfile);
 
 // Submission endpoints
-router.post('/conferences/:conferenceId/submit', authMiddleware(["organizer", "attendee", "admin"]), submitPresentation);
-router.get('/submissions/:id', authMiddleware(["organizer", "attendee", "admin"]), getSubmissionStatus);
-router.get('/submissions', authMiddleware(["organizer", "attendee", "admin"]), listUserSubmissions);
+router.post('/conferences/:conferenceId/submit', authMiddleware(["attendee", "presenter"]), submitPresentation);
+router.get('/submissions/:id', authMiddleware(["presenter"]), getSubmissionStatus);
+router.get('/submissions', authMiddleware(["presenter"]), listUserSubmissions);
 
 // File management endpoints
-router.post('/presentations/:presentationId/materials', authMiddleware(["organizer", "attendee", "admin"]), upload.single('file'), uploadPresentationFile);
-router.get('/presentations/:presentationId/materials', authMiddleware(["organizer", "attendee", "admin"]), getPresentationMaterials);
-router.delete('/materials/:materialId', authMiddleware(["organizer", "attendee", "admin"]), deletePresentationMaterial);
+router.post('/presentations/:presentationId/materials', authMiddleware(["presenter"]), upload.single('file'), uploadPresentationFile);
+router.get('/presentations/:presentationId/materials', authMiddleware(["presenter"]), getPresentationMaterials);
+router.delete('/materials/:materialId', authMiddleware(["presenter"]), deletePresentationMaterial);
 router.get('/files/:fileId/download', downloadFile); // Public endpoint with auth checks inside
 
 export default router;

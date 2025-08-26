@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { getUserId, getUserCognitoId, isAdmin } from "../utils/authHelper";
+import { Role } from '@prisma/client';
 
 // Configure storage directory for files
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
@@ -52,7 +53,7 @@ export const submitPresentation = async (req: Request, res: Response): Promise<v
     const cognitoId = getUserCognitoId(req);
     
     if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
+      res.status(401).json({ message: "Not authenticated" });
       return;
     }
     
@@ -63,6 +64,14 @@ export const submitPresentation = async (req: Request, res: Response): Promise<v
     
     if (!user) {
       res.status(404).json({ message: "User not found" });
+      return;
+    }
+    
+    // Check if user is an organizer - organizers can't submit presentations
+    if (user.roles.includes(Role.organizer)) {
+      res.status(403).json({ 
+        message: "Organizers cannot submit presentations. Please use a separate attendee account." 
+      });
       return;
     }
 
@@ -81,14 +90,12 @@ export const submitPresentation = async (req: Request, res: Response): Promise<v
     });
     
     if (!conference) {
-      res.status(404).json({ 
-        message: "Conference not found or not accepting submissions" 
-      });
+      res.status(404).json({ message: "Conference not found or not accepting submissions" });
       return;
     }
     
     if (!conference.sections || conference.sections.length === 0) {
-      res.status(400).json({ message: "Conference does not have any sections" });
+      res.status(400).json({ message: "Conference has no sections to submit to" });
       return;
     }
 
@@ -125,6 +132,19 @@ export const submitPresentation = async (req: Request, res: Response): Promise<v
       return;
     }
     
+    // Add presenter role if user doesn't already have it
+    if (!user.roles.includes("presenter" as Role)) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          roles: {
+            push: "presenter" as Role
+          }
+        }
+      });
+      console.log(`Added presenter role to user ${user.id}`);
+    }
+    
     // Create or get presenter profile for the user
     const presenter = await getOrCreatePresenterProfile(user);
     
@@ -148,38 +168,35 @@ export const submitPresentation = async (req: Request, res: Response): Promise<v
       }
     });
     
-    // Create authors
+    // Create authors or add the current user as author
     if (authors && authors.length > 0) {
-      await Promise.all(
-        authors.map(async (author: any, index: number) => {
-          return prisma.presentationAuthor.create({
-            data: {
-              presentationId: presentation.id,
-              authorName: author.name,
-              authorEmail: author.email,
-              affiliation: author.affiliation || '',
-              isPresenter: author.isPresenter || false,
-              isExternal: !author.userId,
-              userId: author.userId || null,
-              order: index + 1,
-              title: author.title || null,
-              bio: author.bio || null
-            }
-          });
-        })
-      );
+      // Process authors array
+      for (let i = 0; i < authors.length; i++) {
+        const author = authors[i];
+        await prisma.presentationAuthor.create({
+          data: {
+            presentationId: presentation.id,
+            authorName: author.name,
+            authorEmail: author.email,
+            affiliation: author.affiliation,
+            isPresenter: author.isPresenter || false,
+            isExternal: true,
+            order: i
+          }
+        });
+      }
     } else {
-      // If no authors provided, add the submitter as author and presenter
+      // Add the current user as the author
       await prisma.presentationAuthor.create({
         data: {
           presentationId: presentation.id,
-          authorName: user.name || '',
-          authorEmail: user.email || '',
+          authorName: user.name,
+          authorEmail: user.email,
           affiliation: user.organization || '',
           isPresenter: true,
           isExternal: false,
           userId: user.id,
-          order: 1
+          order: 0
         }
       });
     }
@@ -856,7 +873,7 @@ export const getPresenterDashboard = async (req: Request, res: Response): Promis
       upcomingPresentations,
       conferences,
       stats,
-      userRole: user.role
+      userRole: user.roles
     });
   } catch (error: any) {
     console.error("Error fetching presenter dashboard:", error);
