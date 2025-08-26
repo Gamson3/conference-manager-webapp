@@ -18,28 +18,28 @@ import { optionalAuthMiddleware } from "../middleware/optionalAuthMiddleware";
 
 const router = express.Router();
 
-// Profile routes
-router.get("/profile", authMiddleware(["attendee"]), getAttendeeProfile);
-router.put("/profile", authMiddleware(["attendee"]), updateAttendeeProfile);
+// Profile routes - accessible to both attendees and presenters
+router.get("/profile", authMiddleware(["attendee", "presenter"]), getAttendeeProfile);
+router.put("/profile", authMiddleware(["attendee", "presenter"]), updateAttendeeProfile);
 
-// Dashboard routes
-router.get("/dashboard-stats", authMiddleware(["attendee"]), getDashboardStats);
-router.get("/recent-conferences", authMiddleware(["attendee"]), getRecentConferences);
+// Dashboard routes - accessible to both attendees and presenters
+router.get("/dashboard-stats", authMiddleware(["attendee", "presenter"]), getDashboardStats);
+router.get("/recent-conferences", authMiddleware(["attendee", "presenter"]), getRecentConferences);
 
-// Conference registration
-router.post("/register-conference", authMiddleware(["attendee"]), registerForConference);
-router.get("/registered-conferences", authMiddleware(["attendee"]), getRegisteredConferences);
-router.delete("/unregister-conference/:conferenceId", authMiddleware(["attendee"]), cancelConferenceRegistration);
+// Conference registration - accessible to both attendees and presenters
+router.post("/register-conference", authMiddleware(["attendee", "presenter"]), registerForConference);
+router.get("/registered-conferences", authMiddleware(["attendee", "presenter"]), getRegisteredConferences);
+router.delete("/unregister-conference/:conferenceId", authMiddleware(["attendee", "presenter"]), cancelConferenceRegistration);
 
-// Get and check multiple Favorites (ATTENDEE MANAGEMENT)
-router.get("/favorites", authMiddleware(["attendee"]), getFavoritesPresentations);
-router.post("/favorites/status", authMiddleware(["attendee"]), getFavoriteStatusBulk); // NEW
+// Favorites - accessible to both attendees and presenters
+router.get("/favorites", authMiddleware(["attendee", "presenter"]), getFavoritesPresentations);
+router.post("/favorites/status", authMiddleware(["attendee", "presenter"]), getFavoriteStatusBulk);
 
 // Conference discovery and details: MODIFIED to Allow both authenticated and guest access
 router.get("/discover", optionalAuthMiddleware, discoverConferences); // Optional auth
-router.get("/conferences/:id/details", optionalAuthMiddleware, getConferenceWithPeople); // Optional auth
+router.get("/conferences/:id/details", optionalAuthMiddleware, getConferenceWithPeople);
 
 // Networking
-router.get("/networking", authMiddleware(["attendee"]), getNetworkingData);
+router.get("/networking", authMiddleware(["attendee", "presenter"]), getNetworkingData);
 
 export default router;
