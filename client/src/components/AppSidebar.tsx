@@ -5,28 +5,50 @@ import { FileText, Globe, Heart, LayoutDashboard, Menu, Plus, PlusSquare, Settin
 import { NAVBAR_HEIGHT } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useAuth } from '@/app/(auth)/authContext'
 
+
+interface AppSidebarProps {
+  userType?: string;
+}
 
 const AppSidebar = ( { userType }: Appsidebarprops) => { 
     const pathname: string = usePathname();
     const { toggleSidebar, open } = useSidebar();
+    const { hasRole } = useAuth();
 
-    const navLinks = 
-        userType === "organizer"
-          ? [
-              { icon: LayoutDashboard, label: "Dashboard", href: "/organizer/dashboard" },
-              { icon: Upload, label: "Review Submissions", href: "/organizer/submissions" },
-              { icon: PlusSquare, label: "Create Event", href: "/organizer/create-event" },
-              { icon: Globe, label: "Manage Events", href: "/organizer/events" },
-              { icon: Settings, label: "Settings", href: "/organizer/settings" }
-            ]
-          : [
-              { icon: LayoutDashboard, label: "Dashboard", href: "/attendee/dashboard" },
-              { icon: Globe, label: "Discover", href: "/attendee/discover" },
-              { icon: Heart, label: "Favorites", href: "/attendee/favorites" },
-              { icon: FileText, label: "My Events", href: "/attendee/view-event" },
-              { icon: Settings, label: "Settings", href: "/attendee/settings" },
-            ];
+    // Determine links based on user roles
+    let navLinks = [];
+    let viewType = "Attendee View";
+
+    if (userType === "organizer" || hasRole('organizer')) {
+      // Organizer-specific navigation links
+      navLinks = [
+        { icon: LayoutDashboard, label: "Dashboard", href: "/organizer/dashboard" },
+        { icon: Upload, label: "Review Submissions", href: "/organizer/submissions" },
+        { icon: PlusSquare, label: "Create Event", href: "/organizer/create-event" },
+        { icon: Globe, label: "Manage Events", href: "/organizer/events" },
+        { icon: Settings, label: "Settings", href: "/organizer/settings" }
+      ];
+      viewType = "Organizer View"
+    } else {
+      // Start with attendee links (base links)
+      navLinks = [
+        { icon: LayoutDashboard, label: "Dashboard", href: "/attendee/dashboard" },
+        { icon: Globe, label: "Discover", href: "/attendee/discover" },
+        { icon: Heart, label: "Favorites", href: "/attendee/favorites" },
+        { icon: FileText, label: "My Events", href: "/attendee/view-event" },
+        { icon: Settings, label: "Settings", href: "/attendee/settings" },
+      ];
+
+      // Add presenter links if user has presenter role
+      if (hasRole('presenter')) {
+        navLinks.push(
+            { icon: Upload, label: "My Submissions", href: "/presenter/submissions" },
+            { icon: PlusSquare, label: "Submit Presentation", href: "/presenter/submit" }
+        );
+      }
+    }
 
   return (
     <Sidebar 
@@ -49,7 +71,7 @@ const AppSidebar = ( { userType }: Appsidebarprops) => {
                     {open ? (
                       <>
                         <h1 className="text-xl font-bold text-gray-800">
-                          {userType === "organizer" ? "Organizer View" : "Attendee View"}
+                          {viewType}
                         </h1>
                         <button
                           className="hover:bg-gray-100 p-2 rounded-md"
