@@ -48,32 +48,32 @@ export const withToast = async <T>(
   }
 };
 
-export const createNewUserInDatabase = async (
-  user: any,
-  idToken: any,
-  userRole: string,
-  fetchWithBQ: any
-) => {
-  const createEndpoint =  "/users"; // Universal endpoint for creating a user
+// export const createNewUserInDatabase = async (
+//   user: any,
+//   idToken: any,
+//   userRole: string,
+//   fetchWithBQ: any
+// ) => {
+//   const createEndpoint =  "/users"; // Universal endpoint for creating a user
 
-  const createUserResponse = await fetchWithBQ({
-    url: createEndpoint,
-    method: "POST",
-    body: {
-      cognitoId: user.userId,
-      name: user.username,
-      email: idToken?.payload?.email || "",
-      phoneNumber: "",
-      role: userRole?.toLowerCase(),
-    },
-  });
+//   const createUserResponse = await fetchWithBQ({
+//     url: createEndpoint,
+//     method: "POST",
+//     body: {
+//       cognitoId: user.userId,
+//       name: user.username,
+//       email: idToken?.payload?.email || "",
+//       phoneNumber: "",
+//       roles: [userRole?.toLowerCase()],
+//     },
+//   });
 
-  if (createUserResponse.error) {
-    throw new Error("Failed to create user record");
-  }
+//   if (createUserResponse.error) {
+//     throw new Error("Failed to create user record");
+//   }
 
-  return createUserResponse;
-};
+//   return createUserResponse;
+// };
 
 // Create an axios instance with auth
 export const createAuthenticatedApi = async () => {
