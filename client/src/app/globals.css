@@ -21,7 +21,6 @@ body,
   @apply bg-white dark:bg-black;
 }
 
-/* ADD: Add this section to your existing globals.css */
 
 /* ===== BUTTON CURSOR STYLING ===== */
 /* Make all buttons have pointer cursor by default */
@@ -373,6 +372,31 @@ button[aria-disabled="true"],
   background-color: hsl(var(--card)) !important;
   border-color: hsl(var(--border));
 }
+
+
+/* ===== Fix for Dropdown Scrollbar Issue ===== */
+/* Prevent layout shift when Radix removes scrollbar */
+html {
+  overflow-y: scroll; /* Always reserve space for scrollbar */
+}
+
+/* Optional: improve dropdown animation smoothness */
+[data-radix-popper-content-wrapper] {
+  will-change: transform;
+}
+
+/* Alternative solution:
+   This disables Radix's scroll lock so background remains scrollable.
+   Use only if you don't mind users being able to scroll page
+   while a dropdown/menu is open. */
+/*
+body[data-radix-scroll-lock] {
+  overflow-y: auto !important; 
+  padding-right: 0 !important;
+}
+*/
+
+/* ===== END ===== */
 
 
 /* Animation for Attention-Grabbing Effect on Submission Help Button */
