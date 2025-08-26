@@ -49,7 +49,7 @@ export const updateEventWorkflow = async (req: Request, res: Response): Promise<
 };
 
 // Get event workflow status
-export const getEventWorkflow = async (req: Request, res: Response) => {
+export const getEventWorkflow = async (req: Request, res: Response): Promise<void> => {
   try {
     const { eventId } = req.params;
     const userId = getUserId(req);
