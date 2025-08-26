@@ -1,39 +1,61 @@
 // Auth Helper Functions
 
 import { Request } from "express";
+import { Role } from "@prisma/client";
 
 /**
- * Get the user's numeric database ID from the request.
- * @param req Express request object
- * @returns The user's numeric database ID
+ * Get the authenticated user ID from the request
  */
-export const getUserId = (req: Request): number | undefined => {
-  return req.user?.id;
+export const getUserId = (req: Request): number | null => {
+  return req.user?.id || null;
 };
 
 /**
- * Get the user's Cognito ID (UUID) from the request.
- * @param req Express request object
- * @returns The user's Cognito ID string
+ * Get the authenticated user's Cognito ID from the request
  */
-export const getUserCognitoId = (req: Request): string | undefined => {
-  return req.user?.cognitoId;
+export const getUserCognitoId = (req: Request): string | null => {
+  return req.user?.cognitoId || null;
 };
 
 /**
- * Get the user's role from the request.
- * @param req Express request object
- * @returns The user's role
+ * Check if the user has a specific role
  */
-export const getUserRole = (req: Request): string | undefined => {
-  return req.user?.role;
+export const hasRole = (req: Request, role: string): boolean => {
+  return req.user?.roles?.includes(role as Role) || false;
 };
 
 /**
- * Check if the user is an admin.
- * @param req Express request object
- * @returns True if the user is an admin
+ * Check if the user is an admin
  */
 export const isAdmin = (req: Request): boolean => {
-  return req.user?.role === "admin";
+  return hasRole(req, "admin");
+};
+
+/**
+ * Check if the user is an organizer
+ */
+export const isOrganizer = (req: Request): boolean => {
+  return hasRole(req, "organizer");
+};
+
+/**
+ * Check if the user is an attendee
+ */
+export const isAttendee = (req: Request): boolean => {
+  return hasRole(req, "attendee");
+};
+
+/**
+ * Check if the user is a presenter
+ */
+export const isPresenter = (req: Request): boolean => {
+  return hasRole(req, "presenter");
+};
+
+/**
+ * Check if the user has any of the specified roles
+ */
+export const hasAnyRole = (req: Request, roles: string[]): boolean => {
+  if (!req.user?.roles) return false;
+  return roles.some(role => req.user!.roles.includes(role as Role));
 };

@@ -3,6 +3,7 @@
 import prisma from '../lib/prisma';
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { Role } from "@prisma/client";
 
 
 interface DecodedToken extends JwtPayload {
@@ -14,9 +15,9 @@ declare global {
     namespace Express {
         interface Request {
             user?: {
-                id: number
-                cognitoId: string; // Added for UUID
-                role: string;
+                id: number;
+                cognitoId: string;
+                roles: Role[]; // Changed from role to roles
             }
         }
     }
@@ -51,7 +52,7 @@ export const optionalAuthMiddleware = async (req: Request, res: Response, next: 
       // Get the numeric userId from database using cognitoId
       const user = await prisma.user.findUnique({
         where: { cognitoId },
-        select: { id: true, role: true }
+        select: { id: true, roles: true } // Changed from role to roles
       });
       
       if (user) {
@@ -59,7 +60,7 @@ export const optionalAuthMiddleware = async (req: Request, res: Response, next: 
         req.user = {
           id: user.id,
           cognitoId,
-          role: decoded["custom:role"]?.toLowerCase() || user.role
+          roles: user.roles // Use the roles array directly
         };
         console.log('[OPTIONAL AUTH] Token validated successfully for user:', user.id);
       } else {
