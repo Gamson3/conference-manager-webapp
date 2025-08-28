@@ -1,30 +1,33 @@
-// import express from "express";
-// import {
-//   getConferencePresenters,
-//   createOrFindPresenter,
-//   addPresenterConflict,
-//   getPresenterConflicts,
-//   removePresenterConflict
-// } from "../controllers/presenterControllers";
-// import {
-//   checkPresentationConflicts,
-//   assignPresentationWithConflictCheck,
-//   getConferenceConflictSummary
-// } from "../controllers/conflictDetectionControllers";
-// import { authMiddleware } from "../middleware/authMiddleware";
+import express from "express";
+import { authMiddleware } from "../middleware/authMiddleware";
+import uploadMiddleware from "../middleware/uploadMiddleware";
+import {
+  getPresenterPresentations,
+  getPresenterPresentation,
+  createPresenterSubmission,
+  updatePresenterPresentation,
+  deletePresenterPresentation,
+  getConferencesAcceptingSubmissions,
+  uploadMaterial,
+  getPresenterMaterials,
+  deleteMaterial
+} from "../controllers/presenterControllers";
 
-// const router = express.Router();
+const router = express.Router();
 
-// // Presenter management
-// router.get("/conferences/:conferenceId/presenters", authMiddleware(["organizer", "admin"]), getConferencePresenters);
-// router.post("/presenters", authMiddleware(["organizer", "admin"]), createOrFindPresenter);
-// router.post("/presenters/:id/conflicts", authMiddleware(["organizer", "admin"]), addPresenterConflict);
-// router.get("/presenters/:id/conflicts", authMiddleware(["organizer", "admin"]), getPresenterConflicts);
-// router.delete("/presenter-conflicts/:id", authMiddleware(["organizer", "admin"]), removePresenterConflict);
+// Presentation routes
+router.get("/presentations", authMiddleware(["presenter", "attendee"]), getPresenterPresentations);
+router.get("/presentations/:id", authMiddleware(["presenter", "attendee"]), getPresenterPresentation);
+router.post("/submissions", authMiddleware(["presenter", "attendee"]), createPresenterSubmission);
+router.put("/presentations/:id", authMiddleware(["presenter", "attendee"]), updatePresenterPresentation);
+router.delete("/presentations/:id", authMiddleware(["presenter", "attendee"]), deletePresenterPresentation);
 
-// // Conflict detection
-// router.post("/presentations/:id/check-conflicts", authMiddleware(["organizer", "admin"]), checkPresentationConflicts);
-// router.post("/presentations/:id/assign-with-conflict-check", authMiddleware(["organizer", "admin"]), assignPresentationWithConflictCheck);
-// router.get("/conferences/:conferenceId/conflicts/summary", authMiddleware(["organizer", "admin"]), getConferenceConflictSummary);
+// Conference routes for submission
+router.get("/conferences-accepting-submissions", authMiddleware(["presenter", "attendee"]), getConferencesAcceptingSubmissions);
 
-// export default router;
+// Material routes
+router.get("/materials", authMiddleware(["presenter", "attendee"]), getPresenterMaterials);
+router.post("/materials", authMiddleware(["presenter", "attendee"]), uploadMiddleware.single("file"), uploadMaterial);
+router.delete("/materials/:id", authMiddleware(["presenter", "attendee"]), deleteMaterial);
+
+export default router;

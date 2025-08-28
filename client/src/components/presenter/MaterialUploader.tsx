@@ -1,240 +1,189 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { createAuthenticatedApi } from "@/lib/utils";
+import { Upload, X, FileText, File, Loader2 } from "lucide-react";
+import { fetchAuthSession } from "aws-amplify/auth";
+import axios from "axios";
 import { toast } from "sonner";
-import { Upload, FileIcon, AlertCircle, Loader2 } from "lucide-react";
 
 interface MaterialUploaderProps {
-  presentationId: string | number;
-  onUploadComplete?: () => void;
-  allowedFileTypes?: string;
-  maxFileSize?: number;
+  presentationId: number;
+  onUploadComplete: () => void;
 }
 
-export default function MaterialUploader({
-  presentationId,
-  onUploadComplete,
-  allowedFileTypes = "pdf,doc,docx,ppt,pptx,txt",
-  maxFileSize = 50
-}: MaterialUploaderProps) {
+export function MaterialUploader({ presentationId, onUploadComplete }: MaterialUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [description, setDescription] = useState('');
-  const [isPublic, setIsPublic] = useState(false);
+  const [title, setTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dragActive, setDragActive] = useState(false);
 
-  const handleFileChange = (selectedFile: File | null) => {
-    if (!selectedFile) return;
-    
-    setFile(selectedFile);
-    setError(null);
-    
-    // Validate file size
-    if (maxFileSize && selectedFile.size > maxFileSize * 1024 * 1024) {
-      setError(`File size exceeds the maximum allowed size of ${maxFileSize}MB`);
-      return;
-    }
-    
-    // Validate file type
-    if (allowedFileTypes) {
-      const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
-      const allowedExtensions = allowedFileTypes.split(',').map(ext => ext.trim().toLowerCase());
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
       
-      if (fileExtension && !allowedExtensions.includes(fileExtension)) {
-        setError(`Invalid file type. Allowed types: ${allowedFileTypes}`);
-        return;
-      }
+      // Set a default title based on the filename (without extension)
+      const fileName = selectedFile.name.split('.').slice(0, -1).join('.');
+      setTitle(fileName || "Presentation Material");
     }
   };
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+  const resetForm = () => {
+    setFile(null);
+    setTitle("");
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileChange(e.dataTransfer.files[0]);
-    }
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!file) {
-      setError('Please select a file to upload');
+  const handleUpload = async () => {
+    if (!file || !title.trim()) {
+      toast.error("Please select a file and enter a title before uploading");
       return;
     }
-    
-    if (error) {
-      return; // Don't proceed if there's a validation error
-    }
-    
+
     try {
       setIsUploading(true);
+      const session = await fetchAuthSession();
+      
+      if (!session.tokens?.idToken) {
+        toast.error("You must be logged in to upload materials");
+        return;
+      }
       
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('description', description);
-      formData.append('isPublic', isPublic ? 'true' : 'false');
+      formData.append("file", file);
+      formData.append("title", title);
+      formData.append("presentationId", presentationId.toString());
       
-      const api = await createAuthenticatedApi();
-      await api.post(`/api/presentations/${presentationId}/materials`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/presenter/materials`, 
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${session.tokens.idToken.toString()}`,
+            "Content-Type": "multipart/form-data",
+          }
         }
-      });
+      );
       
-      // Reset form
-      setFile(null);
-      setDescription('');
-      setIsPublic(false);
-      setError(null);
+      toast.success("Your material has been uploaded successfully");
       
-      toast.success('File uploaded successfully!');
+      resetForm();
+      onUploadComplete();
       
-      // If callback provided, call it
-      if (onUploadComplete) {
-        onUploadComplete();
-      }
-    } catch (error: any) {
-      console.error('Error uploading file:', error);
-      setError(error.response?.data?.message || 'Failed to upload file');
-      toast.error('Failed to upload file');
+    } catch (error) {
+      console.error("Error uploading material:", error);
+      toast.error("There was an error uploading your material. Please try again.");
     } finally {
       setIsUploading(false);
     }
   };
 
+  const getFileIcon = () => {
+    if (!file) return null;
+    
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    
+    switch (extension) {
+      case 'pdf':
+        return <FileText className="h-8 w-8 text-red-500" />;
+      case 'doc':
+      case 'docx':
+        return <FileText className="h-8 w-8 text-blue-500" />;
+      case 'ppt':
+      case 'pptx':
+        return <FileText className="h-8 w-8 text-orange-500" />;
+      default:
+        return <File className="h-8 w-8 text-gray-500" />;
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Upload className="h-5 w-5 mr-2" />
-          Upload Material
-        </CardTitle>
-      </CardHeader>
-      
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          {/* File Upload Area */}
-          <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              dragActive
-                ? 'border-blue-500 bg-blue-50'
-                : file
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <Input
-              type="file"
-              onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-              disabled={isUploading}
-              className="hidden"
-              id="file-upload"
-            />
-            
-            {file ? (
-              <div className="flex items-center justify-center space-x-2">
-                <FileIcon className="h-8 w-8 text-green-600" />
-                <div>
-                  <p className="font-medium">{file.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-lg font-medium mb-2">
-                  Drop your file here or{' '}
-                  <Label htmlFor="file-upload" className="text-blue-600 cursor-pointer hover:underline">
-                    browse
-                  </Label>
-                </p>
-                <p className="text-sm text-gray-500">
-                  Supported formats: {allowedFileTypes} • Max size: {maxFileSize}MB
-                </p>
-              </div>
-            )}
+    <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+      {file ? (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            {getFileIcon()}
+            <div className="flex-1">
+              <p className="font-medium truncate">{file.name}</p>
+              <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={resetForm}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
           
-          {/* Description */}
-          <div>
-            <Label htmlFor="description">Description (optional)</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter a description for this file"
-              disabled={isUploading}
+          <div className="space-y-2">
+            <Label htmlFor="material-title">Material Title</Label>
+            <Input 
+              id="material-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter a title for this material"
             />
           </div>
           
-          {/* Public checkbox */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="isPublic"
-              checked={isPublic}
-              onCheckedChange={(checked) => setIsPublic(checked === true)}
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={resetForm}
               disabled={isUploading}
-            />
-            <Label htmlFor="isPublic" className="text-sm">
-              Make this file publicly available (downloadable without login)
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="flex items-center gap-2"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  Upload
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-6">
+          <div className="flex justify-center mb-4">
+            <Upload className="h-10 w-10 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">Upload Material</h3>
+          <p className="text-gray-500 mb-4">
+            Drag and drop a file, or click to select
+          </p>
+          <div className="flex justify-center">
+            <Label 
+              htmlFor="file-upload" 
+              className="bg-primary text-white py-2 px-4 rounded-md cursor-pointer hover:bg-primary-600 transition-colors"
+            >
+              Select File
             </Label>
+            <Input 
+              id="file-upload"
+              type="file"
+              onChange={handleFileChange}
+              className="hidden"
+              accept=".pdf,.doc,.docx,.ppt,.pptx"
+            />
           </div>
-          
-          {/* Submit button */}
-          <Button 
-            type="submit" 
-            disabled={isUploading || !file || !!error}
-            className="w-full"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload File
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </form>
-    </Card>
+          <p className="text-xs text-gray-400 mt-2">
+            Supported formats: PDF, Word, PowerPoint
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
