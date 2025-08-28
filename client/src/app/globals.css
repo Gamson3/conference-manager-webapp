@@ -139,6 +139,13 @@ button[aria-disabled="true"],
   --color-secondary-800: #7c1414;
   --color-secondary-900: #400a0a;
   --color-secondary-950: #2c0707;
+
+  --text: #040b0c;
+  --background: #f4fafb;
+  --primary: #49b3bc;
+  --secondary: #c39edb;
+  --accent: #cf7bc6;
+  --muted: #f3f3f3;
 }
 
 /* Light Theme */
@@ -220,6 +227,25 @@ button[aria-disabled="true"],
 .dashboard-container {
   @apply pt-8 pb-5 px-8;
 }
+
+/* ===== Global TabsTrigger Styling ===== */
+@layer components {
+  /* Default (inactive) state */
+  [data-slot="tabs-trigger"][data-state="inactive"] {
+    @apply bg-muted text-foreground rounded !px-4 !py-4 transition;
+  }
+
+  /* Hover for inactive triggers */
+  [data-slot="tabs-trigger"][data-state="inactive"]:hover {
+    @apply bg-primary-400 text-foreground rounded !px-4 !py-4 transition;
+  }
+
+  /* Active state */
+  [data-slot="tabs-trigger"][data-state="active"] {
+    @apply !bg-primary-900 !text-white rounded !px-4 !py-4 transition;
+  }
+}
+
 
 /* Mapbox Custom Popups */
 /* .mapboxgl-popup-content {

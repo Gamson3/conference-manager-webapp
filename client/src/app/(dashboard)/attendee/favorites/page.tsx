@@ -175,7 +175,7 @@ export default function FavoritesPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex justify-start w-full md:w-auto gap-4 mb-4">
-          <TabsList>
+          <TabsList className="flex gap-4">
             <TabsTrigger value="presentations">Presentations</TabsTrigger>
             <TabsTrigger value="conferences">Conferences</TabsTrigger>
           </TabsList>
@@ -192,7 +192,9 @@ export default function FavoritesPage() {
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 When you find interesting presentations, mark them as favorites to view them here.
               </p>
-              <Button onClick={() => router.push('/attendee/discover')}>
+              <Button 
+                onClick={() => router.push('/attendee/discover')}
+                className="bg-blue-600 text-white hover:bg-blue-700">
                 Discover Conferences
               </Button>
             </div>
@@ -283,7 +285,11 @@ export default function FavoritesPage() {
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 When you find interesting conferences, mark them as favorites to view them here.
               </p>
-              <Button onClick={() => router.push('/attendee/discover')}>
+              <Button 
+                variant="link"
+                onClick={() => router.push('/attendee/discover')}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+              >
                 Discover Conferences
               </Button>
             </div>

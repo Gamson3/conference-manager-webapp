@@ -250,7 +250,7 @@ export default function AttendeeDashboard() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={() => router.push('/attendee/discover')}
-                  className="bg-white text-primary-700 hover:bg-white/90 font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl"
+                  className="bg-white text-primary-700 hover:bg-white/90 font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
                 >
                   <SearchIcon className="h-5 w-5 mr-2" />
                   Discover Events
@@ -501,7 +501,7 @@ export default function AttendeeDashboard() {
                         <Button 
                           size="sm" 
                           onClick={() => router.push('/attendee/discover')}
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                          className="text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                         >
                           <PlusIcon className="h-4 w-4 mr-2" />
                           Discover Events

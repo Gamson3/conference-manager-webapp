@@ -203,7 +203,7 @@ export default function ConferenceDiscoveryPage() {
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <TabsList className="bg-muted/60">
+          <TabsList className="flex gap-4">
             <TabsTrigger value="all">All Conferences</TabsTrigger>
             <TabsTrigger value="popular">Popular</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>

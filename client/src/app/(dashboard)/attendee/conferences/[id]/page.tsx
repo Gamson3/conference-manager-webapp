@@ -229,7 +229,7 @@ export default function ConferenceDetailPage() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6">
+        <TabsList className="mb-6 gap-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
           <TabsTrigger value="presenters">Presenters</TabsTrigger>
