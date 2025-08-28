@@ -10,12 +10,15 @@ import {
   getAllUsers,
   setUserRoles,
   addRoleToUser,
-  ensureUser
+  ensureUser,
+  ensureAndGetUser
 } from "../controllers/userControllers";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { searchUsers } from '../controllers/presentationControllers';
 
 const router = express.Router();
+
+router.get("/ensure-and-get", ensureAndGetUser);
 
 // Add the ensure user endpoint - allows frontend to explicitly create a user if missing
 router.post("/ensure", ensureUser);

@@ -5,7 +5,93 @@ import { getUserCognitoId } from "../utils/authHelper";
 import jwt from "jsonwebtoken";
 
 
+export const ensureAndGetUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    console.log("[ENSURE-AND-GET] Processing request");
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("[ENSURE-AND-GET] No auth header provided");
+      res.status(401).json({ message: "Missing authentication token" });
+      return;
+    }
 
+    const token = authHeader.split(" ")[1];
+    
+    // Decode token to get user information
+    const decoded = jwt.decode(token) as {
+      sub: string;
+      email?: string;
+      name?: string;
+      "custom:role"?: string;
+      "cognito:username"?: string;
+    };
+
+    if (!decoded || !decoded.sub) {
+      console.log("[ENSURE-AND-GET] Invalid token structure");
+      res.status(400).json({ message: "Invalid token format" });
+      return;
+    }
+
+    const cognitoId = decoded.sub;
+    console.log(`[ENSURE-AND-GET] Processing user with cognitoId: ${cognitoId}`);
+
+    // Check if user exists
+    let user = await prisma.user.findUnique({
+      where: { cognitoId }
+    });
+    
+    // If user doesn't exist, create immediately (synchronous creation)
+    if (!user) {
+      console.log(`[ENSURE-AND-GET] User ${cognitoId} not found, creating new user`);
+      
+      // Extract user data from token
+      const email = decoded?.email || '';
+      const name = decoded?.name || 
+                   decoded?.["cognito:username"] || 
+                   (email ? email.split("@")[0] : "New User");
+      const roleFromToken = decoded?.["custom:role"]?.toLowerCase() || "attendee";
+
+      try {
+        // Create user synchronously
+        user = await prisma.user.create({
+          data: {
+            cognitoId,
+            name,
+            email,
+            password: '',
+            roles: [roleFromToken as Role]
+          }
+        });
+        
+        console.log(`[ENSURE-AND-GET] Created user with ID: ${user.id}`);
+        res.status(201).json({ 
+          message: "User created successfully",
+          user
+        });
+        return;
+      } catch (createError) {
+        console.error("[ENSURE-AND-GET] Error creating user:", createError);
+        res.status(500).json({ message: "Failed to create user" });
+        return;
+      }
+    }
+
+    // User exists, return it
+    console.log(`[ENSURE-AND-GET] User exists with ID: ${user.id}`);
+    res.status(200).json({ 
+      message: "User retrieved successfully",
+      user
+    });
+  } catch (error) {
+    console.error("[ENSURE-AND-GET] Unexpected error:", error);
+    res.status(500).json({ message: "Server error processing user" });
+  }
+};
+
+/**
+ * @deprecated Use ensureAndGetUser instead which combines user creation and retrieval
+ */
 // POST /users/ensure - Ensure the user exists in database
 export const ensureUser = async (req: Request, res: Response): Promise<void> => {
   try {

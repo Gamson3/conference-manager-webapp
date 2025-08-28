@@ -34,15 +34,26 @@ import presentationReviewRoutes from "./routes/presentationReviewRoutes";
 /* CONFIGURATIONS - setup files*/ 
 dotenv.config();
 const app = express();
+
 app.use(express.json());
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors());
+app.use(cors({
+  origin: [process.env.CLIENT_URL || "http://localhost:3000"],
+  methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400
+}));
+// app.use(cors());
 // app.use(cors(corsOptions));
 
+// important for preflight checks
+// app.options("*", cors());
+// app.options('*', (_, res) => res.sendStatus(204));
 
 // Health check
 app.get("/", (req, res) => {
@@ -50,7 +61,7 @@ app.get("/", (req, res) => {
 });
 
 
-// Apply auto-heal middleware BEFORE auth routes
+// Apply auto-heal middleware BEFORE auth and user routes
 app.use(autoHealAuthMiddleware());
 
 // where our routes will be created

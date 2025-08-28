@@ -21,6 +21,11 @@ body,
   @apply bg-white dark:bg-black;
 }
 
+/* Auth form specific styling */
+.auth-form input {
+  font-size: 1rem !important; /* equivalent to text-base */
+}
+
 
 /* ===== BUTTON CURSOR STYLING ===== */
 /* Make all buttons have pointer cursor by default */

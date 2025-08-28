@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from "react";
 import { fetchAuthSession } from 'aws-amplify/auth';
 import axios from 'axios';
 
@@ -12,6 +12,7 @@ interface User {
   email: string;
   roles: Role[];
   cognitoId: string;
+  image?: string;
   // Other user properties
 }
 
@@ -42,77 +43,81 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const isInitialLoad = useRef(true);
+  const isFetchingRef = useRef(false);
+  const mountedRef = useRef(true);
 
-  const fetchUser = async () => {
-    // Skip if not initial load and already have user data
-    if (!isInitialLoad.current && user) return;
+  const fetchUser = useCallback(async () => {
+    // Prevent concurrent fetches
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     
     try {
       setIsLoading(true);
-      console.log("[AUTH CONTEXT] Starting fetchUser");
+      console.log("[AUTH CONTEXT] Fetching user data");
     
       // Get current session
       const session = await fetchAuthSession();
       
       if (!session.tokens?.idToken) {
-        console.log("[AUTH CONTEXT] No token available, user not authenticated");
-        setIsLoading(false);
+        console.log("[AUTH CONTEXT] No token available");
         setUser(null);
         return;
       }
-    
+
       // Create an authenticated API instance
       const api = axios.create({
-        baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3002",
+        baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
         headers: {
           Authorization: `Bearer ${session.tokens.idToken.toString()}`,
         },
       });
-    
-      // First ensure the user exists
-      try {
-        console.log("[AUTH CONTEXT] Ensuring user exists in database");
-        await api.post("/users/ensure");
-        
-        // Now fetch the user data
-        console.log("[AUTH CONTEXT] Fetching user data");
-        const response = await api.get("/users/me");
-        
-        console.log("[AUTH CONTEXT] User loaded:", response.data);
-        setUser(response.data);
-      } catch (error) {
-        console.error("[AUTH CONTEXT] Error in user data flow:", error);
-        if (axios.isAxiosError(error)) {
-          console.error("[AUTH CONTEXT] Status:", error.response?.status);
-          console.error("[AUTH CONTEXT] Data:", error.response?.data);
+      
+      // Fetch user data from backend
+      const response = await api.get("/users/ensure-and-get");
+      
+      // Only update state if the component is still mounted
+      if (mountedRef.current) {
+        if (response.data?.user) {
+          setUser(response.data.user);
+          
+          // If we received a placeholder, retry after a delay
+          if (response.data.user.isPlaceholder) {
+            setTimeout(() => {
+              if (mountedRef.current) fetchUser();
+            }, 1000);
+          }
+        } else {
+          setUser(null);
         }
-        setUser(null);
       }
     } catch (error) {
-      console.error("[AUTH CONTEXT] Error in auth session:", error);
-      setUser(null);
+      console.error("[AUTH CONTEXT] Error fetching user:", error);
+      if (mountedRef.current) setUser(null);
     } finally {
       setIsLoading(false);
-      isInitialLoad.current = false;
+      isFetchingRef.current = false;
     }
-  };
-
-  // Only fetch user data once on initial component mount
-  useEffect(() => {
-    fetchUser();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Role checking functions
-  const hasRole = (role: Role): boolean => {
-    return user?.roles?.includes(role) || false;
-  };
+  // Initial fetch on mount
+  useEffect(() => {
+    mountedRef.current = true;
+    fetchUser();
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [fetchUser]);
 
-  const isOrganizer = (): boolean => hasRole('organizer');
-  const isAttendee = (): boolean => hasRole('attendee');
-  const isPresenter = (): boolean => hasRole('presenter');
-  const isAdmin = (): boolean => hasRole('admin');
+  // Role checking functions
+  const hasRole = useCallback((role: Role): boolean => {
+    return user?.roles?.includes(role) || false;
+  }, [user]);
+
+  const isOrganizer = useCallback((): boolean => hasRole('organizer'), [hasRole]);
+  const isAttendee = useCallback((): boolean => hasRole('attendee'), [hasRole]);
+  const isPresenter = useCallback((): boolean => hasRole('presenter'), [hasRole]);
+  const isAdmin = useCallback((): boolean => hasRole('admin'), [hasRole]);
 
   return (
     <AuthContext.Provider
