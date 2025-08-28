@@ -6,7 +6,7 @@ interface DashboardPageLayoutProps {
   title?: string;
   description?: string;
   breadcrumbs?: ReactNode;
-  actions?: ReactNode;
+  // actions?: ReactNode;
 }
 
 export default function DashboardPageLayout({ 
