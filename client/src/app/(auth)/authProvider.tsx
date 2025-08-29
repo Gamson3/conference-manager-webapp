@@ -5,7 +5,7 @@ import { Amplify } from 'aws-amplify';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useAuth } from './authContext';
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { fetchAuthSession, signOut } from 'aws-amplify/auth';
 
 // Configure Amplify
 Amplify.configure({
@@ -55,6 +55,14 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           path: pathname
         });
         
+        // If we have a valid session but no user, try to refresh user data
+        if (hasValidSession && !user && !isLoading) {
+          console.log("[AUTH] Valid session without user data - refreshing");
+          await refreshUser();
+          authCheckCompleteRef.current = false;
+          return;
+        }
+
         // Case 1: Auth pages when already logged in
         if (isAuthPage && (hasValidSession || !!user)) {
           setIsRedirecting(true);
@@ -66,6 +74,12 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Case 2: Dashboard pages when not logged in
         if (isDashboardPage && !hasValidSession && !user) {
+          // Sign out from Amplify first to clear any lingering session
+          if (authStatus === 'authenticated') {
+            console.log('[AUTH] Detected auth mismatch - signing out from Amplify');
+            await signOut();
+          }
+          
           setIsRedirecting(true);
           console.log('[AUTH] Redirecting unauthenticated user from dashboard to signin');
           router.replace('/signin');
@@ -73,6 +87,13 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (error) {
         console.error("[AUTH] Error checking auth state:", error);
+
+        // Clear auth state on error
+        if (error instanceof Error && error.message.includes('expired')) {
+          console.log('[AUTH] Session expired - signing out');
+          await signOut();
+          router.replace('/signin');
+        }
       } finally {
         // Reset state after a delay
         setTimeout(() => {
@@ -83,7 +104,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
     
     checkAuth();
-  }, [user, isLoading, isAuthPage, isDashboardPage, router, pathname]);
+  }, [user, isLoading, isAuthPage, isDashboardPage, router, pathname, refreshUser, authStatus]);
 
   // Just render children
   return <>{children}</>;

@@ -8,6 +8,23 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { fetchAuthSession, signOut } from "aws-amplify/auth";
+
+
+async function checkAndClearExistingSession() {
+  try {
+    const session = await fetchAuthSession();
+    if (session.tokens?.idToken) {
+      console.log("Detected existing session, signing out first");
+      await signOut();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error checking session:", error);
+    return false;
+  }
+}
 
 export default function SignInPage() {
   const [username, setUsername] = useState("");
@@ -23,6 +40,10 @@ export default function SignInPage() {
     setError("");
 
     try {
+      // Clear any existing session first
+      await checkAndClearExistingSession();
+
+      // Now try to sign in
       await signIn({ username, password });
       router.push("/");
     } catch (err: any) {
