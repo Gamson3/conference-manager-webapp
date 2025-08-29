@@ -319,60 +319,6 @@ const NavBar = () => {
 
                   <DropdownMenuSeparator className="bg-primary-200" />
 
-                  {/* Role Switcher (Hover) */}
-                  <HoverCard
-                    openDelay={0}
-                    closeDelay={300} // Add delay before closing
-                    open={hoverRole}
-                    onOpenChange={setHoverRole}
-                  >
-                    <HoverCardTrigger asChild>
-                      <Button
-                        variant="link"
-                        className="flex items-center gap-2 p-3 text-base rounded-lg hover:!bg-primary-500 hover:!text-primary-100 cursor-pointer w-full justify-start"
-                        onMouseEnter={() => setHoverRole(true)}
-                      >
-                        <ArrowLeftRightIcon className="h-5 w-5" />
-                        Switch Role
-                      </Button>
-                    </HoverCardTrigger>
-
-                    <HoverCardContent
-                      side="left"
-                      align="start"
-                      className="w-52 bg-white rounded-xl shadow-lg text-primary-700 p-2"
-                      onMouseLeave={() => setHoverRole(false)}
-                    >
-                      {/* Show only opposite role depending on current page */}
-                      {pathname.startsWith("/attendee") &&
-                        authUser?.roles.includes("presenter") && (
-                          <div
-                            className="flex items-center gap-2 p-3 text-base rounded-lg hover:bg-primary-500 hover:text-primary-100 cursor-pointer"
-                            onClick={() => {
-                              router.push("/presenter/dashboard");
-                              setHoverRole(false);
-                            }}
-                          >
-                            <UserPlus className="h-5 w-5" />
-                            Presenter Dashboard
-                          </div>
-                        )}
-                      {pathname.startsWith("/presenter") &&
-                        authUser?.roles.includes("attendee") && (
-                          <div
-                            className="flex items-center gap-2 p-3 text-base rounded-lg hover:bg-primary-500 hover:text-primary-100 cursor-pointer"
-                            onClick={() => {
-                              router.push("/attendee/dashboard");
-                              setHoverRole(false);
-                            }}
-                          >
-                            <UserCheck className="h-5 w-5" />
-                            Attendee Dashboard
-                          </div>
-                        )}
-                    </HoverCardContent>
-                  </HoverCard>
-
                   <DropdownMenuItem
                     onClick={handleSignOut}
                     className="flex items-center gap-2 p-3 text-base rounded-lg hover:!bg-red-500 hover:!text-white cursor-pointer"
