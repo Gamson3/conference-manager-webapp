@@ -13,21 +13,29 @@ import {
 import { User, Conference } from "@/types/prismaTypes";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
+import { toast } from "sonner";
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
     prepareHeaders: async (headers) => {
-      const session = await fetchAuthSession();
-      const { idToken } = session.tokens ?? {};
-      if (idToken) {
-        headers.set("Authorization", `Bearer ${idToken}`);
+      try {
+        const session = await fetchAuthSession();
+        const { idToken } = session.tokens ?? {};
+        if (idToken) {
+          console.log('[API] Setting auth token'); // Debug log
+          headers.set("Authorization", `Bearer ${idToken}`);
+        } else {
+          console.log('[API] No auth token available'); // Debug log
+        }
+      } catch (error) {
+        console.error('[API] Error getting auth token:', error);
       }
       return headers;
     },
   }),
   reducerPath: "api",
-  tagTypes: ["User", "Conference", "Presentation"],
+  tagTypes: ["User", "Conference", "Presentation", "ConferenceDetails"],
   endpoints: (build) => ({
     getAuthUser: build.query<AuthUser, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
@@ -119,14 +127,14 @@ export const api = createApi({
     updateAttendee: build.mutation<
       User, // Return type is User
       { cognitoId: string } & Partial<User> & {
-          preferences?: {
-            emailNotifications?: boolean;
-            pushNotifications?: boolean;
-            marketingEmails?: boolean;
-            reminders?: boolean;
-          };
-          interests?: string[];
-        }
+        preferences?: {
+          emailNotifications?: boolean;
+          pushNotifications?: boolean;
+          marketingEmails?: boolean;
+          reminders?: boolean;
+        };
+        interests?: string[];
+      }
     >({
       query: ({ cognitoId, ...updatedFields }) => ({
         url: `/users/cognito/${cognitoId}`,
@@ -172,17 +180,69 @@ export const api = createApi({
     // Add these endpoints to our API definition
     conferences: build.query<ConferenceListResponse, ConferenceQueryParams>({
       query: (params) => ({
-        url: "/api/conferences",
+        url: "/api/attendee/discover",
         params,
       }),
-    }),
+      transformResponse: (raw: any): ConferenceListResponse => {
+        const page = Number(raw?.pagination?.page ?? 1);
+        const pages = Number(raw?.pagination?.pages ?? 1);
+        const total = Number(raw?.pagination?.total ?? 0);
+        // Normalize fields so ConferenceCard can read createdBy.name and _count.attendances
+        const conferences = (raw?.conferences ?? []).map((c: any) => ({
+          ...c,
+          createdBy: c.createdBy ?? (c.organizer ? { name: c.organizer } : undefined),
+          _count: c._count ?? (typeof c.attendeeCount === 'number' ? { attendances: c.attendeeCount } : undefined),
+        }));
+        return {
+          conferences,
+          pagination: {
+            currentPage: page,
+            totalPages: pages,
+            totalCount: total,
+            hasMore: page < pages,
+          },
+        };
+      },
+      // Add providesTags to ensure proper invalidation
+        providesTags: (result) => 
+          result
+            ? [
+                // Provide a tag for the entire list
+                { type: 'Conference', id: 'LIST' },
+                // Provide tags for each conference
+                ...result.conferences.map(conference => ({ 
+                  type: 'Conference' as const, 
+                  id: conference.id 
+                }))
+              ]
+            : [{ type: 'Conference', id: 'LIST' }],
+      }),
 
     conferenceDetails: build.query<ConferenceDetail, string>({
       query: (id) => `/api/conferences/${id}`,
+      providesTags: (result, error, id) => [
+        { type: "ConferenceDetails", id: Number(id) }
+      ],
     }),
 
     featuredConferences: build.query<FeaturedConferences, void>({
       query: () => "/api/conferences/featured",
+      // Add providesTags to ensure proper invalidation
+      providesTags: (result) => 
+        result
+          ? [
+              { type: 'Conference', id: 'FEATURED' },
+              // Tag each conference in popular and upcoming lists
+              ...(result.popular || []).map(conference => ({ 
+                type: 'Conference' as const, 
+                id: conference.id 
+              })),
+              ...(result.upcoming || []).map(conference => ({ 
+                type: 'Conference' as const, 
+                id: conference.id 
+              }))
+            ]
+          : [{ type: 'Conference', id: 'FEATURED' }],
     }),
 
     conferenceCategories: build.query<CategoryItem[], void>({
@@ -255,7 +315,10 @@ export const api = createApi({
       // Invalidate the relevant tags when we toggle a favorite
       invalidatesTags: (result, error, arg) => [
         { type: "Conference", id: arg.conferenceId },
-        { type: "User" },
+        { type: "Conference", id: "LIST" },
+        { type: "Conference", id: "FEATURED" },
+        { type: "ConferenceDetails", id: arg.conferenceId },
+        "User",
       ],
     }),
 
@@ -264,13 +327,39 @@ export const api = createApi({
       { conferenceId: number }
     >({
       query: ({ conferenceId }) => ({
-        url: `/api/conferences/${conferenceId}/register`,
+        url: `api/attendee/register-conference`,
         method: "POST",
+        body: { conferenceId },
       }),
-      // Invalidate the conference details when we register
+      // Invalidate BOTH ConferenceDetails and Conference tags when we register
       invalidatesTags: (result, error, arg) => [
         { type: "Conference", id: arg.conferenceId },
+        { type: "ConferenceDetails", id: arg.conferenceId }
       ],
+    }),
+
+    unregisterFromConference: build.mutation<
+      { message: string },
+      { conferenceId: number }
+    >({
+      query: ({ conferenceId }) => ({
+        url: `/api/attendee/unregister-conference/${conferenceId}`,
+        method: "DELETE",
+      }),
+      // Invalidate BOTH ConferenceDetails and Conference tags when we unregister
+      invalidatesTags: (result, error, arg) => [
+        { type: "Conference", id: arg.conferenceId },
+        { type: "ConferenceDetails", id: arg.conferenceId }
+      ],
+      // Add toast handling here to give better feedback
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          toast.success("Successfully unregistered from this conference");
+        } catch (error) {
+          toast.error("Failed to unregister from this conference. Please try again.");
+        }
+      }
     }),
   }),
 });
@@ -294,4 +383,5 @@ export const {
   useToggleConferenceFavoriteMutation,
   useTogglePresentationFavoriteMutation,
   useRegisterForConferenceMutation,
+  useUnregisterFromConferenceMutation,
 } = api;

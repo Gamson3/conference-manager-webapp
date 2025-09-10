@@ -648,7 +648,7 @@ export default function CreateEventPage() {
             <Button 
               type="submit"
               disabled={isLoading || isSavingDraft}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {isLoading ? (
                 <div className="flex items-center">

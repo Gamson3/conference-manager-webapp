@@ -586,7 +586,7 @@ export default function EventDetailPage() {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="categories" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-4 gap-4 mb-8">
                   <TabsTrigger value="categories">
                     Categories ({event.categories?.length || 0})
                   </TabsTrigger>

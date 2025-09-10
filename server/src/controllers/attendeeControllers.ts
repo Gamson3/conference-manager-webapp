@@ -1,21 +1,19 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { getUserCognitoId, getUserId } from "../utils/authHelper";
+// CHANGED: use helpers for unified auth + userContext
+import { requireAuth, getUserId, buildUserContext } from "../utils/authHelper";
 
 const prisma = new PrismaClient();
 
-// Get attendee profile
+// Get attendee profile (Authenticated)
 export const getAttendeeProfile = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cognitoId = getUserCognitoId(req);
-
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
+    // CHANGED: requireAuth instead of getUserCognitoId + user lookup by cognitoId
+    const userId = requireAuth(req, res);
+    if (!userId) return;
 
     const user = await prisma.user.findUnique({
-      where: { cognitoId },
+      where: { id: userId }, // CHANGED
       select: {
         id: true,
         name: true,
@@ -27,39 +25,40 @@ export const getAttendeeProfile = async (req: Request, res: Response): Promise<v
         organization: true,
         jobTitle: true,
         socialLinks: true,
-        createdAt: true
+        interests: true,          // CHANGED: include interests for consistency
+        preferences: true,        // CHANGED: include preferences for consistency
+        createdAt: true,
+        updatedAt: true,          // CHANGED: include updatedAt for parity
       }
     });
 
     if (!user) {
-      res.status(404).json({ message: "User not found" });
+      res.status(404).json({ message: "User not found", userContext: buildUserContext(req) }); // CHANGED: append userContext
       return;
     }
 
-    res.json(user);
+    // CHANGED: append userContext
+    res.json({ user, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error fetching attendee profile:", error);
-    res.status(500).json({ message: "Failed to fetch profile", error: error.message });
+    res.status(500).json({ message: "Failed to fetch profile", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// Update attendee profile
+// Update attendee profile (Authenticated)
 export const updateAttendeeProfile = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cognitoId = getUserCognitoId(req);
+    // CHANGED: requireAuth instead of cognito-based lookup
+    const userId = requireAuth(req, res);
+    if (!userId) return;
+
     const { 
       name, bio, phoneNumber, address, 
       organization, jobTitle, socialLinks, 
-      interests, // ADD: Support for interests
-      preferences // ADD: Support for notification preferences
+      interests,
+      preferences
     } = req.body;
 
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
-
-    // Prepare update data
     const updateData: any = {
       name,
       bio,
@@ -70,18 +69,15 @@ export const updateAttendeeProfile = async (req: Request, res: Response): Promis
       socialLinks
     };
 
-    // Handle interests (convert array to JSON or string)
-    if (interests) {
+    if (interests !== undefined) {
       updateData.interests = Array.isArray(interests) ? interests : [interests];
     }
-
-    // Handle preferences (store as JSON)
-    if (preferences) {
+    if (preferences !== undefined) {
       updateData.preferences = preferences;
     }
 
     const updatedUser = await prisma.user.update({
-      where: { cognitoId },
+      where: { id: userId }, // CHANGED
       data: updateData,
       select: {
         id: true,
@@ -108,35 +104,23 @@ export const updateAttendeeProfile = async (req: Request, res: Response): Promis
       preferences: updatedUser.preferences
     });
 
-    res.json(updatedUser);
+    // CHANGED: append userContext
+    res.json({ user: updatedUser, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error updating attendee profile:", error);
-    res.status(500).json({ message: "Failed to update profile", error: error.message });
+    res.status(500).json({ message: "Failed to update profile", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// Get dashboard statistics
+// Get dashboard statistics (Authenticated)
 export const getDashboardStats = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cognitoId = getUserCognitoId(req);
-
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { cognitoId }
-    });
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
+    // CHANGED: requireAuth + use userId directly
+    const userId = requireAuth(req, res);
+    if (!userId) return;
 
     const now = new Date();
 
-    // Get attendance and favorites statistics
     const [
       totalRegistered,
       upcomingConferences,
@@ -144,26 +128,22 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
       favoritePresentations
     ] = await Promise.all([
       prisma.attendance.count({
-        where: { userId: user.id }
+        where: { userId }
       }),
       prisma.attendance.count({
         where: {
-          userId: user.id,
-          conference: {
-            startDate: { gt: now }
-          }
+          userId,
+          conference: { startDate: { gt: now } }
         }
       }),
       prisma.attendance.count({
         where: {
-          userId: user.id,
-          conference: {
-            endDate: { lt: now }
-          }
+          userId,
+          conference: { endDate: { lt: now } }
         }
       }),
       prisma.presentationFavorite.count({
-        where: { userId: user.id }
+        where: { userId }
       })
     ]);
 
@@ -172,40 +152,29 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
       registeredConferences: totalRegistered,
       completedConferences,
       favoritePresentations,
-      unreadMaterials: 0, // You can implement this based on your needs
-      pendingFeedback: 0, // You can implement this based on your needs
-      connections: 0, // You can implement this based on your needs
-      notifications: 0 // You can implement this based on your needs
+      unreadMaterials: 0,
+      pendingFeedback: 0,
+      connections: 0,
+      notifications: 0
     };
 
-    res.json(stats);
+    // CHANGED: append userContext
+    res.json({ stats, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error fetching dashboard stats:", error);
-    res.status(500).json({ message: "Failed to fetch dashboard stats", error: error.message });
+    res.status(500).json({ message: "Failed to fetch dashboard stats", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// Get recent conferences
+// Get recent conferences (Authenticated)
 export const getRecentConferences = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cognitoId = getUserCognitoId(req);
-
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { cognitoId }
-    });
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
+    // CHANGED: requireAuth + use userId directly
+    const userId = requireAuth(req, res);
+    if (!userId) return;
 
     const recentConferences = await prisma.attendance.findMany({
-      where: { userId: user.id },
+      where: { userId },
       include: {
         conference: {
           select: {
@@ -219,9 +188,7 @@ export const getRecentConferences = async (req: Request, res: Response): Promise
         }
       },
       orderBy: {
-        conference: {
-          startDate: 'desc'
-        }
+        conference: { startDate: 'desc' }
       },
       take: 5
     });
@@ -235,139 +202,102 @@ export const getRecentConferences = async (req: Request, res: Response): Promise
               attendance.conference.endDate < new Date() ? 'completed' : 'active'
     }));
 
-    res.json(formattedConferences);
+    // CHANGED: append userContext
+    res.json({ conferences: formattedConferences, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error fetching recent conferences:", error);
-    res.status(500).json({ message: "Failed to fetch recent conferences", error: error.message });
+    res.status(500).json({ message: "Failed to fetch recent conferences", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// Register for conference
+// Register for conference (Authenticated)
 export const registerForConference = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { conferenceId } = req.body;
-    const cognitoId = getUserCognitoId(req);
+    // CHANGED: requireAuth + use userId directly
+    const userId = requireAuth(req, res);
+    if (!userId) return;
 
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
+    const { conferenceId } = req.body as { conferenceId: number };
+    if (!conferenceId) {
+      res.status(400).json({ message: "conferenceId is required", userContext: buildUserContext(req) }); // CHANGED
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { cognitoId }
-    });
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    // Check if conference exists
     const conference = await prisma.conference.findUnique({
-      where: { id: conferenceId }
+      where: { id: Number(conferenceId) }
     });
 
     if (!conference) {
-      res.status(404).json({ message: "Conference not found" });
+      res.status(404).json({ message: "Conference not found", userContext: buildUserContext(req) }); // CHANGED
       return;
     }
 
-    // Check if already registered
     const existingAttendance = await prisma.attendance.findFirst({
-      where: {
-        userId: user.id,
-        conferenceId: conferenceId
-      }
+      where: { userId, conferenceId: Number(conferenceId) }
     });
 
     if (existingAttendance) {
-      res.status(400).json({ message: "Already registered for this conference" });
+      res.status(400).json({ message: "Already registered for this conference", userContext: buildUserContext(req) }); // CHANGED
       return;
     }
 
-    // Create attendance record
     const attendance = await prisma.attendance.create({
       data: {
-        userId: user.id,
-        conferenceId: conferenceId,
+        userId,
+        conferenceId: Number(conferenceId),
         status: "registered"
       }
     });
 
-    res.json({ message: "Successfully registered for conference", attendance });
+    // CHANGED: append userContext
+    res.json({ message: "Successfully registered for conference", attendance, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error registering for conference:", error);
-    res.status(500).json({ message: "Failed to register for conference", error: error.message });
+    res.status(500).json({ message: "Failed to register for conference", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-
-// ADD: Unregister endpoint
+// Unregister (Authenticated)
 export const cancelConferenceRegistration = async (req: Request, res: Response): Promise<void> => {
   try {
+    // CHANGED: requireAuth + use userId directly
+    const userId = requireAuth(req, res);
+    if (!userId) return;
+
     const { conferenceId } = req.params;
-    const cognitoId = getUserCognitoId(req);
-
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
+    if (!conferenceId) {
+      res.status(400).json({ message: "conferenceId param is required", userContext: buildUserContext(req) }); // CHANGED
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { cognitoId }
-    });
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    // Check if registration exists
     const attendance = await prisma.attendance.findFirst({
-      where: {
-        userId: user.id,
-        conferenceId: Number(conferenceId)
-      }
+      where: { userId, conferenceId: Number(conferenceId) }
     });
 
     if (!attendance) {
-      res.status(404).json({ message: "Registration not found" });
+      res.status(404).json({ message: "Registration not found", userContext: buildUserContext(req) }); // CHANGED
       return;
     }
 
-    // Delete the attendance record
-    await prisma.attendance.delete({
-      where: { id: attendance.id }
-    });
+    await prisma.attendance.delete({ where: { id: attendance.id } });
 
-    res.json({ message: "Successfully unregistered from conference" });
+    // CHANGED: append userContext
+    res.json({ message: "Successfully unregistered from conference", userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error unregistering from conference:", error);
-    res.status(500).json({ message: "Failed to unregister", error: error.message });
+    res.status(500).json({ message: "Failed to unregister", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// Get attendee's registered conferences
+// Get attendee's registered conferences (Authenticated)
 export const getRegisteredConferences = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cognitoId = getUserCognitoId(req);
-
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { cognitoId }
-    });
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
+    // CHANGED: requireAuth + use userId directly
+    const userId = requireAuth(req, res);
+    if (!userId) return;
 
     const registeredConferences = await prisma.attendance.findMany({
-      where: { userId: user.id },
+      where: { userId },
       include: {
         conference: {
           select: {
@@ -381,19 +311,11 @@ export const getRegisteredConferences = async (req: Request, res: Response): Pro
             venue: true,
             capacity: true,
             websiteUrl: true,
-            createdBy: {
-              select: {
-                name: true
-              }
-            }
+            createdBy: { select: { name: true } }
           }
         }
       },
-      orderBy: {
-        conference: {
-          startDate: 'desc'
-        }
-      }
+      orderBy: { conference: { startDate: 'desc' } }
     });
 
     const formattedConferences = registeredConferences.map(attendance => {
@@ -401,13 +323,9 @@ export const getRegisteredConferences = async (req: Request, res: Response): Pro
       const now = new Date();
 
       let status: 'upcoming' | 'active' | 'past';
-      if (conference.startDate > now) {
-        status = 'upcoming';
-      } else if (conference.endDate < now) {
-        status = 'past';
-      } else {
-        status = 'active';
-      }
+      if (conference.startDate > now) status = 'upcoming';
+      else if (conference.endDate < now) status = 'past';
+      else status = 'active';
       
       return {
         id: conference.id,
@@ -421,37 +339,25 @@ export const getRegisteredConferences = async (req: Request, res: Response): Pro
         registrationId: `REG-${attendance.id}`,
         status
       };
-      
     });
 
-    res.json(formattedConferences);
+    // CHANGED: append userContext
+    res.json({ conferences: formattedConferences, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error fetching registered conferences:", error);
-    res.status(500).json({ message: "Failed to fetch registered conferences", error: error.message });
+    res.status(500).json({ message: "Failed to fetch registered conferences", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// Get attendee's favorite presentations
+// Get attendee's favorite presentations (Authenticated)
 export const getFavoritesPresentations = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cognitoId = getUserCognitoId(req);
-
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { cognitoId }
-    });
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
+    // CHANGED: requireAuth + use userId directly
+    const userId = requireAuth(req, res);
+    if (!userId) return;
 
     const favorites = await prisma.presentationFavorite.findMany({
-      where: { userId: user.id },
+      where: { userId },
       include: {
         presentation: {
           include: {
@@ -482,51 +388,36 @@ export const getFavoritesPresentations = async (req: Request, res: Response): Pr
           }
         }
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
+      orderBy: { createdAt: 'desc' }
     });
 
-    res.json(favorites);
+    // CHANGED: append userContext
+    res.json({ favorites, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error fetching favorite presentations:", error);
-    res.status(500).json({ message: "Failed to fetch favorite presentations", error: error.message });
+    res.status(500).json({ message: "Failed to fetch favorite presentations", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// ADD: Missing bulk favorites status function
+// Bulk favorites status for presentations (Authenticated)
 export const getFavoriteStatusBulk = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { presentationIds } = req.body;
-    const cognitoId = getUserCognitoId(req);
+    // CHANGED: requireAuth + use userId directly
+    const userId = requireAuth(req, res);
+    if (!userId) return;
 
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { cognitoId }
-    });
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
+    const { presentationIds } = req.body as { presentationIds: number[] };
     if (!Array.isArray(presentationIds)) {
-      res.status(400).json({ message: "presentationIds must be an array" });
+      res.status(400).json({ message: "presentationIds must be an array", userContext: buildUserContext(req) }); // CHANGED
       return;
     }
 
     const favorites = await prisma.presentationFavorite.findMany({
       where: {
-        userId: user.id,
+        userId,
         presentationId: { in: presentationIds.map(Number) }
       },
-      select: {
-        presentationId: true
-      }
+      select: { presentationId: true }
     });
 
     const favoriteMap = favorites.reduce((acc, fav) => {
@@ -534,60 +425,48 @@ export const getFavoriteStatusBulk = async (req: Request, res: Response): Promis
       return acc;
     }, {} as Record<number, boolean>);
 
-    // Return status for all requested presentations
     const result = presentationIds.reduce((acc: Record<number, boolean>, id: number) => {
       acc[id] = favoriteMap[id] || false;
       return acc;
     }, {});
 
-    res.json(result);
+    // CHANGED: append userContext
+    res.json({ status: result, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error("Error fetching bulk favorite status:", error);
-    res.status(500).json({ message: "Failed to fetch favorite status", error: error.message });
+    res.status(500).json({ message: "Failed to fetch favorite status", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-
-// Get conference details with people information
+// Get conference details with people information (Optional auth)
 export const getConferenceWithPeople = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const cognitoId = getUserCognitoId(req); // Will be null for guests
-    
-    let user = null;
+    // CHANGED: use getUserId for optional auth
+    const userId = getUserId(req);
+
     let isRegistered = false;
-    
-    // Only check registration status for authenticated users
-    if (cognitoId) {
-      // Authenticated user logic
-      console.log('[BACKEND DEBUG] Looking up user with cognitoId:', cognitoId);
+    let isFavorited = false;
 
-      user = await prisma.user.findUnique({
-        where: { cognitoId },
-        include: {
-          attendances: {
-            where: { conferenceId: Number(id) }
-          }
-        }
-      });
-
-      console.log('[BACKEND DEBUG] User found:', {
-        userId: user?.id || 'null',
-        userName: user?.name || 'null',
-        attendanceCount: user?.attendances?.length || 0
-      });
-      
-      // FIX: Add proper null checking for attendances
-      isRegistered = !!(user?.attendances && user.attendances.length > 0);
-    }else {
-      console.log('[BACKEND DEBUG] No cognitoId - treating as guest');
+    if (userId) {
+      // CHANGED: use userId directly, and correct favorites model
+      const [attendance, favorite] = await prisma.$transaction([
+        prisma.attendance.findFirst({
+          where: { userId, conferenceId: Number(id) },
+          select: { id: true }
+        }),
+        prisma.conferenceFavorite.findFirst({
+          where: { userId, conferenceId: Number(id) },
+          select: { id: true }
+        })
+      ]);
+      isRegistered = !!attendance;
+      isFavorited = !!favorite;
     }
 
-    // Get conference with all related data
     const conference = await prisma.conference.findUnique({
       where: { id: Number(id) },
       include: {
-        // Get organizer (conference creator)
         createdBy: {
           select: {
             id: true,
@@ -599,7 +478,6 @@ export const getConferenceWithPeople = async (req: Request, res: Response): Prom
             profileImage: true
           }
         },
-        // Get all presenters from presentations
         days: {
           include: {
             sections: {
@@ -632,11 +510,11 @@ export const getConferenceWithPeople = async (req: Request, res: Response): Prom
     });
 
     if (!conference) {
-      res.status(404).json({ message: "Conference not found" });
+      res.status(404).json({ message: "Conference not found", userContext: buildUserContext(req) }); // CHANGED
       return;
     }
 
-    // Extract unique presenters
+    // Extract unique presenters (unchanged)
     const presentersMap = new Map();
     conference.days.forEach(day => {
       day.sections.forEach(section => {
@@ -668,7 +546,6 @@ export const getConferenceWithPeople = async (req: Request, res: Response): Prom
 
     const presenters = Array.from(presentersMap.values());
 
-    // Format response
     const response = {
       id: conference.id,
       title: conference.name,
@@ -694,129 +571,109 @@ export const getConferenceWithPeople = async (req: Request, res: Response): Prom
         }
       ],
       presenters,
-      isRegistered,   // Will be false for guests
-      userContext: {
-        isAuthenticated: !!user,    // true for auth users, false for guests
-        userRole: user ? 'attendee' : 'guest',
-        userId: user?.id || null,
-        // ADD: Debug info
-        debug: {
-          cognitoIdReceived: !!cognitoId,
-          userFoundInDb: !!user
-        }
-      }
+      userInteractions: {
+        isRegistered, // false for guests
+        isFavorited
+      },
+      // CHANGED: standardized userContext
+      userContext: buildUserContext(req)
     };
-    console.log('[BACKEND DEBUG] Final response userContext:', response.userContext);
+
     res.json(response);
   } catch (error: any) {
     console.error("Error fetching conference details:", error);
-    res.status(500).json({ message: "Failed to fetch conference details", error: error.message });
+    res.status(500).json({ message: "Failed to fetch conference details", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// Discover conferences (public conferences)
+// Discover conferences (public/optional)
 export const discoverConferences = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { page = 1, limit = 10, search, topics, status, includeCallForPapers = false } = req.query;
-    
-    const cognitoId = getUserCognitoId(req);
-    let userId = null;
-    
-    if (cognitoId) {
-      const user = await prisma.user.findUnique({
-        where: { cognitoId }
-      });
-      userId = user?.id;
-    }
-    
+    const userId = getUserId(req); // null for guests
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      topics,
+      status,
+      includeCallForPapers = false,
+      category,               // CHANGED: support category filter
+      sort = "startDate",     // CHANGED: support sort field
+      order = "asc"           // CHANGED: support sort order
+    } = req.query as any;
+
     const skip = (Number(page) - 1) * Number(limit);
     const now = new Date();
-    
-    let whereClause: any = {
-      isPublic: true,
-      endDate: { gte: now }
-    };
 
-    // Handle status filtering - include call_for_papers if requested
+    const whereClause: any = { isPublic: true, endDate: { gte: now } };
     if (includeCallForPapers === 'true' || status === 'call_for_papers') {
-      whereClause.status = {
-        in: ['published', 'call_for_papers']
-      };
+      whereClause.status = { in: ['published', 'call_for_papers'] };
     } else {
       whereClause.status = 'published';
     }
-
     if (search) {
       whereClause.OR = [
-        { name: { contains: search as string, mode: 'insensitive' } },
-        { description: { contains: search as string, mode: 'insensitive' } },
-        { location: { contains: search as string, mode: 'insensitive' } }
+        { name: { contains: String(search), mode: 'insensitive' } },
+        { description: { contains: String(search), mode: 'insensitive' } },
+        { location: { contains: String(search), mode: 'insensitive' } }
       ];
     }
-
     if (topics && typeof topics === 'string') {
-      const topicArray = topics.split(',').map(t => t.trim());
-      whereClause.topics = {
-        hasSome: topicArray
+      whereClause.topics = { hasSome: (topics as string).split(',').map((t) => t.trim()) };
+    }
+    // CHANGED: filter by category name (case-insensitive)
+    if (category && typeof category === "string" && category.trim() && category !== "all") {
+      whereClause.categories = {
+        some: { name: { equals: category.trim(), mode: "insensitive" } }
       };
     }
+
+    // CHANGED: map sort + order to Prisma orderBy
+    const allowedSort: Record<string, "name" | "startDate" | "createdAt"> = {
+      name: "name",
+      startDate: "startDate",
+      createdAt: "createdAt"
+    };
+    const sortField: "name" | "startDate" | "createdAt" =
+      allowedSort[String(sort)] || "startDate";
+    const sortOrder: "asc" | "desc" =
+      String(order).toLowerCase() === "desc" ? "desc" : "asc";
 
     const [conferences, total] = await Promise.all([
       prisma.conference.findMany({
         where: whereClause,
         include: {
-          createdBy: {
-            select: {
-              id: true,
-              name: true, 
-              organization: true
-            }
-          },
-          submissionSettings: {
-            select: {
-              submissionDeadline: true,
-              allowLateSubmissions: true
-            }
-          },
-          _count: {
-            select: {
-              attendances: true
-            }
-          },
-          attendances: userId ? {
-            where: { userId: userId },
-            select: { id: true }
-          } : undefined
+          createdBy: { select: { id: true, name: true, organization: true } },
+          submissionSettings: { select: { submissionDeadline: true, allowLateSubmissions: true } },
+          categories: { select: { id: true, name: true, color: true } }, // CHANGED: include categories
+          _count: { select: { attendances: true } },
+          attendances: userId ? { where: { userId }, select: { id: true } } : undefined,
+          favorites: userId ? { where: { userId }, select: { id: true } } : undefined
         },
         skip,
         take: Number(limit),
-        orderBy: [
-          { startDate: 'asc' },
-          { createdAt: 'desc' }
-        ] 
+        orderBy: [{ [sortField]: sortOrder }, { createdAt: "desc" }] // CHANGED
       }),
-      prisma.conference.count({
-        where: whereClause
-      })
+      prisma.conference.count({ where: whereClause })
     ]);
 
-    const formattedConferences = conferences.map(conference => ({
-      id: conference.id,
-      name: conference.name,
-      description: conference.description,
-      startDate: conference.startDate,
-      endDate: conference.endDate,
-      location: conference.location,
-      venue: conference.venue,
-      topics: conference.topics,
-      organizer: conference.createdBy.name,
-      attendeeCount: conference._count.attendances,
-      capacity: conference.capacity,
-      websiteUrl: conference.websiteUrl,
-      status: conference.status, // Include status in response
-      submissionDeadline: conference.submissionSettings?.submissionDeadline || null,
-      allowLateSubmissions: conference.submissionSettings?.allowLateSubmissions || false,
-      isRegistered: userId ? (conference.attendances && conference.attendances.length > 0) : false
+    const formattedConferences = conferences.map((conf) => ({
+      id: conf.id,
+      name: conf.name,
+      description: conf.description,
+      location: conf.location,
+      startDate: conf.startDate,
+      endDate: conf.endDate,
+      status: conf.status,
+      bannerImageUrl: (conf as any).bannerImageUrl ?? undefined,
+      createdBy: conf.createdBy,
+      submissionSettings: conf.submissionSettings,
+      categories: conf.categories, // CHANGED: pass through categories for card
+      _count: conf._count,
+      userInteractions: {
+        isFavorited: userId ? !!(conf.favorites && conf.favorites.length > 0) : false,
+        isRegistered: userId ? !!(conf.attendances && conf.attendances.length > 0) : false
+      }
     }));
 
     res.json({
@@ -827,10 +684,7 @@ export const discoverConferences = async (req: Request, res: Response): Promise<
         total,
         pages: Math.ceil(total / Number(limit))
       },
-      userContext: {
-        isAuthenticated: !!userId,
-        userRole: userId ? 'attendee' : 'guest'
-      }
+      userContext: buildUserContext(req)
     });
   } catch (error: any) {
     console.error("Error fetching conferences:", error);
@@ -838,28 +692,15 @@ export const discoverConferences = async (req: Request, res: Response): Promise<
   }
 };
 
-// Get networking data
+// Get networking data (Authenticated)
 export const getNetworkingData = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cognitoId = getUserCognitoId(req);
+    // CHANGED: requireAuth + use userId directly
+    const userId = requireAuth(req, res);
+    if (!userId) return;
 
-    if (!cognitoId) {
-      res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { cognitoId }
-    });
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    // Get attendees from conferences the user is registered for
     const userConferences = await prisma.attendance.findMany({
-      where: { userId: user.id },
+      where: { userId },
       select: { conferenceId: true }
     });
 
@@ -868,7 +709,7 @@ export const getNetworkingData = async (req: Request, res: Response): Promise<vo
     const attendees = await prisma.attendance.findMany({
       where: {
         conferenceId: { in: conferenceIds },
-        userId: { not: user.id } // Exclude current user
+        userId: { not: userId } // Exclude current user
       },
       include: {
         user: {
@@ -883,56 +724,52 @@ export const getNetworkingData = async (req: Request, res: Response): Promise<vo
           }
         },
         conference: {
-          select: {
-            id: true,
-            name: true
-          }
+          select: { id: true, name: true }
         }
       }
     });
 
     const conferences = await prisma.conference.findMany({
       where: { id: { in: conferenceIds } },
-      select: {
-        id: true,
-        name: true
-      }
+      select: { id: true, name: true }
     });
 
     // Group attendees by user to avoid duplicates
     const uniqueAttendees = attendees.reduce((acc, attendance) => {
-      const userId = attendance.user.id;
-      if (!acc[userId]) {
-        acc[userId] = {
+      const uid = attendance.user.id;
+      if (!acc[uid]) {
+        acc[uid] = {
           id: attendance.user.id,
           name: attendance.user.name,
           title: attendance.user.jobTitle || '',
           organization: attendance.user.organization || '',
           bio: attendance.user.bio || '',
-          location: '', // You can add location field to user model if needed
+          location: '',
           avatarUrl: attendance.user.profileImage || '',
-          interests: [], // You can add interests field to user model if needed
-          isConnected: false, // You can implement connection logic
+          interests: [],
+          isConnected: false,
           isPending: false,
           conferenceIds: [attendance.conference.id]
         };
       } else {
-        acc[userId].conferenceIds.push(attendance.conference.id);
+        acc[uid].conferenceIds.push(attendance.conference.id);
       }
       return acc;
     }, {} as any);
 
+    // CHANGED: append userContext
     res.json({
       attendees: Object.values(uniqueAttendees),
-      conferences
+      conferences,
+      userContext: buildUserContext(req)
     });
   } catch (error: any) {
     console.error("Error fetching networking data:", error);
-    res.status(500).json({ message: "Failed to fetch networking data", error: error.message });
+    res.status(500).json({ message: "Failed to fetch networking data", error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };
 
-// GET /api/conferences/:id/participants - Get conference organizers and presenters
+// GET /api/conferences/:id/participants - Get conference organizers and presenters (Optional auth)
 export const getConferenceParticipants = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -981,11 +818,11 @@ export const getConferenceParticipants = async (req: Request, res: Response): Pr
     });
 
     if (!conference) {
-      res.status(404).json({ message: 'Conference not found' });
+      res.status(404).json({ message: 'Conference not found', userContext: buildUserContext(req) }); // CHANGED
       return;
     }
 
-    const participants = [];
+    const participants: any[] = [];
 
     // Add organizer
     if (conference.createdBy) {
@@ -1000,9 +837,8 @@ export const getConferenceParticipants = async (req: Request, res: Response): Pr
       });
     }
 
-    // Add presenters (unique ones)
+    // Add presenters (unique)
     const presentersMap = new Map();
-    
     conference.days.forEach(day => {
       day.sections.forEach(section => {
         section.presentations.forEach(presentation => {
@@ -1031,9 +867,10 @@ export const getConferenceParticipants = async (req: Request, res: Response): Pr
 
     participants.push(...Array.from(presentersMap.values()));
 
-    res.json(participants);
+    // CHANGED: append userContext
+    res.json({ participants, userContext: buildUserContext(req) });
   } catch (error: any) {
     console.error('Error fetching conference participants:', error);
-    res.status(500).json({ message: 'Failed to fetch participants', error: error.message });
+    res.status(500).json({ message: 'Failed to fetch participants', error: error.message, userContext: buildUserContext(req) }); // CHANGED
   }
 };

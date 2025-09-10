@@ -487,7 +487,7 @@ export default function SetupCategoriesPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-8">
+        <TabsList className="grid w-full grid-cols-2 mb-8 gap-8">
           <TabsTrigger value="categories" className="flex items-center">
             <FolderIcon className="h-4 w-4 mr-2" />
             Categories ({categories.length})
@@ -508,14 +508,14 @@ export default function SetupCategoriesPage() {
                   Organize your conference into logical tracks or themes
                 </p>
               </div>
-              <Button onClick={handleCreateCategory}>
+              <Button variant="outline" onClick={handleCreateCategory}>
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Add Category
               </Button>
             </div>
 
             {categories.length === 0 ? (
-              <Card className="p-12 text-center">
+              <Card className="p-12 text-center flex flex-col items-center">
                 <FolderIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
                   No categories yet
@@ -524,7 +524,10 @@ export default function SetupCategoriesPage() {
                   Create categories to organize your presentations into logical
                   groups
                 </p>
-                <Button onClick={handleCreateCategory}>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleCreateCategory}
+                >
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Create First Category
                 </Button>
@@ -614,14 +617,14 @@ export default function SetupCategoriesPage() {
                   Define different types of presentations with duration rules
                 </p>
               </div>
-              <Button onClick={handleCreateType}>
+              <Button variant="outline" onClick={handleCreateType}>
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Add Presentation Type
               </Button>
             </div>
 
             {presentationTypes.length === 0 ? (
-              <Card className="p-12 text-center">
+              <Card className="p-12 text-center flex flex-col items-center">
                 <ClockIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
                   No presentation types yet
@@ -630,7 +633,10 @@ export default function SetupCategoriesPage() {
                   Create presentation types to define duration rules and
                   requirements
                 </p>
-                <Button onClick={handleCreateType}>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white" 
+                  onClick={handleCreateType}
+                >
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Create First Type
                 </Button>
@@ -895,6 +901,7 @@ export default function SetupCategoriesPage() {
               Cancel
             </Button>
             <Button
+              className="ml-2 bg-primary-600 hover:bg-primary-700 text-white"
               onClick={handleSubmitType}
               disabled={!typeForm.name.trim() || submitting}
             >
@@ -929,14 +936,14 @@ export default function SetupCategoriesPage() {
               categories.length === 0 ||
               presentationTypes.length === 0
             }
-            className={`bg-primary hover:text-white hover:bg-primary-700 ${
+            className={`bg-blue-600 text-white hover:text-white hover:bg-blue-700 ${
               categories.length === 0 || presentationTypes.length === 0
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
           >
             {saving ? "Saving..." : "Continue to Publish"}
-            <ArrowRight className="h-4 w-4 ml-2" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

@@ -6,12 +6,25 @@ import Sidebar from "@/components/AppSidebar";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 // import { useGetAuthUserQuery } from "@/state/api";
 import { useAuth } from "../(auth)/authContext";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const [currentUserType, setCurrentUserType] = useState<string | undefined>(undefined);
+
+  // Detect user type from URL path
+  useEffect(() => {
+    if (pathname.startsWith('/presenter')) {
+      setCurrentUserType('presenter');
+    } else if (pathname.startsWith('/organizer')) {
+      setCurrentUserType('organizer');
+    } else {
+      setCurrentUserType('attendee');
+    }
+  }, [pathname]);
 
   // Redirect non-authenticated users (fallback protection)
   useEffect(() => {
@@ -60,7 +73,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <NavBar />
         <div style={{ marginTop: `${NAVBAR_HEIGHT}px` }}>
           <main className="flex">
-            <Sidebar userType={userRole as "organizer" | "attendee"} />
+            <Sidebar userType={currentUserType} />
             <div className="flex-grow transition-all duration-300">
               {children}
             </div>

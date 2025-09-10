@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
-import { MapPin, Calendar, Users, Heart, Clock, Download, ArrowLeft, Star } from 'lucide-react';
+import { 
+  MapPin, Calendar, Users, Heart, Download, 
+  PlusCircle, CheckCircle, X, Star 
+} from 'lucide-react';
 import DashboardPageLayout from '@/components/DashboardPageLayout';
 
 import { api } from '@/state/api';
@@ -14,8 +17,11 @@ import LoadingStates from '@/components/shared/LoadingStates';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog, DialogContent, DialogDescription, 
+  DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { CancelButton } from '@/components/cancel-button';
 import { toast } from 'sonner';
 
@@ -27,28 +33,25 @@ export default function ConferenceDetailPage() {
   const { user, isAuthenticated } = useAuth();
   const conferenceId = params.id as string;
 
-  // Set initial tab based on query parameter
   const [activeTab, setActiveTab] = useState(tabParam || 'overview');
 
-  // Update the tab when query parameter changes
   useEffect(() => {
     if (tabParam) {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
 
-  // Fetch conference details
   const { 
     data: conference, 
     isLoading,
     error 
   } = api.useConferenceDetailsQuery(conferenceId);
 
-  // Mutations
   const [toggleFavorite] = api.useToggleConferenceFavoriteMutation();
   const [registerForConference] = api.useRegisterForConferenceMutation();
+  const [unregisterFromConference] = api.useUnregisterFromConferenceMutation();
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Handle favorite toggle
   const handleFavoriteToggle = async () => {
     if (!isAuthenticated) {
       router.push(`/signin?redirect=/attendee/conference/${conferenceId}`);
@@ -65,7 +68,6 @@ export default function ConferenceDetailPage() {
     }
   };
 
-  // Handle registration
   const handleRegister = async () => {
     if (!isAuthenticated) {
       router.push(`/signin?redirect=/attendee/conferences/${conferenceId}`);
@@ -77,13 +79,37 @@ export default function ConferenceDetailPage() {
         conferenceId: Number(conferenceId) 
       }).unwrap();
       toast.success("Successfully registered for this conference");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error registering for conference:', error);
-      toast.error("Failed to register for this conference. Please try again.");
+      
+      if (error.status === 400) {
+        toast.error("You're already registered for this conference");
+      } else if (error.status === 404) {
+        toast.error("Conference not found or no longer available");
+      } else {
+        toast.error("Failed to register for this conference. Please try again.");
+      }
     }
   };
 
-  // Create a breadcrumb component
+  const handleUnregister = async () => {
+    if (!isAuthenticated) {
+      router.push(`/signin?redirect=/attendee/conferences/${conferenceId}`);
+      return;
+    }
+    setShowConfirmation(true);
+  };
+
+  const confirmUnregister = async () => {
+    try {
+      await unregisterFromConference({ conferenceId: Number(conferenceId) }).unwrap();
+      setShowConfirmation(false);
+    } catch (error: any) {
+      console.error('Error unregistering from conference:', error);
+      toast.error("Failed to unregister from this conference. Please try again.");
+    }
+  };
+
   const breadcrumbs = (
     <div className="flex items-center text-sm text-muted-foreground">
       <Button 
@@ -98,30 +124,6 @@ export default function ConferenceDetailPage() {
     </div>
   );
 
-  // Create action buttons
-  // const actionButtons = (
-  //   <>
-  //     <Button
-  //       variant={conference?.userInteractions?.isRegistered ? "outline" : "default"}
-  //       onClick={handleRegister}
-  //       disabled={conference?.userInteractions?.isRegistered}
-  //     >
-  //       {conference?.userInteractions?.isRegistered ? "Registered" : "Register Now"}
-  //     </Button>
-  //     <Button
-  //       variant="outline"
-  //       onClick={handleFavoriteToggle}
-  //       className={conference?.userInteractions?.isFavorited ? 'text-rose-500 border-rose-200' : ''}
-  //     >
-  //       <Heart 
-  //         className={`h-4 w-4 mr-2 ${conference?.userInteractions?.isFavorited ? 'fill-rose-500' : ''}`} 
-  //       />
-  //       {conference?.userInteractions?.isFavorited ? 'Favorited' : 'Add to Favorites'}
-  //     </Button>
-  //   </>
-  // );
-
-  // Loading state
   if (isLoading) return (
     <div className="space-y-4">
       <div className="text-center text-muted-foreground">
@@ -131,7 +133,6 @@ export default function ConferenceDetailPage() {
     </div>
   );
   
-  // Error state
   if (error || !conference) {
     return (
       <div className="container mx-auto py-8">
@@ -144,7 +145,6 @@ export default function ConferenceDetailPage() {
     );
   }
 
-  // Format date range
   const dateRange = conference.startDate && conference.endDate 
     ? `${format(new Date(conference.startDate), 'MMM d')} - ${format(new Date(conference.endDate), 'MMM d, yyyy')}`
     : 'Date TBD';
@@ -153,12 +153,10 @@ export default function ConferenceDetailPage() {
     <DashboardPageLayout
       title={conference.name}
       breadcrumbs={breadcrumbs}
-      // actions={actionButtons}
       className="space-y-8"
     > 
       {/* Conference header */}
       <div className="relative rounded-xl overflow-hidden">
-        {/* Banner image */}
         {conference.bannerImageUrl ? (
           <div className="relative h-48 md:h-64 lg:h-80">
             <div className="absolute inset-0 bg-black/30 z-10" />
@@ -172,7 +170,6 @@ export default function ConferenceDetailPage() {
           <div className="h-48 md:h-64 lg:h-80 bg-gradient-to-r from-primary-500 to-primary-700" />
         )}
         
-        {/* Header content */}
         <div className="absolute bottom-0 left-0 right-0 z-20 p-6 text-white">
           <div className="flex flex-wrap gap-2 mb-2">
             {conference.categories?.map(category => (
@@ -210,13 +207,6 @@ export default function ConferenceDetailPage() {
       {/* Actions bar */}
       <div className="flex flex-wrap gap-3 py-2">
         <Button
-          variant={conference.userInteractions?.isRegistered ? "outline" : "default"}
-          onClick={handleRegister}
-          disabled={conference.userInteractions?.isRegistered}
-        >
-          {conference.userInteractions?.isRegistered ? "Registered" : "Register Now"}
-        </Button>
-        <Button
           variant="outline"
           onClick={handleFavoriteToggle}
           className={conference.userInteractions?.isFavorited ? 'text-rose-500 border-rose-200' : ''}
@@ -226,6 +216,31 @@ export default function ConferenceDetailPage() {
           />
           {conference.userInteractions?.isFavorited ? 'Favorited' : 'Add to Favorites'}
         </Button>
+
+        {conference.userInteractions?.isRegistered ? (
+          <Button
+            variant="outline"
+            onClick={handleUnregister}
+            className="border-red-200 bg-red-100 text-red-600 hover:bg-red-50 hover:text-red-600"
+          >
+            <X className="h-4 w-4" />
+            Cancel Registration
+          </Button>
+        ) : (
+          <Button
+            variant="default"
+            onClick={handleRegister}
+          >
+            <PlusCircle className="h-4 w-4" />
+            Register Now
+          </Button>
+        )}
+        {conference.userInteractions?.isRegistered && (
+          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 flex gap-2 items-center">
+            <CheckCircle className="h-3.5 w-3.5" />
+            <span>Registered</span>
+          </Badge>
+        )}
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -236,108 +251,78 @@ export default function ConferenceDetailPage() {
           <TabsTrigger value="materials">Materials</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-6">
-          {/* Description */}
+        {/* Academic-style Overview */}
+        <TabsContent value="overview" className="space-y-8">
+          {/* Aims & Scope */}
           <Card>
             <CardHeader>
-              <CardTitle>About this Conference</CardTitle>
+              <CardTitle>Aims &amp; Scope</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground whitespace-pre-line">
+              <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
                 {conference.description || 'No description provided.'}
               </p>
             </CardContent>
           </Card>
-          
-          {/* Details */}
+
+          {/* Call for Papers */}
           <Card>
             <CardHeader>
-              <CardTitle>Conference Details</CardTitle>
+              <CardTitle>Call for Papers</CardTitle>
+              <CardDescription>
+                We invite submissions in the following categories and presentation types.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Dates</h4>
-                    <p className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {dateRange}
-                    </p>
+            <CardContent className="space-y-6">
+              {conference.presentationTypes?.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm mb-2">Presentation Types</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {conference.presentationTypes.map((type: { id: number | string; name: string }) => (
+                      <Badge key={type.id} variant="outline">
+                        {type.name}
+                      </Badge>
+                    ))}
                   </div>
-                  
-                  {conference.location && (
-                    <div>
-                      <h4 className="font-medium text-sm text-muted-foreground mb-1">Location</h4>
-                      <p className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {conference.location}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {conference.venue && (
-                    <div>
-                      <h4 className="font-medium text-sm text-muted-foreground mb-1">Venue</h4>
-                      <p>{conference.venue}</p>
-                      {conference.venueAddress && <p className="text-sm text-muted-foreground">{conference.venueAddress}</p>}
-                    </div>
-                  )}
                 </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Organized by</h4>
-                    <p>{conference.createdBy?.name || 'Unknown'}</p>
-                    {conference.createdBy?.organization && (
-                      <p className="text-sm text-muted-foreground">{conference.createdBy.organization}</p>
-                    )}
-                  </div>
-                  
-                  {conference.presentationTypes && conference.presentationTypes.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-sm text-muted-foreground mb-1">Presentation Types</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {conference.presentationTypes.map((type: { id: number | string; name: string }) => (
-                          <Badge key={type.id} variant="outline">
-                            {type.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {conference.topics && conference.topics.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-sm text-muted-foreground mb-1">Topics</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {conference.topics.map((topic: string) => (
-                          <Badge key={topic} variant="secondary">
-                            {topic}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              )}
+
+              {conference.topics?.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm mb-2">Topics of Interest</h4>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                    {conference.topics.map((topic: string) => (
+                      <li key={topic}>{topic}</li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-              
-              {conference.websiteUrl && (
-                <div className="pt-2">
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Website</h4>
-                  <a 
-                    href={conference.websiteUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-primary-600 hover:underline"
-                  >
-                    {conference.websiteUrl}
-                  </a>
-                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Important Dates */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Important Dates</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {conference.deadlines?.length > 0 ? (
+                <ul className="space-y-2 text-sm">
+                  {conference.deadlines.map((d: { id: string | number; label: string; date: string }) => (
+                    <li key={d.id} className="flex justify-between border-b pb-1">
+                      <span className="font-medium">{d.label}</span>
+                      <span>{format(new Date(d.date), 'MMM d, yyyy')}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted-foreground">No deadlines have been published yet.</p>
               )}
             </CardContent>
           </Card>
         </TabsContent>
         
+        {/* Schedule */}
         <TabsContent value="schedule" className="min-h-[400px]">
           <Card>
             <CardHeader>
@@ -360,6 +345,7 @@ export default function ConferenceDetailPage() {
           </Card>
         </TabsContent>
         
+        {/* Presenters */}
         <TabsContent value="presenters">
           <Card>
             <CardHeader>
@@ -369,7 +355,6 @@ export default function ConferenceDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Collect unique presenters from presentations */}
               {(() => {
                 const presenters: {
                   name: string;
@@ -383,7 +368,6 @@ export default function ConferenceDetailPage() {
                       if (slot.presentation) {
                         slot.presentation.authors?.forEach(author => {
                           if (author.isPresenter) {
-                            // Check if presenter already exists in the array
                             const existingPresenter = presenters.find(p => 
                               p.name === author.authorName
                             );
@@ -446,6 +430,7 @@ export default function ConferenceDetailPage() {
           </Card>
         </TabsContent>
         
+        {/* Materials */}
         <TabsContent value="materials">
           <Card>
             <CardHeader>
@@ -493,6 +478,34 @@ export default function ConferenceDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {showConfirmation && (
+        <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+          <DialogContent className="bg-gray-200">
+            <DialogHeader>
+              <DialogTitle>Confirm Unregistration</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to cancel your registration for "{conference.name}"? 
+                You can register again later if you change your mind.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowConfirmation(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmUnregister}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Yes, Unregister
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </DashboardPageLayout>
   );
 }

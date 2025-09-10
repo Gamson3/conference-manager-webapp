@@ -33,6 +33,10 @@ export interface ConferenceSummary extends Omit<Conference, 'createdBy'> {
     presentations: number;
     attendances: number;
   };
+  userInteractions?: {
+    isFavorited?: boolean;
+    isRegistered?: boolean;
+  };
 }
 
 // Featured conferences response

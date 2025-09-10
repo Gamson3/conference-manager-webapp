@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation'; // CHANGED: remove
 import { format } from 'date-fns';
-import { MapPin, Calendar, Users, Heart, Share2, ExternalLink } from 'lucide-react';
+import { MapPin, Calendar, Users, Share2, ExternalLink } from 'lucide-react';
 import { ConferenceSummary } from '@/types/conference';
-import { useAuth } from '@/app/(auth)/authContext';
-import { api } from '@/state/api';
+// import { useAuth } from '@/app/(auth)/authContext'; // CHANGED: remove
+// import { api } from '@/state/api'; // CHANGED: remove
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -16,9 +15,9 @@ import { toast } from 'sonner';
 interface ConferenceCardProps {
   conference: ConferenceSummary;
   showActions?: boolean;
-  isFavorite?: boolean;
+  isFavorite?: boolean; // CHANGED: deprecated, no longer used
   className?: string;
-  variant?: 'default' | 'compact' | 'detailed';
+  variant?: 'default' | 'compact' | 'detailed' | 'list';
   onEdit?: (conference: ConferenceSummary) => void;
   onDelete?: (conference: ConferenceSummary) => void;
 }
@@ -26,69 +25,33 @@ interface ConferenceCardProps {
 const ConferenceCard = ({ 
   conference, 
   showActions = false,
-  isFavorite: initialFavorite = false,
   className = "",
   variant = 'default',
   onEdit,
   onDelete
 }: ConferenceCardProps) => {
-  const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
-  const [isFavorite, setIsFavorite] = useState(initialFavorite);
+  // const router = useRouter(); // CHANGED: remove
+  // const { user, isAuthenticated } = useAuth(); // CHANGED: remove
   
-  const [toggleFavorite] = api.useToggleConferenceFavoriteMutation();
-  const [registerForConference] = api.useRegisterForConferenceMutation();
+  // CHANGED: remove isFavorite derived from userInteractions
+  // const isFavorite = conference.userInteractions?.isFavorited || false;
+
+  // CHANGED: remove toggle favorite mutation
 
   // Format date range for display
   const formatDateRange = () => {
     if (!conference.startDate || !conference.endDate) return 'Date TBD';
-    
     const start = new Date(conference.startDate);
     const end = new Date(conference.endDate);
-    
-    const options: Intl.DateTimeFormatOptions = { 
-      weekday: 'short', 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
-    };
-    
-    if (start.toDateString() === end.toDateString()) {
-      return start.toLocaleDateString('en-US', options);
-    }
-    
+    const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
+    if (start.toDateString() === end.toDateString()) return start.toLocaleDateString('en-US', options);
     return `${start.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit' })} - ${end.toLocaleDateString('en-US', options)}`;
-  };
-
-  // Handle favorite button click
-  const handleFavoriteClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!isAuthenticated) {
-      router.push(`/signin?redirect=/attendee/discover`);
-      return;
-    }
-    
-    try {
-      await toggleFavorite({
-        conferenceId: conference.id,
-        isFavorite: !isFavorite
-      }).unwrap();
-      
-      setIsFavorite(!isFavorite);
-      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites');
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      toast.error('Failed to update favorites');
-    }
   };
 
   // Handle share functionality
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
     if (navigator.share) {
       try {
         await navigator.share({
@@ -100,13 +63,11 @@ const ConferenceCard = ({
         console.log('Error sharing:', err);
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(`${window.location.origin}/attendee/conferences/${conference.id}`);
       toast.success('Link copied to clipboard');
     }
   };
 
-  // Get image height based on variant
   const getImageHeight = () => {
     switch (variant) {
       case 'compact': return 'h-24';
@@ -115,11 +76,101 @@ const ConferenceCard = ({
     }
   };
 
+  const organizerName = conference.createdBy?.name || '';
+  const organizerInitials = organizerName
+    ? organizerName.split(' ').slice(0,2).map((s: any[]) => s[0]).join('').toUpperCase()
+    : 'CO';
+
   const baseClasses = `bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow overflow-hidden group ${className}`;
+
+  // LIST VARIANT (text-first, no banner background)
+  if (variant === 'list') {
+    return (
+      <div className={`bg-white rounded border border-gray-200 shadow transition-shadow overflow-hidden ${className}`}>
+        {/* Top row: left (date/title/location), right (organizer logo placeholder) */}
+        <div className="flex items-start gap-4 p-4 mb-4">
+          <div className="flex-1">
+            <div className="flex items-center text-sm text-gray-900 mb-1">
+              <Calendar className="h-4 w-4 mr-1" />
+              {formatDateRange()}
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <Link href={`/attendee/conferences/${conference.id}`} className="hover:underline">
+                {conference.name}
+              </Link>
+            </h3>
+            {conference.location && (
+              <div className="flex items-center text-sm text-gray-700">
+                <MapPin className="h-4 w-4 mr-1" />
+                {conference.location}
+              </div>
+            )}
+          </div>
+
+          {/* Organizer logo/placeholder (always visible) */}
+          <div className="shrink-0">
+            <div className="w-14 h-14 rounded bg-primary-100 text-primary-700 flex items-center justify-center font-semibold">
+              {organizerInitials}
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
+        {conference.description && (
+          <div className="px-4 pb-2 mb-2">
+            <p className="text-base text-gray-700 line-clamp-2">
+              {conference.description}
+            </p>
+          </div>
+        )}
+
+        {/* Categories */}
+        {conference.categories && conference.categories.length > 0 && (
+          <div className="px-4 py-0.5 pb-2 flex flex-wrap gap-1">
+            {conference.categories.slice(0, 4).map((category) => (
+              <span
+                key={category.id}
+                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                style={{
+                  backgroundColor: category.color ? `${category.color}20` : "#f3f4f6",
+                  color: category.color || "#374151",
+                }}
+              >
+                {category.name}
+              </span>
+            ))}
+            {conference.categories.length > 4 && (
+              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                +{conference.categories.length - 4}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Footer: Interested (left) and Share (right, always visible) */}
+        <div className="px-4 py-5 flex items-center justify-between">
+          <Link
+            href={`/attendee/conferences/${conference.id}`}
+            className="inline-flex items-center text-sm text-primary-600 border border-gray-300 shadow rounded px-2 py-1 hover:text-primary-700 font-semibold"
+          >
+            I’m Interested
+          </Link>
+
+          <button
+            onClick={(e) => handleShare(e)}
+            className="inline-flex items-center text-sm text-gray-700 hover:text-gray-900"
+            title="Share Conference"
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={baseClasses}>
-      {/* Conference Image */}
+      {/* Image */}
       <div className={`relative ${getImageHeight()} bg-gradient-to-r from-slate-100 to-blue-100`}>
         {conference.bannerImageUrl ? (
           <Image
@@ -127,10 +178,7 @@ const ConferenceCard = ({
             alt={conference.name}
             fill
             className="object-cover"
-            onError={(e) => {
-              // Fallback to gradient background if image fails
-              e.currentTarget.style.display = 'none';
-            }}
+            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => { e.currentTarget.style.display = 'none'; }}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
@@ -139,8 +187,7 @@ const ConferenceCard = ({
             </span>
           </div>
         )}
-        
-        {/* Conference organizer logo/initial - if we add this field later */}
+
         {conference.createdBy && (
           <div className="absolute top-2 right-2 w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center">
             <div className="w-6 h-6 bg-primary-600 rounded text-white text-xs flex items-center justify-center font-semibold">
@@ -152,7 +199,6 @@ const ConferenceCard = ({
         {/* Action Buttons */}
         {showActions && (
           <div className="absolute top-2 left-2 flex gap-1">
-            {/* Share Button */}
             <button 
               onClick={handleShare}
               className="w-7 h-7 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
@@ -160,24 +206,10 @@ const ConferenceCard = ({
             >
               <Share2 className="h-3 w-3 text-gray-600" />
             </button>
-            
-            {/* Favorite Button */}
-            <button 
-              onClick={handleFavoriteClick}
-              className={`w-7 h-7 ${isFavorite ? 'bg-rose-100/90' : 'bg-white/90'} rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:${isFavorite ? 'bg-rose-200' : 'bg-white'}`}
-              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-              <Heart className={`h-3 w-3 ${isFavorite ? 'text-rose-500 fill-rose-500' : 'text-gray-600'}`} />
-            </button>
-            
-            {/* Edit Button (for organizer dashboard) */}
+
             {onEdit && (
               <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onEdit(conference);
-                }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(conference); }}
                 className="w-7 h-7 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
                 title="Edit Conference"
               >
@@ -187,14 +219,9 @@ const ConferenceCard = ({
               </button>
             )}
 
-            {/* Delete Button (for organizer dashboard) */}
             {onDelete && (
               <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onDelete(conference);
-                }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(conference); }}
                 className="w-7 h-7 bg-red-100/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200"
                 title="Delete Conference"
               >
@@ -206,7 +233,7 @@ const ConferenceCard = ({
           </div>
         )}
 
-        {/* Status Badges */}
+        {/* Status badges */}
         <div className="absolute bottom-2 left-2 flex gap-1">
           {conference.status !== 'published' && (
             <Badge variant="outline" className="bg-gray-500/80 text-white border-0">
@@ -221,15 +248,13 @@ const ConferenceCard = ({
         </div>
       </div>
 
-      {/* Conference Details */}
+      {/* Body */}
       <div className="p-3">
-        {/* Date */}
         <div className="flex items-center text-sm text-gray-500 mb-2">
           <Calendar className="h-4 w-4 mr-1" />
           {formatDateRange()}
         </div>
 
-        {/* Title */}
         <h3 className={`font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors ${
           variant === 'compact' ? 'text-sm' : 'text-base'
         }`}>
@@ -238,7 +263,6 @@ const ConferenceCard = ({
           </Link>
         </h3>
 
-        {/* Location */}
         {conference.location && (
           <div className="flex items-center text-sm text-gray-500 mb-3">
             <MapPin className="h-4 w-4 mr-1" />
@@ -246,15 +270,13 @@ const ConferenceCard = ({
           </div>
         )}
 
-        {/* Categories */}
         {conference.categories && conference.categories.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
             {conference.categories.slice(0, variant === 'compact' ? 1 : 2).map((category) => (
               <span
                 key={category.id}
                 className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer"
-                style={{ backgroundColor: category.color ? `${category.color}20` : undefined, 
-                         color: category.color || undefined }}
+                style={{ backgroundColor: category.color ? `${category.color}20` : undefined, color: category.color || undefined }}
               >
                 {category.name}
               </span>
@@ -267,14 +289,6 @@ const ConferenceCard = ({
           </div>
         )}
 
-        {/* Description (only for detailed variant) */}
-        {variant === 'detailed' && conference.description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-            {conference.description}
-          </p>
-        )}
-
-        {/* Attendee Count */}
         <div className="flex items-center text-sm text-gray-500 mb-3">
           <Users className="h-4 w-4 mr-1" />
           <span className="text-sm">
@@ -282,7 +296,6 @@ const ConferenceCard = ({
           </span>
         </div>
 
-        {/* View Conference Link */}
         <div className="pt-3 border-t border-gray-100">
           <Link
             href={`/attendee/conferences/${conference.id}`}

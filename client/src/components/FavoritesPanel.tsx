@@ -53,7 +53,7 @@ interface FavoritesPanelProps {
 
 export default function FavoritesPanel({ onJumpToPresentation }: FavoritesPanelProps) {
   const router = useRouter();
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState<FavoritePresentation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,10 +64,16 @@ export default function FavoritesPanel({ onJumpToPresentation }: FavoritesPanelP
     try {
       const api = await createAuthenticatedApi();
       const response = await api.get('/api/attendee/favorites');
-      setFavorites(response.data);
+      const raw = response.data;
+      const items: FavoritePresentation[] = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.favorites)
+          ? raw.favorites
+          : [];
+      setFavorites(items);
     } catch (error) {
       console.error('Error fetching favorites:', error);
-      // Don't show toast error for dashboard component
+      // silent on dashboard
     } finally {
       setLoading(false);
     }
@@ -127,10 +133,6 @@ export default function FavoritesPanel({ onJumpToPresentation }: FavoritesPanelP
     <Card className="border-0 shadow-xl bg-white/70 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="flex items-center justify-between pt-4">
-          {/* <div className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-red-500" />
-            My Favorites ({favorites.length})
-          </div> */}
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-rose-500 to-rose-600 rounded-lg text-white shadow-lg">
               <Heart className="h-5 w-5" />

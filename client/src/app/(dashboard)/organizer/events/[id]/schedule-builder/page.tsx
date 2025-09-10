@@ -689,7 +689,7 @@ export default function ScheduleBuilderPage() {
                       onValueChange={setSelectedDay}
                       className="w-full"
                     >
-                      <TabsList className="grid w-full grid-cols-3">
+                      <TabsList className="grid w-full grid-cols-3 gap-4">
                         {scheduleData.days.map((day) => (
                           <TabsTrigger key={day.date} value={day.date}>
                             {day.name} -{" "}

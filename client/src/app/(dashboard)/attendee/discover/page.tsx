@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/state/api';
 import { format } from 'date-fns';
@@ -40,13 +40,18 @@ export default function ConferenceDiscoveryPage() {
   const searchParams = useSearchParams();
   
   // Query conferences with current filters
-  const { data: conferencesData, isLoading, isFetching } = api.useConferencesQuery({
+  const { data: conferencesData, isLoading, isFetching, refetch } = api.useConferencesQuery({
     search: searchTerm || undefined,
     category: selectedCategory !== 'all' ? selectedCategory : undefined,
     page: currentPage,
     limit: 9,
     sort: sortField,
     order: sortDirection as 'asc' | 'desc',
+  }, {
+    // Add these options
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true
   });
 
   // Query featured conferences for tabs
@@ -67,9 +72,18 @@ export default function ConferenceDiscoveryPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Force refetch when window regains focus
+  useEffect(() => {
+    // Function to handle window focus
+    const handleFocus = () => refetch();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [refetch]);
+
+
   // Render loading skeletons
   const renderSkeletons = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
       {Array(6).fill(0).map((_, i) => (
         <Card key={i} className="h-[380px]">
           <CardHeader className="pb-2">
@@ -101,12 +115,14 @@ export default function ConferenceDiscoveryPage() {
     
     return (
       <>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
           {conferencesData.conferences.map((conference: any) => (
             <ConferenceCard 
               key={conference.id} 
               conference={conference}
               showActions
+              variant="list"
+
             />
           ))}
         </div>
@@ -218,7 +234,7 @@ export default function ConferenceDiscoveryPage() {
         <TabsContent value="popular" className="mt-0">
           {featuredData ? (
             featuredData.popular.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
                 {featuredData.popular.map(conference => (
                   <ConferenceCard 
                     key={conference.id} 
@@ -238,12 +254,13 @@ export default function ConferenceDiscoveryPage() {
         <TabsContent value="upcoming" className="mt-0">
           {featuredData ? (
             featuredData.upcoming.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
                 {featuredData.upcoming.map(conference => (
                   <ConferenceCard 
                     key={conference.id} 
                     conference={conference}
                     showActions
+                    variant="list"
                   />
                 ))}
               </div>

@@ -49,7 +49,14 @@ export default function ViewEventsPage() {
         setIsLoading(true);
         const api = await createAuthenticatedApi();
         const response = await api.get("/api/attendee/registered-conferences");
-        setEvents(response.data);
+        // Unwrap list from { conferences: [...] }
+        const raw = response.data;
+        const list: Conference[] = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.conferences)
+            ? raw.conferences
+            : [];
+        setEvents(list);
       } catch (error: any) {
         console.error("Error fetching events:", error);
         setError(
@@ -68,7 +75,8 @@ export default function ViewEventsPage() {
     setFilter(newFilter);
   };
 
-  const filteredEvents = events
+  // Ensure we always filter an array
+  const filteredEvents = (Array.isArray(events) ? events : [])
     .filter((event) => event.status === filter)
     .filter(
       (event) =>
