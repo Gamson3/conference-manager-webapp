@@ -29,6 +29,8 @@ import workflowRoutes from "./routes/workflowRoutes";
 // import submissionRoutes from './routes/submitPresentationRoutes';
 import scheduleBuilderRoutes from "./routes/scheduleBuilderRoutes";
 import presentationReviewRoutes from "./routes/presentationReviewRoutes";
+import conferenceMemberRoutes from "./routes/conferenceMemberRoutes";
+import conferenceSubmissionRoutes from "./routes/conferenceSubmissionRoutes";
 
 
 /* CONFIGURATIONS - setup files*/ 
@@ -82,6 +84,8 @@ app.use("/api", submissionSettingsRoutes);
 app.use("/api", workflowRoutes);
 // app.use('/api', submissionRoutes);
 app.use("/api", presentationReviewRoutes);
+app.use("/api", conferenceMemberRoutes);
+app.use("/api", conferenceSubmissionRoutes);
 
 
 /* SERVER */

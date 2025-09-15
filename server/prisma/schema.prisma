@@ -49,6 +49,16 @@ enum SectionType {
   networking
 }
 
+enum AbstractSubmissionStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  REVISION_REQUESTED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
 enum ReviewStatus {
   PENDING
   APPROVED
@@ -125,6 +135,7 @@ model User {
   sessionAttendance    SessionAttendance[]
   abstractSubmissions  AbstractSubmission[] // For submitter relation
   abstractReviews      AbstractReview[]
+  conferenceMembers    ConferenceMember[]
 }
 
 model Conference {
@@ -165,6 +176,7 @@ model Conference {
   materials           ConferenceMaterial[]
   abstractSubmissions AbstractSubmission[]
   presentations Presentation[]
+  members             ConferenceMember[]
 
   // ADD these two lines to your existing Conference model:
   categories       Category[]
@@ -178,6 +190,22 @@ model Conference {
   @@index([topics])
   @@index([status])
   @@index([startDate])
+}
+
+model ConferenceMember {
+  id           Int      @id @default(autoincrement())
+  conferenceId Int
+  userId       Int
+  isAttendee   Boolean  @default(true)
+  isSpeaker    Boolean  @default(false)
+  registeredAt DateTime @default(now())
+
+  conference Conference @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@unique([conferenceId, userId])
+  @@index([userId])
+  @@map("conference_members")
 }
 
 model ConferenceFavorite {
@@ -245,17 +273,25 @@ model Section {
 }
 
 model AbstractSubmission {
-  id           Int              @id @default(autoincrement())
+  id           Int                     @id @default(autoincrement())
   title        String
-  content      String           @db.Text
+  content      String                  @db.Text
   submitterId  Int
-  submitter    User             @relation(fields: [submitterId], references: [id])
+  submitter    User                    @relation(fields: [submitterId], references: [id])
   conferenceId Int
-  conference   Conference       @relation(fields: [conferenceId], references: [id])
-  status       String // submitted, under review, accepted, rejected
+  conference   Conference              @relation(fields: [conferenceId], references: [id])
+  status       AbstractSubmissionStatus @default(SUBMITTED) // Change from String to enum
   reviews      AbstractReview[]
 
-  // Add these timestamp fields
+  // Add these new fields
+  keywords          String[]                 @default([])
+  presentationTypeId Int?
+  presentationType  PresentationType?        @relation(fields:[presentationTypeId], references:[id])
+  fileUrl           String?
+  requestedDuration Int?
+  biography         String?                  @db.Text
+
+  // Existing timestamp fields
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   submissionDate DateTime @default(now()) // The official submission date
@@ -519,6 +555,7 @@ model PresentationType {
 
   conference    Conference     @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
   presentations Presentation[] @relation("PresentationTypeRelation")
+  abstractSubmissions AbstractSubmission[]
 
   @@map("presentation_types") // Add this
   @@index([conferenceId, order])
