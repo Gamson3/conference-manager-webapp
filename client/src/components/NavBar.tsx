@@ -11,6 +11,7 @@ import { signOut } from "aws-amplify/auth";
 import {
   ArrowLeftRightIcon,
   Bell,
+  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -61,6 +62,20 @@ const NavBar = () => {
     } catch (error) {
       console.error("Error signing out:", error);
     }
+  };
+
+  // Handle role switching to presenter
+  const switchToPresenterView = () => {
+    // Save preference and navigate
+    localStorage.setItem("userViewPreference", "presenter");
+    router.push("/presenter/dashboard");
+  };
+
+  // Handle role switching back to attendee
+  const switchToAttendeeView = () => {
+    // Save preference and navigate
+    localStorage.setItem("userViewPreference", "attendee");
+    router.push("/attendee/dashboard");
   };
 
   const presenterNav = [
@@ -229,6 +244,77 @@ const NavBar = () => {
         <div className="flex items-center gap-4 md:gap-5">
           {authUser ? (
             <>
+              {/* Role Switching Button - Only show if user has both roles */}
+              {authUser.roles.includes("attendee") && authUser.roles.includes("presenter") && (
+                <>
+                  {!isPresenterPage ? (
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={switchToPresenterView}
+                          className="text-primary-foreground border-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary-700 rounded-md"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          <span className="hidden sm:inline">View Submissions</span>
+                          <span className="sm:hidden">Submissions</span>
+                        </Button>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80 bg-card border-primary-200">
+                        <div className="flex justify-between space-x-4">
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold">Presenter View</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Switch to presenter mode to manage your submissions, upload materials, and track presentation status.
+                            </p>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  ) : (
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={switchToAttendeeView}
+                          className="text-primary-foreground border-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary-700 rounded-md"
+                        >
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          <span className="hidden sm:inline">View Events</span>
+                          <span className="sm:hidden">Events</span>
+                        </Button>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80 bg-card border-primary-200">
+                        <div className="flex justify-between space-x-4">
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold">Attendee View</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Switch back to attendee mode to discover conferences, register for events, and manage your schedule.
+                            </p>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  )}
+                </>
+              )}
+
+              {/* If user only has presenter role and not in presenter view */}
+              {authUser.roles.includes("presenter") && !authUser.roles.includes("attendee") && !isPresenterPage && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={switchToPresenterView}
+                  className="text-primary-foreground border-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary-700 rounded-lg"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">View Submissions</span>
+                  <span className="sm:hidden">Submissions</span>
+                </Button>
+              )}
+
               {/* Messages + Notifications always visible (responsive) */}
               <div className="relative">
                 <MessageCircle className="w-6 h-6 cursor-pointer text-primary-200 hover:text-primary-400" />
@@ -276,6 +362,17 @@ const NavBar = () => {
                         <p className="text-sm text-primary-500">
                           {authUser.email}
                         </p>
+                        {/* Show current role */}
+                        <div className="flex gap-1 mt-1">
+                          {authUser.roles.map((role) => (
+                            <span
+                              key={role}
+                              className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full capitalize"
+                            >
+                              {role}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
@@ -296,6 +393,8 @@ const NavBar = () => {
                       router.push(
                         authUser?.roles?.includes("organizer")
                           ? "/organizer/dashboard"
+                          : isPresenterPage
+                          ? "/presenter/dashboard"
                           : "/attendee/dashboard",
                         { scroll: false }
                       )
@@ -308,9 +407,10 @@ const NavBar = () => {
                   <DropdownMenuItem
                     className="flex items-center gap-2 p-3 text-base rounded-lg hover:!bg-primary-500 hover:!text-primary-100 cursor-pointer"
                     onClick={() =>
-                      router.push(`/${authUser.roles[0]}/settings`, {
-                        scroll: false,
-                      })
+                      router.push(
+                        `/${isPresenterPage ? "presenter" : authUser.roles[0]}/settings`,
+                        { scroll: false }
+                      )
                     }
                   >
                     <Settings className="h-5 w-5" />
