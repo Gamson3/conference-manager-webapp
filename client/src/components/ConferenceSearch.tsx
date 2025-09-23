@@ -247,7 +247,7 @@ export default function ConferenceSearch({
                   {/* Suggestions */}
                   {suggestions.length > 0 && (
                     <div className="p-2">
-                      <p className="text-xs font-medium text-gray-500 px-2 py-1">
+                      <p className="text-xs font-medium text-muted-foreground px-2 py-1">
                         Suggestions
                       </p>
                       {suggestions.slice(0, 5).map((suggestion, index) => (
@@ -270,7 +270,7 @@ export default function ConferenceSearch({
                   {recentSearches.length > 0 && searchTerm.length === 0 && (
                     <div className="p-2">
                       {suggestions.length > 0 && <Separator className="mb-2" />}
-                      <p className="text-xs font-medium text-gray-500 px-2 py-1">
+                      <p className="text-xs font-medium text-muted-foreground px-2 py-1">
                         Recent Searches
                       </p>
                       {recentSearches.slice(0, 3).map((term, index) => (
@@ -307,7 +307,7 @@ export default function ConferenceSearch({
                 <h3 className="text-lg font-semibold">
                   Search Results
                   {searchResults.totalResults && (
-                    <span className="text-sm font-normal text-gray-500 ml-2">
+                    <span className="text-sm font-normal text-muted-foreground ml-2">
                       ({searchResults.totalResults.presentations} presentations
                       {searchResults.totalResults.conferences && 
                         `, ${searchResults.totalResults.conferences} conferences`
@@ -315,7 +315,7 @@ export default function ConferenceSearch({
                     </span>
                   )}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Results for "{searchResults.query}"
                   {searchType !== 'all' && ` in ${searchType}`}
                   {isGlobalSearch && ' across all conferences'}
@@ -437,7 +437,7 @@ function PresentationSearchResult({
             </div>
 
             {presentation.abstract && (
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                 {presentation.abstract}
               </p>
             )}
@@ -456,7 +456,7 @@ function PresentationSearchResult({
               )}
             </div>
 
-            <div className="flex items-center text-sm text-gray-500 space-x-4">
+            <div className="flex items-center text-sm text-muted-foreground space-x-4">
               {presentation.section.startTime && (
                 <div className="flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
@@ -506,12 +506,12 @@ function ConferenceSearchResult({
             <h5 className="font-semibold text-base mb-2">{conference.name}</h5>
             
             {conference.description && (
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                 {conference.description}
               </p>
             )}
 
-            <div className="flex items-center text-sm text-gray-500 space-x-4">
+            <div className="flex items-center text-sm text-muted-foreground space-x-4">
               <div className="flex items-center">
                 <Calendar className="h-3 w-3 mr-1" />
                 {new Date(conference.startDate).toLocaleDateString()} - {new Date(conference.endDate).toLocaleDateString()}

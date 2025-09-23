@@ -105,7 +105,7 @@ export function ReassignmentDialog({
           <DialogTitle>Reassign Presentations Before Deleting</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             This {itemLabel.toLowerCase()} has {itemCount} {countLabel} assigned to it. 
             Please select another {itemLabel.toLowerCase()} to move these {countLabel} to before deleting.
           </p>

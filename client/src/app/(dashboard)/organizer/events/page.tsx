@@ -169,17 +169,17 @@ const ManageEventsPage = () => {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-gray-600 line-clamp-3 mb-4">{event.description}</p>
+                          <p className="text-muted-foreground line-clamp-3 mb-4">{event.description}</p>
                           <div className="space-y-2">
                             <div className="flex items-center text-sm">
-                              <CalendarIcon className="h-4 w-4 mr-2 text-gray-500" />
+                              <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                               <span>
                                 {format(new Date(event.startDate), "MMM d, yyyy")} - {format(new Date(event.endDate), "MMM d, yyyy")}
                               </span>
                             </div>
                             {event.location && (
                               <div className="flex items-center text-sm">
-                                <MapPinIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                <MapPinIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                                 <span className="line-clamp-1">{event.location}</span>
                               </div>
                             )}
@@ -188,11 +188,11 @@ const ManageEventsPage = () => {
                         <CardFooter className="border-t pt-4">
                           <div className="flex justify-between w-full text-sm">
                             <div className="flex items-center">
-                              <UsersIcon className="h-4 w-4 mr-1 text-gray-500" />
+                              <UsersIcon className="h-4 w-4 mr-1 text-muted-foreground" />
                               <span>{event._count?.attendances || 0} attendees</span>
                             </div>
                             <div className="flex items-center">
-                              <LayoutIcon className="h-4 w-4 mr-1 text-gray-500" />
+                              <LayoutIcon className="h-4 w-4 mr-1 text-muted-foreground" />
                               <span>{event._count?.sections || 0} sessions</span>
                             </div>
                           </div>
@@ -203,7 +203,7 @@ const ManageEventsPage = () => {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     No {tabValue} events found.
                   </p>
                   {tabValue === 'upcoming' && (

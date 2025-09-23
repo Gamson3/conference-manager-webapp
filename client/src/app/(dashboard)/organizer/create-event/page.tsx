@@ -410,7 +410,7 @@ export default function CreateEventPage() {
         <h1 className="text-3xl font-bold mb-2">
           {isEditing ? 'Edit Conference Details' : 'Create New Conference'}
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           {isEditing 
             ? 'Update your conference details and continue with the setup process.'
             : 'Set up your conference details. After creation, you\'ll be guided through the complete setup process.'
@@ -569,10 +569,10 @@ export default function CreateEventPage() {
             
             {eventDuration && (
               <div className="p-3 bg-gray-50 rounded border">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   <strong>Duration:</strong> {eventDuration}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   You'll build your detailed schedule using the Schedule Builder after setting up presentation types.
                 </p>
               </div>
@@ -626,7 +626,7 @@ export default function CreateEventPage() {
                 placeholder="Architecture, Engineering, Urban Planning, Sustainability"
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Comma-separated topics to help with discoverability. You'll create detailed categories later.
               </p>
             </div>

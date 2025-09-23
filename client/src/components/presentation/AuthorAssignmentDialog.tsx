@@ -223,7 +223,7 @@ export default function AuthorAssignmentDialog({
   const searchResultsDisplay = useMemo(() => {
     if (searching) {
       return (
-        <div className="text-center py-4 text-gray-500">
+        <div className="text-center py-4 text-muted-foreground">
           Searching...
         </div>
       );
@@ -231,7 +231,7 @@ export default function AuthorAssignmentDialog({
     
     if (!searching && searchTerm && searchTerm.length >= 2 && internalUsers.length === 0) {
       return (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-muted-foreground">
           <User className="h-12 w-12 mx-auto text-gray-300 mb-2" />
           <p>No users found matching "{searchTerm}"</p>
           <p className="text-xs">Try a different search term</p>
@@ -266,9 +266,9 @@ export default function AuthorAssignmentDialog({
                 <User className="h-8 w-8 text-gray-400" />
                 <div>
                   <div className="font-medium">{user.name}</div>
-                  <div className="text-sm text-gray-600">{user.email}</div>
+                  <div className="text-sm text-muted-foreground">{user.email}</div>
                   {user.organization && (
-                    <div className="text-sm text-gray-500">{user.organization}</div>
+                    <div className="text-sm text-muted-foreground">{user.organization}</div>
                   )}
                   {user.role && (
                     <Badge variant="outline" className="text-xs mt-1">
@@ -306,7 +306,7 @@ export default function AuthorAssignmentDialog({
           <div>
             <h3 className="font-semibold mb-3">Current Authors ({authors.length})</h3>
             {authors.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 No authors assigned yet. Add authors using the tabs below.
               </div>
             ) : (
@@ -319,9 +319,9 @@ export default function AuthorAssignmentDialog({
                       </div>
                       <div>
                         <div className="font-medium">{author.name}</div>
-                        <div className="text-sm text-gray-600">{author.email}</div>
+                        <div className="text-sm text-muted-foreground">{author.email}</div>
                         {author.affiliation && (
-                          <div className="text-sm text-gray-500">{author.affiliation}</div>
+                          <div className="text-sm text-muted-foreground">{author.affiliation}</div>
                         )}
                       </div>
                       <div className="flex items-center space-x-2">
@@ -387,7 +387,7 @@ export default function AuthorAssignmentDialog({
                 </div>
                 
                 {/* Search instructions */}
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Only attendees and organizers will be shown in search results.
                 </p>
               </div>

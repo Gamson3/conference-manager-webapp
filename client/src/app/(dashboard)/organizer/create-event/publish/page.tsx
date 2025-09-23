@@ -337,7 +337,7 @@ export default function PublishEventPage() {
             <h1 className="text-3xl font-bold">
               Publish Conference & Configure Submissions
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-muted-foreground mt-2">
               Set up submission guidelines and publish your conference to start
               accepting papers.
             </p>
@@ -377,13 +377,13 @@ export default function PublishEventPage() {
           <CardContent className="space-y-4">
             <div>
               <h3 className="font-semibold text-lg">{event?.name}</h3>
-              <p className="text-gray-600 text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 {event?.description}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-500">Date:</span>
+                <span className="text-muted-foreground">Date:</span>
                 <br />
                 <span>
                   {event?.startDate
@@ -392,7 +392,7 @@ export default function PublishEventPage() {
                 </span>
               </div>
               <div>
-                <span className="text-gray-500">Location:</span>
+                <span className="text-muted-foreground">Location:</span>
                 <br />
                 <span>{event?.location || "Not set"}</span>
               </div>

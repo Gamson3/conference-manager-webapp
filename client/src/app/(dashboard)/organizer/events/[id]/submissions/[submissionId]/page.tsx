@@ -177,7 +177,7 @@ export default function OrganizerReviewPage() {
       {/* Prominent Header with Title and Actions */}
       <div className="mb-6 bg-white border rounded-lg shadow-sm p-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
           <div className="flex flex-wrap gap-2 mt-2 items-center">
             <Badge
               className={
@@ -198,7 +198,7 @@ export default function OrganizerReviewPage() {
                 ? "Rejected"
                 : "Revision Requested"}
             </Badge>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted-foreground">
               Submitted on{" "}
               {new Date(submission.createdAt).toLocaleDateString()}
             </span>
@@ -221,7 +221,7 @@ export default function OrganizerReviewPage() {
               {abstract ? (
                 <p className="whitespace-pre-wrap text-gray-700">{abstract}</p>
               ) : (
-                <p className="text-gray-500 italic">No abstract provided for this submission</p>
+                <p className="text-muted-foreground italic">No abstract provided for this submission</p>
               )}
             </CardContent>
           </Card>
@@ -241,7 +241,7 @@ export default function OrganizerReviewPage() {
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
                     <span className="text-xl">📄</span>
                   </div>
-                  <p className="text-gray-500">
+                  <p className="text-muted-foreground">
                     No supporting materials were submitted with this presentation.
                   </p>
                 </div>
@@ -278,7 +278,7 @@ export default function OrganizerReviewPage() {
                           {score}
                         </button>
                       ))}
-                      <span className="ml-3 text-sm text-gray-500">
+                      <span className="ml-3 text-sm text-muted-foreground">
                         {!reviewScores[criteria.id]
                           ? "Not rated"
                           : reviewScores[criteria.id] <= 2
@@ -363,19 +363,19 @@ export default function OrganizerReviewPage() {
             <CardContent className="pt-0">
               <dl className="divide-y">
                 <div className="py-2 flex justify-between">
-                  <dt className="text-sm text-gray-500">Category</dt>
+                  <dt className="text-sm text-muted-foreground">Category</dt>
                   <dd className="text-sm font-medium">{track}</dd>
                 </div>
                 <div className="py-2 flex justify-between">
-                  <dt className="text-sm text-gray-500">Presentation Type</dt>
+                  <dt className="text-sm text-muted-foreground">Presentation Type</dt>
                   <dd className="text-sm font-medium">{type}</dd>
                 </div>
                 <div className="py-2 flex justify-between">
-                  <dt className="text-sm text-gray-500">Duration</dt>
+                  <dt className="text-sm text-muted-foreground">Duration</dt>
                   <dd className="text-sm font-medium">{duration} mins</dd>
                 </div>
                 {/* <div className="py-2 flex justify-between">
-                  <dt className="text-sm text-gray-500">Keywords</dt>
+                  <dt className="text-sm text-muted-foreground">Keywords</dt>
                   <dd className="text-sm font-medium">{keywords?.join(", ")}</dd>
                 </div> */}
               </dl>
@@ -389,7 +389,7 @@ export default function OrganizerReviewPage() {
                       </Badge>
                     ))
                   ) : (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       No keywords specified
                     </p>
                   )}
@@ -409,11 +409,11 @@ export default function OrganizerReviewPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-medium">{author.authorName}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {author.authorEmail}
                         </p>
                         {author.affiliation && (
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-muted-foreground">
                             {author.affiliation}
                           </p>
                         )}
@@ -428,7 +428,7 @@ export default function OrganizerReviewPage() {
                 </>
               ) : (
                 <div className="py-3 text-center">
-                  <p className="text-gray-500">
+                  <p className="text-muted-foreground">
                     No primary author information available
                   </p>
                 </div>
@@ -451,7 +451,7 @@ export default function OrganizerReviewPage() {
                           )}
                         </div>
                         {co.affiliation && (
-                          <span className="text-gray-500 text-xs block">
+                          <span className="text-muted-foreground text-xs block">
                             {co.affiliation}
                           </span>
                         )}
@@ -459,7 +459,7 @@ export default function OrganizerReviewPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     No co-authors listed for this submission
                   </p>
                 )}
@@ -478,7 +478,7 @@ export default function OrganizerReviewPage() {
                     <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                     <div>
                       <p className="font-medium">{status.action.replace("_", " ")}</p>
-                      <p className="text-gray-500 text-xs">{status.date}</p>
+                      <p className="text-muted-foreground text-xs">{status.date}</p>
                     </div>
                   </div>
                 ))}

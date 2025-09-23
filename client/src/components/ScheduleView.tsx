@@ -125,7 +125,7 @@ export default function ScheduleView({
         <h3 className="text-lg font-semibold text-red-600 mb-2">
           Failed to Load Schedule
         </h3>
-        <p className="text-gray-500 mb-4">{error}</p>
+        <p className="text-muted-foreground mb-4">{error}</p>
         <Button onClick={fetchPresentations}>
           Try Again
         </Button>
@@ -158,7 +158,7 @@ export default function ScheduleView({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold">Conference Schedule</h2>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {presentations.length} presentation{presentations.length !== 1 ? 's' : ''} available
           </p>
         </div>

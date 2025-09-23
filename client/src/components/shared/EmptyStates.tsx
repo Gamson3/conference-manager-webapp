@@ -76,7 +76,7 @@ export function EmptySearchResults({
       <CardContent className="text-center py-12">
         <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
         <h3 className="text-lg font-semibold mb-2">No results found</h3>
-        <p className="text-gray-500 mb-6">
+        <p className="text-muted-foreground mb-6">
           No presentations match your search for "{query}"
         </p>
         <div className="flex justify-center gap-2">
@@ -106,7 +106,7 @@ export function EmptyFavorites({
     <div className={cn("text-center py-16", className)}>
       <Heart className="h-16 w-16 mx-auto text-gray-300 mb-6" />
       <h3 className="text-xl font-semibold mb-3">No favorites yet</h3>
-      <p className="text-gray-500 mb-6 max-w-md mx-auto">
+      <p className="text-muted-foreground mb-6 max-w-md mx-auto">
         Start exploring presentations and save the ones you're interested in to see them here.
       </p>
       <Button onClick={onDiscoverClick}>
@@ -135,7 +135,7 @@ export function EmptySchedule({
           <>
             <Filter className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold mb-2">No matching sessions</h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-muted-foreground mb-6">
               No sessions found for the current filter. Try adjusting your filters.
             </p>
             <Button variant="outline" onClick={onResetFilters}>
@@ -146,7 +146,7 @@ export function EmptySchedule({
           <>
             <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold mb-2">Schedule not available</h3>
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               The schedule for this conference hasn't been published yet.
             </p>
           </>
@@ -171,7 +171,7 @@ export function EmptyPresentations({
         <>
           <Filter className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold mb-2">No matching presentations</h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             Try adjusting your filters or search criteria
           </p>
           <Button variant="outline" onClick={onResetFilters}>
@@ -182,7 +182,7 @@ export function EmptyPresentations({
         <>
           <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold mb-2">No presentations available</h3>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Presentations will appear here once they're added to the conference.
           </p>
         </>
@@ -206,7 +206,7 @@ export function NoDataState({
     <div className={cn("text-center py-12", className)}>
       <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-gray-500 mb-4">{description}</p>
+      <p className="text-muted-foreground mb-4">{description}</p>
       {action && (
         <Button onClick={action.onClick}>
           {action.label}
@@ -239,7 +239,7 @@ export function EmptyStateNoResults({ message = "No results found" }: { message:
     <div className="text-center py-12">
       <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
       <h3 className="text-lg font-semibold mb-2">No Results</h3>
-      <p className="text-gray-500">{message}</p>
+      <p className="text-muted-foreground">{message}</p>
     </div>
   );
 }
@@ -260,7 +260,7 @@ export default function EmptyStates({
       <h3 className="text-lg font-semibold mb-2">
         {title || config.title}
       </h3>
-      <p className="text-gray-500 mb-4">
+      <p className="text-muted-foreground mb-4">
         {description || config.description}
       </p>
       {action && (

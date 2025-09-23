@@ -163,7 +163,7 @@ export default function ViewEventDetailsPage() {
       {/* Back button */}
       <Button
         variant="ghost"
-        className="mb-8 pl-0 flex items-center text-gray-600 hover:text-gray-900"
+        className="mb-8 pl-0 flex items-center text-muted-foreground hover:text-foreground"
         onClick={() => router.push('/attendee/view-event')}
       >
         <ArrowLeftIcon className="h-4 w-4 mr-2" />
@@ -298,9 +298,9 @@ export default function ViewEventDetailsPage() {
                         Venue Information
                       </h4>
                       <p className="font-medium">{event.venue.name}</p>
-                      <p className="text-gray-600">{event.venue.address}</p>
+                      <p className="text-muted-foreground">{event.venue.address}</p>
                       {event.venue.room && (
-                        <p className="text-gray-600 mt-1">Room: {event.venue.room}</p>
+                        <p className="text-muted-foreground mt-1">Room: {event.venue.room}</p>
                       )}
                     </div>
                   </CardContent>
@@ -318,24 +318,24 @@ export default function ViewEventDetailsPage() {
                   <CardContent className="p-6">
                     <div className="space-y-4">
                       <div>
-                        <p className="text-sm text-gray-500">Organizer</p>
+                        <p className="text-sm text-muted-foreground">Organizer</p>
                         <p className="font-medium">{event.organizer}</p>
                       </div>
                       
                       <div>
-                        <p className="text-sm text-gray-500">Registration Date</p>
+                        <p className="text-sm text-muted-foreground">Registration Date</p>
                         <p className="font-medium">
                           {new Date(event.registrationDate).toLocaleDateString()}
                         </p>
                       </div>
                       
                       <div>
-                        <p className="text-sm text-gray-500">Total Sessions</p>
+                        <p className="text-sm text-muted-foreground">Total Sessions</p>
                         <p className="font-medium">{event.sessions.length}</p>
                       </div>
                       
                       <div>
-                        <p className="text-sm text-gray-500">Available Materials</p>
+                        <p className="text-sm text-muted-foreground">Available Materials</p>
                         <p className="font-medium">{event.materials.length}</p>
                       </div>
                     </div>
@@ -410,11 +410,11 @@ export default function ViewEventDetailsPage() {
                                   {session.title}
                                 </h4>
                                 
-                                <p className="text-gray-600 mb-3">
+                                <p className="text-muted-foreground mb-3">
                                   {session.description}
                                 </p>
                                 
-                                <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                                   <div className="flex items-center">
                                     <ClockIcon className="h-4 w-4 mr-1 text-indigo-500" />
                                     {session.startTime} - {session.endTime}
@@ -470,7 +470,7 @@ export default function ViewEventDetailsPage() {
                     <h4 className="text-xl font-semibold mb-2">
                       No sessions available
                     </h4>
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                       Sessions for this event have not been scheduled yet.
                     </p>
                   </div>
@@ -508,14 +508,14 @@ export default function ViewEventDetailsPage() {
                             {speaker.name}
                           </h4>
                           
-                          <p className="text-gray-500 text-center">
+                          <p className="text-muted-foreground text-center">
                             {speaker.title}
                           </p>
                         </div>
                         
                         <Separator className="my-4" />
                         
-                        <p className="text-gray-600">
+                        <p className="text-muted-foreground">
                           {speaker.bio}
                         </p>
                       </CardContent>
@@ -528,7 +528,7 @@ export default function ViewEventDetailsPage() {
                   <h4 className="text-xl font-semibold mb-2">
                     No speakers information available
                   </h4>
-                  <p className="text-gray-500">
+                  <p className="text-muted-foreground">
                     Speaker information for this event has not been added yet.
                   </p>
                 </div>
@@ -561,7 +561,7 @@ export default function ViewEventDetailsPage() {
                                 <p className="font-medium">
                                   {material.title}
                                 </p>
-                                <p className="text-gray-500 text-sm">
+                                <p className="text-muted-foreground text-sm">
                                   {material.type} • Added on {new Date(material.uploadDate).toLocaleDateString()}
                                 </p>
                               </div>
@@ -587,7 +587,7 @@ export default function ViewEventDetailsPage() {
                     <h4 className="text-xl font-semibold mb-2">
                       No materials available
                     </h4>
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                       No materials have been uploaded for this event yet.
                     </p>
                   </div>

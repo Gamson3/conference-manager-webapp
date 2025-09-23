@@ -447,7 +447,7 @@ export default function SetupSessionsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Setup Sessions</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-muted-foreground mt-2">
               Create sessions to organize your conference content and
               presentations.
             </p>
@@ -465,7 +465,7 @@ export default function SetupSessionsPage() {
             <CardTitle className="text-lg">{event.name}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-6 text-sm text-gray-600">
+            <div className="flex gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 {new Date(event.startDate).toLocaleDateString()} -{" "}
@@ -508,10 +508,10 @@ export default function SetupSessionsPage() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-foreground">
                           {session.name}
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">
+                        <div className="text-sm text-muted-foreground mt-1">
                           <div className="flex items-center gap-4 flex-wrap">
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -534,7 +534,7 @@ export default function SetupSessionsPage() {
                           </div>
                         </div>
                         {session.description && (
-                          <div className="text-sm text-gray-500 mt-2">
+                          <div className="text-sm text-muted-foreground mt-2">
                             {session.description}
                           </div>
                         )}
@@ -577,7 +577,7 @@ export default function SetupSessionsPage() {
                 ? "Create Your First Session"
                 : "Add Another Session"}
             </h3>
-            <p className="text-gray-500 text-center max-w-md mb-6">
+            <p className="text-muted-foreground text-center max-w-md mb-6">
               Sessions help organize your conference into manageable blocks of
               presentations, workshops, or other activities.
             </p>

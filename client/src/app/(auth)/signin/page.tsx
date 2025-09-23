@@ -84,7 +84,7 @@ export default function SignInPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your Username or Email address"
                 required
-                className="w-full mt-1 h-13 !text-base placeholder:text-gray-500"
+                className="w-full mt-1 h-13 !text-base placeholder:text-muted-foreground"
               />
             </div>
 
@@ -98,12 +98,12 @@ export default function SignInPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter Password"
                   required
-                  className="w-full mt-1 pr-10 h-13 !text-base placeholder:text-gray-500"
+                  className="w-full mt-1 pr-10 h-13 !text-base placeholder:text-muted-foreground"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-gray-700"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -111,7 +111,7 @@ export default function SignInPage() {
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-gray-500 pt-1">
+            <div className="flex justify-between items-center text-muted-foreground pt-1">
               <Link href="/forgot-password" className="hover:underline text-base">
                 Forgot Password?
               </Link>
@@ -125,7 +125,7 @@ export default function SignInPage() {
             </div>
           </form>
 
-          <p className="text-center text-gray-500 text-base mt-4">
+          <p className="text-center text-muted-foreground text-base mt-4">
             Don't have an account?{" "}
             <Link href="/signup" className="text-blue-500 hover:underline">
               Create Account

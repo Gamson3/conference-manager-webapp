@@ -26,7 +26,7 @@ export default function ConferenceTreePage() {
         </Button>
         <div className="flex-1">
           <h1 className="text-xl font-bold">Conference Schedule</h1>
-          <p className="text-gray-600 text-xs">Navigate through the complete conference program</p>
+          <p className="text-muted-foreground text-xs">Navigate through the complete conference program</p>
         </div>
       </div>
 

@@ -57,7 +57,7 @@ export function PresentationDetailDialog({
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-semibold mb-3 text-gray-900">Authors</h4>
+              <h4 className="font-semibold mb-3 text-foreground">Authors</h4>
               <div className="space-y-2">
                 {Array.isArray(presentation.authors) &&
                   presentation.authors.map((author, index) => (
@@ -66,10 +66,10 @@ export function PresentationDetailDialog({
                       className="flex items-center justify-between bg-white rounded p-3 border"
                     >
                       <div>
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-foreground">
                           {author.authorName}
                         </span>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {author.affiliation}
                         </p>
                       </div>
@@ -87,7 +87,7 @@ export function PresentationDetailDialog({
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-semibold mb-3 text-gray-900">Abstract</h4>
+              <h4 className="font-semibold mb-3 text-foreground">Abstract</h4>
               <div className="bg-white rounded p-4 border">
                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
                   {presentation.abstract}

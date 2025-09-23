@@ -193,21 +193,21 @@ export default function RegisteredConferences() {
                           </div>
                           
                           <div className="space-y-2 mb-4">
-                            <div className="flex items-center text-gray-500">
+                            <div className="flex items-center text-muted-foreground">
                               <CalendarIcon className="h-4 w-4 mr-2" />
                               <span className="text-sm">
                                 {new Date(conference.startDate).toLocaleDateString()} - {new Date(conference.endDate).toLocaleDateString()}
                               </span>
                             </div>
                             
-                            <div className="flex items-center text-gray-500">
+                            <div className="flex items-center text-muted-foreground">
                               <MapPinIcon className="h-4 w-4 mr-2" />
                               <span className="text-sm">
                                 {conference.location}
                               </span>
                             </div>
                             
-                            <div className="flex items-center text-gray-500">
+                            <div className="flex items-center text-muted-foreground">
                               <UserIcon className="h-4 w-4 mr-2" />
                               <span className="text-sm">
                                 Organized by {conference.organizer}
@@ -219,7 +219,7 @@ export default function RegisteredConferences() {
                           
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="text-sm text-gray-500 mb-1">
+                              <p className="text-sm text-muted-foreground mb-1">
                                 Registration ID
                               </p>
                               <p className="font-medium">
@@ -276,7 +276,7 @@ export default function RegisteredConferences() {
                 <h2 className="text-lg font-semibold mb-2">
                   No registered conferences
                 </h2>
-                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   {filter === 'upcoming' 
                     ? "You haven't registered for any upcoming conferences." 
                     : filter === 'past' 
@@ -314,7 +314,7 @@ export default function RegisteredConferences() {
               />
             </div>
             
-            <p className="text-center mt-4 text-sm text-gray-500">
+            <p className="text-center mt-4 text-sm text-muted-foreground">
               Registration ID: {showQRCode}
             </p>
           </div>

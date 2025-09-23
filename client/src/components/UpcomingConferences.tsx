@@ -139,21 +139,21 @@ export default function UpcomingConferences() {
                     {conference.title}
                   </h2>
                   
-                  <div className="flex items-center text-gray-500 mb-1">
+                  <div className="flex items-center text-muted-foreground mb-1">
                     <CalendarIcon className="h-4 w-4 mr-2" />
                     <p className="text-sm">
                       {new Date(conference.startDate).toLocaleDateString()} - {new Date(conference.endDate).toLocaleDateString()}
                     </p>
                   </div>
                   
-                  <div className="flex items-center text-gray-500 mb-3">
+                  <div className="flex items-center text-muted-foreground mb-3">
                     <MapPinIcon className="h-4 w-4 mr-2" />
                     <p className="text-sm">
                       {conference.location}
                     </p>
                   </div>
                   
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
                     {conference.description}
                   </p>
                   
@@ -195,7 +195,7 @@ export default function UpcomingConferences() {
           <h2 className="text-xl font-semibold mb-2">
             No conferences match your search
           </h2>
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             Try adjusting your search terms or check back later
           </p>
           {searchTerm && (

@@ -149,7 +149,7 @@ export default function MaterialsDashboard() {
     } else if (type.includes('powerpoint') || type.includes('ppt')) {
       return <FileText className="h-8 w-8 text-orange-500" />;
     } else {
-      return <File className="h-8 w-8 text-gray-500" />;
+      return <File className="h-8 w-8 text-muted-foreground" />;
     }
   };
 
@@ -200,7 +200,7 @@ export default function MaterialsDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold">Presentation Materials</h1>
-          <p className="text-gray-500">Upload and manage materials for your presentations</p>
+          <p className="text-muted-foreground">Upload and manage materials for your presentations</p>
         </div>
       </div>
       
@@ -274,7 +274,7 @@ export default function MaterialsDashboard() {
                 <div className="text-center py-6 border border-dashed border-gray-300 rounded-lg">
                   <Upload className="h-10 w-10 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">No materials found</h3>
-                  <p className="text-gray-500">
+                  <p className="text-muted-foreground">
                     {selectedPresentation 
                       ? "You haven't uploaded any materials for this presentation yet."
                       : "You haven't uploaded any materials yet."}
@@ -287,7 +287,7 @@ export default function MaterialsDashboard() {
                       {getFileIcon(material.fileType)}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium truncate">{material.title}</h4>
-                        <p className="text-sm text-gray-500 truncate">
+                        <p className="text-sm text-muted-foreground truncate">
                           For: {material.presentationTitle}
                         </p>
                         <p className="text-xs text-gray-400">

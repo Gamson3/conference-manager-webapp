@@ -94,7 +94,7 @@ export function MaterialUploader({ presentationId, onUploadComplete }: MaterialU
       case 'pptx':
         return <FileText className="h-8 w-8 text-orange-500" />;
       default:
-        return <File className="h-8 w-8 text-gray-500" />;
+        return <File className="h-8 w-8 text-muted-foreground" />;
     }
   };
 
@@ -106,7 +106,7 @@ export function MaterialUploader({ presentationId, onUploadComplete }: MaterialU
             {getFileIcon()}
             <div className="flex-1">
               <p className="font-medium truncate">{file.name}</p>
-              <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+              <p className="text-sm text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
             </div>
             <Button 
               variant="ghost" 
@@ -161,7 +161,7 @@ export function MaterialUploader({ presentationId, onUploadComplete }: MaterialU
             <Upload className="h-10 w-10 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium mb-2">Upload Material</h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             Drag and drop a file, or click to select
           </p>
           <div className="flex justify-center">

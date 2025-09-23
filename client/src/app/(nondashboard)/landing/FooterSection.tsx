@@ -68,7 +68,7 @@ const FooterSection = () => {
             </a>
           </div>
         </div>
-        <div className="mt-8 text-center text-sm text-gray-500 flex justify-center space-x-4">
+        <div className="mt-8 text-center text-sm text-muted-foreground flex justify-center space-x-4">
           <span>© All rights reserved.</span>
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms of Service</Link>

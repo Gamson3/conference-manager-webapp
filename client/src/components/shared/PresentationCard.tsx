@@ -168,7 +168,7 @@ export default function PresentationCard({
 
       <CardContent className="pt-0" onClick={handleClick}>
         {!compact && presentation.abstract && (
-          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
             {presentation.abstract}
           </p>
         )}
@@ -176,7 +176,7 @@ export default function PresentationCard({
         {/* Authors */}
         {presentation.authors.length > 0 && (
           <div className="mb-4">
-            <div className="flex items-center text-sm text-gray-500 mb-2">
+            <div className="flex items-center text-sm text-muted-foreground mb-2">
               <User className="h-3 w-3 mr-1" />
               <span>Speakers</span>
             </div>
@@ -214,7 +214,7 @@ export default function PresentationCard({
         )}
 
         {/* Session Details */}
-        <div className="space-y-2 text-sm text-gray-500">
+        <div className="space-y-2 text-sm text-muted-foreground">
           {presentation.section.startTime && (
             <div className="flex items-center">
               <Clock className="h-3 w-3 mr-2" />

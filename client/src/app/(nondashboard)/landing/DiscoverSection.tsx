@@ -32,10 +32,10 @@ const DiscoverSection = () => {
             className="my-12 text-center "
             >
                 <h2 className="text-3xl font-semibold leading-tight text-gray-800">Discover Powerful Conference Features</h2>
-                <p className="mt-4 text-lg text-gray-600">
+                <p className="mt-4 text-lg text-muted-foreground">
                     Designed for attendees, organizers, and all.
                 </p>
-                <p className="mt-2 text-gray-500 max-w-3xl mx-auto">
+                <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
                     From searching presentations to managing schedules and uploading content, 
                     our platform offers robust features tailored to academic conferences. 
                     Whether you're an organizer or a participant, discover tools that simplify your experience. 
@@ -92,7 +92,7 @@ const DiscoverCard = ({
             />
         </div>
         <h3 className="mt-4 text-xl font-medium text-gray-800">{title}</h3>
-        <p className="mt-2 text-base text-gray-500">{description}</p>
+        <p className="mt-2 text-base text-muted-foreground">{description}</p>
         
     </div>
 )

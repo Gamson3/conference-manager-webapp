@@ -139,7 +139,7 @@ export default function FavoritesPanel({ onJumpToPresentation }: FavoritesPanelP
             </div>
             <div>
               <span>My Favorites ({favorites.length})</span>
-              <p className="text-sm font-normal text-gray-600 mt-1">
+              <p className="text-sm font-normal text-muted-foreground mt-1">
                 Your saved presentations and sessions
               </p>
             </div>
@@ -155,7 +155,7 @@ export default function FavoritesPanel({ onJumpToPresentation }: FavoritesPanelP
       </CardHeader>
       <CardContent className="border-t border-gray-200">
         {favorites.length === 0 ? (
-          <div className="mt-4 text-center py-6 text-gray-500">
+          <div className="mt-4 text-center py-6 text-muted-foreground">
             <Heart className="h-8 w-8 mx-auto mb-2 text-gray-300" />
             <p>No favorite presentations yet</p>
             <Button
@@ -187,7 +187,7 @@ export default function FavoritesPanel({ onJumpToPresentation }: FavoritesPanelP
                   </Button>
                 </div>
                 
-                <div className="space-y-1 text-xs text-gray-600">
+                <div className="space-y-1 text-xs text-muted-foreground">
                   <p className="font-medium">{favorite.presentation.section.day.conference.name}</p>
                   <p>{favorite.presentation.section.day.name} • {favorite.presentation.section.name}</p>
                 </div>

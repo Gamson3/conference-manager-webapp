@@ -42,7 +42,7 @@ export function ScheduledPresentationCard({
           <h4 className="font-medium text-sm line-clamp-2">
             {presentation.title}
           </h4>
-          <p className="text-xs text-gray-500 mt-1 truncate">
+          <p className="text-xs text-muted-foreground mt-1 truncate">
             {presentation.authors?.[0]?.authorName}
             {presentation.authors &&
               presentation.authors.length > 1 &&
@@ -62,7 +62,7 @@ export function ScheduledPresentationCard({
                 {presentation.category.name}
               </Badge>
             )}
-            <span className="text-xs text-gray-500 flex items-center">
+            <span className="text-xs text-muted-foreground flex items-center">
               <ClockIcon className="h-3 w-3 mr-1" />
               {presentation.finalDuration || 0}min
             </span>

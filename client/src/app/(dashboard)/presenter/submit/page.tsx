@@ -211,7 +211,7 @@ export default function SubmitPresentation() {
               <CardDescription>No conferences are currently accepting submissions</CardDescription>
             </CardHeader>
             <CardContent className="py-8">
-              <p className="text-center text-gray-500 mb-6">
+              <p className="text-center text-muted-foreground mb-6">
                 There are no conferences currently accepting presentation submissions.
                 Please check back later or contact the conference organizers.
               </p>

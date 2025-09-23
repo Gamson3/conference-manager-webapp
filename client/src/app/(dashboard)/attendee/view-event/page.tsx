@@ -201,7 +201,7 @@ export default function ViewEventsPage() {
               <CardContent className="p-6">
                 <h2 className="font-bold mb-2 text-xl">{event.title}</h2>
 
-                <div className="flex items-center text-gray-500 mb-2">
+                <div className="flex items-center text-muted-foreground mb-2">
                   <CalendarIcon className="h-4 w-4 mr-2" />
                   <p className="text-sm">
                     {new Date(event.startDate).toLocaleDateString()} -{" "}
@@ -209,19 +209,19 @@ export default function ViewEventsPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center text-gray-500 mb-2">
+                <div className="flex items-center text-muted-foreground mb-2">
                   <MapPinIcon className="h-4 w-4 mr-2" />
                   <p className="text-sm">{event.location}</p>
                 </div>
 
-                <div className="flex items-center text-gray-500 mb-4">
+                <div className="flex items-center text-muted-foreground mb-4">
                   <UserIcon className="h-4 w-4 mr-2" />
                   <p className="text-sm">Organized by {event.organizer}</p>
                 </div>
 
                 {event.registrationId && (
                   <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md mb-2">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Registration ID: {event.registrationId}
                     </p>
                     <Button variant="ghost" size="sm" className="p-1 h-auto">
@@ -231,7 +231,7 @@ export default function ViewEventsPage() {
                 )}
 
                 {event.registrationDate && (
-                  <p className="text-gray-500 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     Registered on{" "}
                     {new Date(event.registrationDate).toLocaleDateString()}
                   </p>
@@ -280,7 +280,7 @@ export default function ViewEventsPage() {
       <div className="text-center py-16 px-6 bg-gray-50 rounded-lg">
         <TicketIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
         <h2 className="text-xl font-semibold mb-2">No {filter} events found</h2>
-        <p className="text-gray-500 mb-6 max-w-md mx-auto">
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
           {filter === "upcoming"
             ? "You don't have any upcoming events. Register for conferences to see them here."
             : filter === "active"

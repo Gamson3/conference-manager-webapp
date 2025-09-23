@@ -87,7 +87,7 @@ export function EnhancedSubmissionCard({
                   <h3 className="font-semibold text-lg mb-1">{submission.title}</h3>
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     {getStatusBadge(submission.reviewStatus)}
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       Submitted {daysSinceSubmission === 0 ? 'today' : daysSinceSubmission === 1 ? 'yesterday' : `${daysSinceSubmission} days ago`}
                     </span>
                     {submission.isLateSubmission === true && (
@@ -104,7 +104,7 @@ export function EnhancedSubmissionCard({
               
               {/* Key information with icons */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 mb-3">
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-muted-foreground">
                   <Users className="h-4 w-4 mr-1 flex-shrink-0" />
                   <span className="truncate">
                     {submission.authors.length} author(s)
@@ -115,7 +115,7 @@ export function EnhancedSubmissionCard({
                   </span>
                 </div>
                 
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-muted-foreground">
                   <Clock className="h-4 w-4 mr-1 flex-shrink-0" />
                   <span className="truncate">
                     {submission.duration || submission.requestedDuration || "?"} minutes
@@ -123,14 +123,14 @@ export function EnhancedSubmissionCard({
                 </div>
                 
                 {submission.category && (
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Tag className="h-4 w-4 mr-1 flex-shrink-0" />
                     <span className="truncate">{submission.category.name}</span>
                   </div>
                 )}
                 
                 {submission.presentationType && (
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <FileText className="h-4 w-4 mr-1 flex-shrink-0" />
                     <span className="truncate">{submission.presentationType.name}</span>
                   </div>
@@ -140,7 +140,7 @@ export function EnhancedSubmissionCard({
               {/* Preview primary author - with link to view all */}
               <div className="mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs uppercase text-gray-500 font-medium">Primary Author:</span>
+                  <span className="text-xs uppercase text-muted-foreground font-medium">Primary Author:</span>
                   {submission.authors[0] ? (
                     <Badge variant="outline" className="bg-gray-50">
                       {submission.authors[0].authorName}
@@ -150,7 +150,7 @@ export function EnhancedSubmissionCard({
                     <span className="text-sm text-gray-400 italic">No authors specified</span>
                   )}
                   {submission.authors.length > 1 && (
-                    <span className="text-xs text-gray-500">+{submission.authors.length - 1} more</span>
+                    <span className="text-xs text-muted-foreground">+{submission.authors.length - 1} more</span>
                   )}
                 </div>
               </div>
@@ -214,7 +214,7 @@ export function EnhancedSubmissionCard({
         {submission.reviewComments && (
           <div className="mt-4 ml-9 border-t pt-4">
             <details className="text-sm">
-              <summary className="text-xs uppercase text-gray-500 font-medium cursor-pointer hover:text-gray-700">
+              <summary className="text-xs uppercase text-muted-foreground font-medium cursor-pointer hover:text-gray-700">
                 Review Feedback
               </summary>
               <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{submission.reviewComments}</p>

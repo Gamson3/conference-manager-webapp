@@ -478,7 +478,7 @@ export default function SetupCategoriesPage() {
         <div className="flex items-center">
           <div>
             <h1 className="text-3xl font-bold">Setup Categories & Types</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-muted-foreground mt-2">
               Create categories and presentation types to organize your
               conference content.
             </p>
@@ -504,7 +504,7 @@ export default function SetupCategoriesPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold">Conference Categories</h2>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Organize your conference into logical tracks or themes
                 </p>
               </div>
@@ -520,7 +520,7 @@ export default function SetupCategoriesPage() {
                 <h3 className="text-lg font-semibold mb-2">
                   No categories yet
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Create categories to organize your presentations into logical
                   groups
                 </p>
@@ -586,7 +586,7 @@ export default function SetupCategoriesPage() {
                       </CardHeader>
                       <CardContent>
                         {category.description && (
-                          <p className="text-gray-600 mb-3 text-sm">
+                          <p className="text-muted-foreground mb-3 text-sm">
                             {category.description}
                           </p>
                         )}
@@ -613,7 +613,7 @@ export default function SetupCategoriesPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold">Presentation Types</h2>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Define different types of presentations with duration rules
                 </p>
               </div>
@@ -629,7 +629,7 @@ export default function SetupCategoriesPage() {
                 <h3 className="text-lg font-semibold mb-2">
                   No presentation types yet
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Create presentation types to define duration rules and
                   requirements
                 </p>
@@ -686,7 +686,7 @@ export default function SetupCategoriesPage() {
                       </CardHeader>
                       <CardContent>
                         {type.description && (
-                          <p className="text-gray-600 mb-3 text-sm">
+                          <p className="text-muted-foreground mb-3 text-sm">
                             {type.description}
                           </p>
                         )}

@@ -69,14 +69,14 @@ export function MaterialsList({ materials, onDelete }: MaterialsListProps) {
     } else if (type.includes('powerpoint') || type.includes('ppt')) {
       return <FileText className="h-8 w-8 text-orange-500" />;
     } else {
-      return <File className="h-8 w-8 text-gray-500" />;
+      return <File className="h-8 w-8 text-muted-foreground" />;
     }
   };
 
   if (materials.length === 0) {
     return (
       <div className="text-center py-6 border border-dashed border-gray-300 rounded-lg">
-        <p className="text-gray-500">No materials have been uploaded yet</p>
+        <p className="text-muted-foreground">No materials have been uploaded yet</p>
       </div>
     );
   }
@@ -91,7 +91,7 @@ export function MaterialsList({ materials, onDelete }: MaterialsListProps) {
             {getFileIcon(material.fileType)}
             <div className="flex-1 min-w-0">
               <h4 className="font-medium truncate">{material.title}</h4>
-              <p className="text-sm text-gray-500 truncate">
+              <p className="text-sm text-muted-foreground truncate">
                 Uploaded on {new Date(material.uploadedAt).toLocaleDateString()}
               </p>
             </div>

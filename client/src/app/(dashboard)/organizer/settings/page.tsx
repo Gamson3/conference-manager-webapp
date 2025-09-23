@@ -167,7 +167,7 @@ const OrganizerSettings = () => {
         className="mb-8"
       >
         <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
-        <p className="text-gray-500 mt-1">
+        <p className="text-muted-foreground mt-1">
           Manage your account preferences and settings
         </p>
       </motion.div>
@@ -313,14 +313,14 @@ const OrganizerSettings = () => {
                       placeholder="Tell us about yourself"
                       className="w-full min-h-[100px] p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       This bio will appear on your public profile and in organizer listings.
                     </p>
                   </div>
                 </CardContent>
                 
                 <CardFooter className="flex justify-between border-t bg-gray-50 p-6">
-                  <p className="text-sm text-gray-500">Last updated on {new Date().toLocaleDateString()}</p>
+                  <p className="text-sm text-muted-foreground">Last updated on {new Date().toLocaleDateString()}</p>
                   <Button 
                     type="submit" 
                     className="bg-primary hover:bg-primary-700 hover:text-white items-center shadow-gray-400 cursor-pointer"
@@ -375,7 +375,7 @@ const OrganizerSettings = () => {
                       type="password"
                       placeholder="Enter your new password"
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Password must be at least 8 characters and include a number and special character.
                     </p>
                   </div>
@@ -404,7 +404,7 @@ const OrganizerSettings = () => {
                   <div className="flex justify-between items-center">
                     <div>
                       <h4 className="font-medium">Two-factor Authentication</h4>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         Add an extra layer of security to your account
                       </p>
                     </div>
@@ -414,7 +414,7 @@ const OrganizerSettings = () => {
                   <div className="flex justify-between items-center">
                     <div>
                       <h4 className="font-medium">Active Sessions</h4>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         Manage your active login sessions
                       </p>
                     </div>
@@ -453,7 +453,7 @@ const OrganizerSettings = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-medium">Event Updates</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Receive notifications about your created events
                           </p>
                         </div>
@@ -466,7 +466,7 @@ const OrganizerSettings = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-medium">Event Reminders</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Get reminders about upcoming events and deadlines
                           </p>
                         </div>
@@ -479,7 +479,7 @@ const OrganizerSettings = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-medium">Marketing Emails</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Receive promotional content and special offers
                           </p>
                         </div>
@@ -492,7 +492,7 @@ const OrganizerSettings = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-medium">New Features</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Stay updated on new platform features and improvements
                           </p>
                         </div>
@@ -508,7 +508,7 @@ const OrganizerSettings = () => {
                   
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Notification Schedule</h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Choose when you'd like to receive digest emails
                     </p>
                     
@@ -582,7 +582,7 @@ const OrganizerSettings = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-medium">Dark Mode</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Switch between light and dark theme
                           </p>
                         </div>
@@ -595,7 +595,7 @@ const OrganizerSettings = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-medium">Compact Mode</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Reduce spacing to show more content
                           </p>
                         </div>
@@ -608,7 +608,7 @@ const OrganizerSettings = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-medium">High Contrast</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Increase contrast for better accessibility
                           </p>
                         </div>
@@ -683,7 +683,7 @@ const OrganizerSettings = () => {
               </div>
               <div>
                 <h3 className="font-medium mb-1">Need help with your settings?</h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Visit our <a href="#" className="text-primary hover:underline">help center</a> or 
                   contact <a href="#" className="text-primary hover:underline">support</a> if you have any questions.
                 </p>

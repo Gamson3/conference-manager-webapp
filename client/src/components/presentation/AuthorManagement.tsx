@@ -95,7 +95,7 @@ export function AuthorManagement({
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-medium">Authors</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Add all contributing authors to your submission. Drag to reorder.
           </p>
         </div>

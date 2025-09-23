@@ -237,7 +237,7 @@ const ConferenceMaterials = () => {
                             </div>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500">{material.conferenceName}</p>
+                        <p className="text-sm text-muted-foreground">{material.conferenceName}</p>
                       </div>
                       <Badge variant="outline" className="flex items-center gap-1 capitalize">
                         {getFileIcon(material.fileType)}
@@ -246,7 +246,7 @@ const ConferenceMaterials = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-muted-foreground text-sm">
                       {material.description}
                     </p>
                     <p className="text-xs text-gray-400 mt-2">
@@ -287,7 +287,7 @@ const ConferenceMaterials = () => {
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <BookOpenIcon className="h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium mb-2">No Materials Found</h3>
-              <p className="text-gray-500 max-w-md">
+              <p className="text-muted-foreground max-w-md">
                 {searchTerm
                   ? "No materials match your search criteria. Try a different search term."
                   : "There are no materials available for this selection yet."}

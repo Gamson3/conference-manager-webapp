@@ -240,7 +240,7 @@ export default function EventDetailPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8">
+    <div className="w-full px-4 sm:px-6 lg:px-12 py-6 max-w-[1440px] mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <Button
@@ -258,12 +258,12 @@ export default function EventDetailPage() {
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold mb-3">{event.name}</h1>
+              <h1 className="text-3xl font-bold mb-2 text-foreground">{event.name}</h1>
               <Badge className={`px-3 py-1 ${getStatusColor(event.status)}`}>
                 {event.status.replace("_", " ").toUpperCase()}
               </Badge>
             </div>
-            <p className="text-gray-700 mb-4 mt-4">{event.description}</p>
+            <p className="text-muted-foreground mb-4">{event.description}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mt-4">
               <div className="flex items-center gap-2">
@@ -325,7 +325,7 @@ export default function EventDetailPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Attendees</p>
+                <p className="text-sm text-muted-foreground">Total Attendees</p>
                 <p className="text-2xl font-bold">
                   {event._count?.attendances || 0}
                 </p>
@@ -339,7 +339,7 @@ export default function EventDetailPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Sessions</p>
+                <p className="text-sm text-muted-foreground">Sessions</p>
                 <p className="text-2xl font-bold">
                   {event.sections?.length || 0}
                 </p>
@@ -353,7 +353,7 @@ export default function EventDetailPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Approved Presentations</p>
+                <p className="text-sm text-muted-foreground">Approved Presentations</p>
                 <p className="text-2xl font-bold">
                   {submissions.filter((s:any) => s.reviewStatus === "APPROVED").length || 0}
                 </p>
@@ -367,7 +367,7 @@ export default function EventDetailPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Submissions</p>
+                <p className="text-sm text-muted-foreground">Total Submissions</p>
                 <p className="text-2xl font-bold">{submissions.length}</p>
               </div>
               <Upload className="h-8 w-8 text-orange-600" />
@@ -379,7 +379,7 @@ export default function EventDetailPage() {
       {/* Action Buttons Section - Add this after Quick Stats */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Conference Management</CardTitle>
+          <CardTitle className="text-base">Conference Management</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -393,8 +393,8 @@ export default function EventDetailPage() {
             >
               <Calendar className="h-6 w-6 text-blue-600" />
               <div className="text-center">
-                <div className="font-medium">Schedule Builder</div>
-                <div className="text-xs text-gray-500">
+                <div className="font-medium text-foreground">Schedule Builder</div>
+                <div className="text-xs text-muted-foreground">
                   Build conference schedule
                 </div>
               </div>
@@ -428,8 +428,8 @@ export default function EventDetailPage() {
             >
               <Edit className="h-6 w-6 text-purple-600" />
               <div className="text-center">
-                <div className="font-medium">Edit Event</div>
-                <div className="text-xs text-gray-500">
+                <div className="font-medium text-foreground">Edit Event</div>
+                <div className="text-xs text-muted-foreground">
                   Modify event details
                 </div>
               </div>
@@ -452,8 +452,8 @@ export default function EventDetailPage() {
             >
               <FileText className="h-6 w-6 text-orange-600" />
               <div className="text-center">
-                <div className="font-medium">Review Submissions</div>
-                <div className="text-xs text-gray-500">
+                <div className="font-medium text-foreground">Review Submissions</div>
+                <div className="text-xs text-muted-foreground">
                   {submissions.length} pending review
                 </div>
               </div>
@@ -469,8 +469,8 @@ export default function EventDetailPage() {
             >
               <Users className="h-6 w-6 text-green-600" />
               <div className="text-center">
-                <div className="font-medium">Manage Attendees</div>
-                <div className="text-xs text-gray-500">
+                <div className="font-medium text-foreground">Manage Attendees</div>
+                <div className="text-xs text-muted-foreground">
                   {attendees.length} registered
                 </div>
               </div>
@@ -486,8 +486,8 @@ export default function EventDetailPage() {
             >
               <Clock className="h-6 w-6 text-indigo-600" />
               <div className="text-center">
-                <div className="font-medium">Manage Sessions</div>
-                <div className="text-xs text-gray-500">
+                <div className="font-medium text-foreground">Manage Sessions</div>
+                <div className="text-xs text-muted-foreground">
                   {event.sections?.length || 0} sessions
                 </div>
               </div>
@@ -503,8 +503,8 @@ export default function EventDetailPage() {
             >
               <BarChart3 className="h-6 w-6 text-teal-600" />
               <div className="text-center">
-                <div className="font-medium">Analytics</div>
-                <div className="text-xs text-gray-500">View insights</div>
+                <div className="font-medium text-foreground">Analytics</div>
+                <div className="text-xs text-muted-foreground">View insights</div>
               </div>
             </Button>
 
@@ -517,10 +517,10 @@ export default function EventDetailPage() {
                 toast.info("Export functionality coming soon");
               }}
             >
-              <Download className="h-6 w-6 text-gray-600" />
+              <Download className="h-6 w-6 text-muted-foreground" />
               <div className="text-center">
-                <div className="font-medium">Export Data</div>
-                <div className="text-xs text-gray-500">Download reports</div>
+                <div className="font-medium text-foreground">Export Data</div>
+                <div className="text-xs text-muted-foreground">Download reports</div>
               </div>
             </Button>
 
@@ -532,8 +532,8 @@ export default function EventDetailPage() {
             >
               <Trash2 className="h-6 w-6 text-red-600" />
               <div className="text-center">
-                <div className="font-medium">Delete Event</div>
-                <div className="text-xs text-gray-500">Permanent deletion</div>
+                <div className="font-medium text-foreground">Delete Event</div>
+                <div className="text-xs text-muted-foreground">Permanent deletion</div>
               </div>
             </Button>
           </div>
@@ -582,7 +582,7 @@ export default function EventDetailPage() {
           {/* Configuration Details - NEW SECTION */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Conference Configuration Details</CardTitle>
+              <CardTitle className="text-base">Conference Configuration Details</CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="categories" className="w-full">
@@ -618,11 +618,11 @@ export default function EventDetailPage() {
                           ></div>
                           <div className="flex-1">
                             <h4 className="font-medium">{category.name}</h4>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-muted-foreground">
                               {category.description}
                             </p>
                             {category._count && (
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-muted-foreground mt-1">
                                 {category._count.presentations || 0}{" "}
                                 presentations, {category._count.sections || 0}{" "}
                                 sections
@@ -637,7 +637,7 @@ export default function EventDetailPage() {
                       <div className="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                         <Plus className="h-6 w-6 text-gray-400" />
                       </div>
-                      <p className="text-gray-500 mb-2">
+                      <p className="text-muted-foreground mb-2">
                         No categories configured yet
                       </p>
                       <Button
@@ -662,10 +662,10 @@ export default function EventDetailPage() {
                       {event.presentationTypes.map((type: any) => (
                         <div key={type.id} className="p-3 border rounded-lg">
                           <h4 className="font-medium">{type.name}</h4>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-muted-foreground mb-2">
                             {type.description}
                           </p>
-                          <div className="text-xs text-gray-500 space-y-1">
+                          <div className="text-xs text-muted-foreground space-y-1">
                             <div>
                               Duration: {type.defaultDuration}min (
                               {type.minDuration}-{type.maxDuration}min)
@@ -688,7 +688,7 @@ export default function EventDetailPage() {
                       <div className="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                         <FileText className="h-6 w-6 text-gray-400" />
                       </div>
-                      <p className="text-gray-500 mb-2">
+                      <p className="text-muted-foreground mb-2">
                         No presentation types configured yet
                       </p>
                       <Button
@@ -714,7 +714,7 @@ export default function EventDetailPage() {
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <h4 className="font-medium">{section.name}</h4>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {section.description}
                               </p>
                             </div>
@@ -723,7 +723,7 @@ export default function EventDetailPage() {
                             </Badge>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs text-gray-500 mt-3">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs text-muted-foreground mt-3">
                             {section.startTime && (
                               <div>
                                 <Clock className="h-3 w-3 inline mr-1" />
@@ -761,7 +761,7 @@ export default function EventDetailPage() {
                       <div className="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                         <Clock className="h-6 w-6 text-gray-400" />
                       </div>
-                      <p className="text-gray-500 mb-2">
+                      <p className="text-muted-foreground mb-2">
                         No sessions created yet
                       </p>
                       <Button
@@ -794,7 +794,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Submission Deadline
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings.submissionDeadline
                                   ? format(
                                       new Date(
@@ -810,7 +810,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Abstract
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings.requireAbstract
                                   ? `Required (max ${
                                       event.submissionSettings
@@ -824,7 +824,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Full Paper
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings.requireFullPaper
                                   ? "Required"
                                   : "Not required"}
@@ -835,7 +835,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 File Size Limit
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {`${
                                   event.submissionSettings.maxFileSize || 0
                                 } MB`}
@@ -857,7 +857,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Bio
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings.requireAuthorBio
                                   ? "Required"
                                   : "Optional"}
@@ -868,7 +868,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Affiliation
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings.requireAffiliation
                                   ? "Required"
                                   : "Optional"}
@@ -879,7 +879,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Presenter Designation
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings
                                   .requirePresenterDesignation
                                   ? "Required"
@@ -891,7 +891,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Max Co-authors
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings.maxCoAuthors ||
                                   "No limit"}
                               </p>
@@ -910,7 +910,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Keywords
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings.requireKeywords
                                   ? `Required (${
                                       event.submissionSettings.minKeywords || 1
@@ -925,7 +925,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Presentation Type Selection
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings
                                   .requirePresentationType
                                   ? "Required"
@@ -937,7 +937,7 @@ export default function EventDetailPage() {
                               <label className="text-sm font-medium text-gray-700">
                                 Duration Requests
                               </label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 {event.submissionSettings.allowDurationRequest
                                   ? "Allowed"
                                   : "Not allowed"}
@@ -965,7 +965,7 @@ export default function EventDetailPage() {
                                   <label className="text-sm font-medium text-gray-700">
                                     Submission Guidelines
                                   </label>
-                                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                     {
                                       event.submissionSettings
                                         .submissionGuidelines
@@ -979,7 +979,7 @@ export default function EventDetailPage() {
                                   <label className="text-sm font-medium text-gray-700">
                                     Author Guidelines
                                   </label>
-                                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                     {event.submissionSettings.authorGuidelines}
                                   </p>
                                 </div>
@@ -991,7 +991,7 @@ export default function EventDetailPage() {
                                   <label className="text-sm font-medium text-gray-700">
                                     Presentation Guidelines
                                   </label>
-                                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                     {
                                       event.submissionSettings
                                         .presentationGuidelines
@@ -1005,7 +1005,7 @@ export default function EventDetailPage() {
                                   <label className="text-sm font-medium text-gray-700">
                                     Review Criteria
                                   </label>
-                                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                     {event.submissionSettings.reviewCriteria}
                                   </p>
                                 </div>
@@ -1020,7 +1020,7 @@ export default function EventDetailPage() {
                       <div className="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                         <Settings className="h-6 w-6 text-gray-400" />
                       </div>
-                      <p className="text-gray-500 mb-2">
+                      <p className="text-muted-foreground mb-2">
                         No submission settings configured yet
                       </p>
                       <Button
@@ -1053,7 +1053,7 @@ export default function EventDetailPage() {
                   <h3 className="text-lg font-semibold mb-2">
                     No attendees yet
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     Once people register for your conference, they'll appear
                     here.
                   </p>

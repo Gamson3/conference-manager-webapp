@@ -175,7 +175,7 @@ export default function FeedbackForm() {
         <h2 className="text-xl font-semibold mb-2">
           No sessions available for feedback
         </h2>
-        <p className="text-gray-500 mb-6 max-w-md mx-auto">
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
           {conferenceId 
             ? "There are no sessions available for feedback in this conference." 
             : "You haven't attended any sessions that require feedback, or you've already provided feedback for all attended sessions."}
@@ -269,7 +269,7 @@ export default function FeedbackForm() {
                   </button>
                 ))}
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 {rating === 1 ? 'Poor' : 
                   rating === 2 ? 'Fair' : 
                   rating === 3 ? 'Good' : 

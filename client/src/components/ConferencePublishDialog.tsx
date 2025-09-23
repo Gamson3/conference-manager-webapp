@@ -126,7 +126,7 @@ export default function ConferencePublishDialog({
         {validating ? (
           <div className="py-6 text-center">
             <div className="animate-spin h-6 w-6 mx-auto mb-2 border-2 border-primary border-t-transparent rounded-full" />
-            <p className="text-sm text-gray-500">Validating conference...</p>
+            <p className="text-sm text-muted-foreground">Validating conference...</p>
           </div>
         ) : validation && (
           <div className="space-y-4">
@@ -135,13 +135,13 @@ export default function ConferencePublishDialog({
               <h4 className="font-medium mb-2">{validation.conference.name}</h4>
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div>
-                  <span className="text-gray-500">Days:</span> {validation.conference.dayCount || 0}
+                  <span className="text-muted-foreground">Days:</span> {validation.conference.dayCount || 0}
                 </div>
                 <div>
-                  <span className="text-gray-500">Sessions:</span> {validation.conference.sectionCount || 0}
+                  <span className="text-muted-foreground">Sessions:</span> {validation.conference.sectionCount || 0}
                 </div>
                 <div>
-                  <span className="text-gray-500">Presentations:</span> {validation.conference.presentationCount || 0}
+                  <span className="text-muted-foreground">Presentations:</span> {validation.conference.presentationCount || 0}
                 </div>
               </div>
             </div>

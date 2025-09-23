@@ -90,11 +90,11 @@ const ConferenceCard = ({
         {/* Top row: left (date/title/location), right (organizer logo placeholder) */}
         <div className="flex items-start gap-4 p-4 mb-4">
           <div className="flex-1">
-            <div className="flex items-center text-sm text-gray-900 mb-1">
+            <div className="flex items-center text-sm text-foreground mb-1">
               <Calendar className="h-4 w-4 mr-1" />
               {formatDateRange()}
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-xl font-semibold text-foreground mb-4">
               <Link href={`/attendee/conferences/${conference.id}`} className="hover:underline">
                 {conference.name}
               </Link>
@@ -130,7 +130,7 @@ const ConferenceCard = ({
             {conference.categories.slice(0, 4).map((category) => (
               <span
                 key={category.id}
-                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                className="px-2 py-1 bg-gray-100 text-muted-foreground text-xs rounded"
                 style={{
                   backgroundColor: category.color ? `${category.color}20` : "#f3f4f6",
                   color: category.color || "#374151",
@@ -140,7 +140,7 @@ const ConferenceCard = ({
               </span>
             ))}
             {conference.categories.length > 4 && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+              <span className="px-2 py-1 bg-gray-100 text-muted-foreground text-xs rounded-full">
                 +{conference.categories.length - 4}
               </span>
             )}
@@ -158,7 +158,7 @@ const ConferenceCard = ({
 
           <button
             onClick={(e) => handleShare(e)}
-            className="inline-flex items-center text-sm text-gray-700 hover:text-gray-900"
+            className="inline-flex items-center text-sm text-gray-700 hover:text-foreground"
             title="Share Conference"
           >
             <Share2 className="h-4 w-4 mr-2" />
@@ -204,7 +204,7 @@ const ConferenceCard = ({
               className="w-7 h-7 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
               title="Share Conference"
             >
-              <Share2 className="h-3 w-3 text-gray-600" />
+              <Share2 className="h-3 w-3 text-muted-foreground" />
             </button>
 
             {onEdit && (
@@ -213,7 +213,7 @@ const ConferenceCard = ({
                 className="w-7 h-7 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
                 title="Edit Conference"
               >
-                <svg className="h-3 w-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-3 w-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </button>
@@ -250,12 +250,12 @@ const ConferenceCard = ({
 
       {/* Body */}
       <div className="p-3">
-        <div className="flex items-center text-sm text-gray-500 mb-2">
+        <div className="flex items-center text-sm text-muted-foreground mb-2">
           <Calendar className="h-4 w-4 mr-1" />
           {formatDateRange()}
         </div>
 
-        <h3 className={`font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors ${
+        <h3 className={`font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors ${
           variant === 'compact' ? 'text-sm' : 'text-base'
         }`}>
           <Link href={`/attendee/conferences/${conference.id}`} className="hover:underline">
@@ -264,7 +264,7 @@ const ConferenceCard = ({
         </h3>
 
         {conference.location && (
-          <div className="flex items-center text-sm text-gray-500 mb-3">
+          <div className="flex items-center text-sm text-muted-foreground mb-3">
             <MapPin className="h-4 w-4 mr-1" />
             {conference.location}
           </div>
@@ -275,21 +275,21 @@ const ConferenceCard = ({
             {conference.categories.slice(0, variant === 'compact' ? 1 : 2).map((category) => (
               <span
                 key={category.id}
-                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer"
+                className="px-2 py-1 bg-gray-100 text-muted-foreground text-xs rounded-full hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer"
                 style={{ backgroundColor: category.color ? `${category.color}20` : undefined, color: category.color || undefined }}
               >
                 {category.name}
               </span>
             ))}
             {conference.categories.length > (variant === 'compact' ? 1 : 2) && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+              <span className="px-2 py-1 bg-gray-100 text-muted-foreground text-xs rounded-full">
                 +{conference.categories.length - (variant === 'compact' ? 1 : 2)}
               </span>
             )}
           </div>
         )}
 
-        <div className="flex items-center text-sm text-gray-500 mb-3">
+        <div className="flex items-center text-sm text-muted-foreground mb-3">
           <Users className="h-4 w-4 mr-1" />
           <span className="text-sm">
             {conference._count?.attendances || 0} registered

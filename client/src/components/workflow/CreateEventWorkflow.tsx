@@ -75,7 +75,7 @@ export default function CreateEventWorkflow({
 												? 'bg-blue-600 text-white'
 												: isCompleted
 												? 'bg-green-600 text-white'
-												: 'bg-gray-300 text-gray-600'
+												: 'bg-gray-300 text-muted-foreground'
 										}`}
 									>
 										{isCompleted ? <CheckCircle className="h-4 w-4" /> : step.id}
@@ -83,9 +83,9 @@ export default function CreateEventWorkflow({
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center space-x-2">
 											<Icon className="h-4 w-4" />
-											<h4 className="text-sm font-semibold text-gray-900">{step.title}</h4>
+											<h4 className="text-sm font-semibold text-foreground">{step.title}</h4>
 										</div>
-										<p className="text-xs text-gray-600 mt-1">{step.description}</p>
+										<p className="text-xs text-muted-foreground mt-1">{step.description}</p>
 									</div>
 								</div>
 							</div>

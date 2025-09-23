@@ -458,7 +458,7 @@ export default function ScheduleBuilderPage() {
       <div className="p-8 max-w-7xl mx-auto">
         <div className="text-center py-12">
           <AlertCircleIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500">Failed to load schedule data</p>
+          <p className="text-muted-foreground">Failed to load schedule data</p>
         </div>
       </div>
     );
@@ -484,47 +484,54 @@ export default function ScheduleBuilderPage() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="p-6 max-w-6xl mx-auto min-h-screen bg-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-12 py-6 max-w-[1440px] mx-auto min-h-screen">
+        <div className="flex items-center gap-2 mb-2">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="pl-0"
+          >
+            <ArrowLeftIcon className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              onClick={() => router.push(`/organizer/events/${conferenceId}`)}
-              className="p-0 hover:bg-transparent"
-            >
-              <ArrowLeftIcon className="h-4 w-4 mr-2" />
-              Back to Event
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">Schedule Builder</h1>
-              <p className="text-gray-600 mt-1">
-                Drag unscheduled presentations to sections to build your
-                conference schedule
-              </p>
+        <div className="mb-8 p-6 bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Schedule Builder</h1>
+                {/* <h2 className="text-lg font-medium text-foreground">{conference?.name}</h2> */}
+                <p className="text-muted-foreground mt-1">
+                  Drag unscheduled presentations to sections to build your
+                  conference schedule
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  router.push(
+                    `/organizer/create-event/sessions?eventId=${conferenceId}`
+                  )
+                }
+              >
+                Manage Sessions
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700"
+                onClick={publishSchedule}
+              >
+                <PlayIcon className="h-4 w-4 mr-1" />
+                Publish Schedule
+              </Button>
             </div>
           </div>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() =>
-                router.push(
-                  `/organizer/create-event/sessions?eventId=${conferenceId}`
-                )
-              }
-            >
-              Manage Sessions
-            </Button>
-            <Button
-              className="bg-green-600 hover:bg-green-700"
-              onClick={publishSchedule}
-            >
-              <PlayIcon className="h-4 w-4 mr-1" />
-              Publish Schedule
-            </Button>
-          </div>
         </div>
+        
 
         {/* Statistics */}
         {scheduleData.statistics && (
@@ -573,16 +580,16 @@ export default function ScheduleBuilderPage() {
         )}
 
         {/* Main Interface */}
-        <div className="grid grid-cols-12 gap-6 min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
           {/* Left Panel: Unscheduled Presentations */}
-          <div className="col-span-4">
+          <div className="lg:col-span-4">
             <Card className="sticky top-0 max-h-[80vh]">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center">
-                  <CalendarIcon className="h-5 w-5 mr-2" />
+                <CardTitle className="flex items-center text-foreground text-lg">
+                  <CalendarIcon className="h-5 w-5 mr-2"/>
                   Unscheduled Presentations
                 </CardTitle>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   Drag these to sections to schedule them
                 </p>
               </CardHeader>
@@ -594,28 +601,52 @@ export default function ScheduleBuilderPage() {
                     value={selectedCategory}
                     onValueChange={setSelectedCategory}
                   >
-                    <TabsList className="grid w-full grid-cols-2 mb-4">
-                      {unscheduledByCategory.slice(0, 4).map(
-                        (categoryData) =>
-                          categoryData?.category && (
+                    {/* <div className="overflow-x-auto no-scrollbar">
+                      <TabsList className="inline-flex overflow-x-auto gap-2 mb-4 no-scrollbar rounded p-2">
+                        {unscheduledByCategory.slice(0, 4).map(
+                          (categoryData) =>
+                            categoryData?.category && (
+                              <TabsTrigger
+                                key={categoryData.category.id}
+                                value={categoryData.category.id.toString()}
+                                className="flex-none rounded-sm bg-background data-[state=active]:bg-primary data-[state=active]:text-white"
+                              >
+                                <div
+                                  className="w-2 h-2 rounded-full flex-shrink-0 mr-1"
+                                  style={{
+                                    backgroundColor:
+                                      categoryData.category.color || "#6B7280",
+                                  }}
+                                />
+                                {categoryData.category.name} (
+                                {categoryData.presentations?.length || 0})
+                              </TabsTrigger>
+                            )
+                        )}
+                      </TabsList>
+                    </div> */}
+
+                    <div className="overflow-x-auto no-scrollbar mb-4 rounded-sm scroll-smooth">
+                      <TabsList className="inline-flex gap-2 px-2 py-1.5">
+                        {unscheduledByCategory.map((categoryData) =>
+                          categoryData?.category ? (
                             <TabsTrigger
                               key={categoryData.category.id}
                               value={categoryData.category.id.toString()}
-                              className="text-xs"
+                              className="flex-none px-2 py-1 rounded-sm bg-background
+                                         data-[state=active]:bg-primary data-[state=active]:text-white whitespace-nowrap"
                             >
                               <div
-                                className="w-2 h-2 rounded-full mr-1"
-                                style={{
-                                  backgroundColor:
-                                    categoryData.category.color || "#6B7280",
-                                }}
+                                className="w-2 h-2 rounded-full flex-shrink-0 mr-1"
+                                style={{ backgroundColor: categoryData.category.color || "#6B7280" }}
                               />
-                              {categoryData.category.name} (
-                              {categoryData.presentations?.length || 0})
+                              {categoryData.category.name} ({categoryData.presentations?.length || 0})
                             </TabsTrigger>
-                          )
-                      )}
-                    </TabsList>
+                          ) : null
+                        )}
+                      </TabsList>
+                    </div>
+
 
                     {unscheduledByCategory.map(
                       (categoryData) =>
@@ -623,9 +654,9 @@ export default function ScheduleBuilderPage() {
                           <TabsContent
                             key={categoryData.category.id}
                             value={categoryData.category.id.toString()}
-                            className="mt-0 max-h-[55vh] overflow-y-auto"
+                            className="mt-0 max-h-[55vh] overflow-y-auto pr-2"
                           >
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                               {Array.isArray(categoryData.presentations) &&
                                 categoryData.presentations.map(
                                   (presentation) => (
@@ -645,12 +676,13 @@ export default function ScheduleBuilderPage() {
                   </Tabs>
                 ) : (
                   <div className="text-center py-12">
-                    <CalendarIcon className="h-12 w-12 mx-auto text-green-500 mb-4" />
-                    <p className="text-green-600 font-medium mb-2">
-                      All presentations are scheduled!
+                    <CalendarIcon className="h-12 w-12 mx-auto text-primary mb-4" />
+                    <p className="text-primary font-medium mb-2">
+                      All accepted presentations will appear here
                     </p>
-                    <p className="text-gray-500 text-sm">
-                      Great job organizing the conference.
+                    <p className="text-muted-foreground text-sm">
+                      Drag and Drop Presentations to the schedule on the right
+                      to start building your conference agenda.
                     </p>
                   </div>
                 )}
@@ -663,7 +695,7 @@ export default function ScheduleBuilderPage() {
             <Card className="min-h-full">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center">
+                  <div className="flex items-center text-foreground text-lg">
                     <ClockIcon className="h-5 w-5 mr-2" />
                     Conference Schedule
                   </div>
@@ -674,7 +706,7 @@ export default function ScheduleBuilderPage() {
                       setEditingSection(null);
                       setShowSectionDialog(true);
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-primary hover:bg-primary-600 text-primary-foreground mb-2"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Section
@@ -790,7 +822,7 @@ export default function ScheduleBuilderPage() {
                 ) : (
                   <div className="text-center py-12">
                     <CalendarIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                       No conference days configured
                     </p>
                   </div>

@@ -45,11 +45,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
         
-        <h3 className="text-xl font-semibold text-gray-900 mb-3">
+        <h3 className="text-xl font-semibold text-foreground mb-3">
           Loading...
         </h3>
         
-        <p className="text-gray-600 mb-4">
+        <p className="text-muted-foreground mb-4">
           Please wait a moment
         </p>
 

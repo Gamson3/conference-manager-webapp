@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   FileText, 
   Calendar,
-  Clock,
-  ExternalLink
+  Clock
 } from "lucide-react";
 import { useGetAuthUserQuery, useGetOrganizerEventsQuery } from "@/state/api";
 import { format } from "date-fns";
@@ -45,13 +44,14 @@ const SubmissionsReviewPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="w-full px-4 sm:px-6 lg:px-12 py-6 max-w-[1440px] mx-auto min-h-screen space-y-8 overflow-x-hidden">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between my-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Pending Submissions Review
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Manage submissions that need your review
           </p>
         </div>
@@ -62,15 +62,15 @@ const SubmissionsReviewPage = () => {
           {conferencesWithPendingReviews.map((conference) => (
             <Card key={conference.id}>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle>{conference.name}</CardTitle>
-                  <Badge className="bg-amber-500">
-                    {conference.pendingReviewsCount} Pending
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                  <CardTitle className="truncate text-lg">{conference.name}</CardTitle>
+                  <Badge className="bg-amber-600 text-xs sm:text-sm">
+                    {conference.pendingReviewsCount} Submissions Pending
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-base text-muted-foreground mb-4">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {format(new Date(conference.startDate), "MMM d, yyyy")}
@@ -93,10 +93,10 @@ const SubmissionsReviewPage = () => {
         </div>
       ) : (
         <Card className="bg-gray-50">
-          <CardContent className="text-center py-12">
-            <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-700 mb-2">No Pending Reviews</h3>
-            <p className="text-gray-500 mb-6">
+          <CardContent className="text-center py-12 max-w-full sm:max-w-md mx-auto">
+            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-foreground mb-2">No Pending Reviews</h3>
+            <p className="text-muted-foreground mb-6">
                Your conferences with submissions pending review will appear here.
             </p>
             <Link href="/organizer/events">

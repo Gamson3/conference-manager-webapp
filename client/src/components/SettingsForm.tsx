@@ -35,7 +35,7 @@ const SettingsForm = ({
         <h1 className="text-xl font-semibold">
           {`${userType.charAt(0).toUpperCase() + userType.slice(1)} Settings`}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Manage your account preferences and personal information
         </p>
       </div>

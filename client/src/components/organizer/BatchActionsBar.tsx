@@ -28,7 +28,7 @@ export function BatchActionsBar({
             variant="ghost" 
             size="sm" 
             onClick={onClearSelection}
-            className="text-gray-500"
+            className="text-muted-foreground"
           >
             Clear selection
           </Button>

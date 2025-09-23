@@ -108,7 +108,7 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
   return (
     <Sidebar
       collapsible="icon"
-      className="fixed left-0 bg-white shadow-lg"
+      className="fixed left-0 bg-card shadow-lg"
       style={{
         top: `${NAVBAR_HEIGHT}px`,
         height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
@@ -128,25 +128,25 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
                 <>
                   <h1
                     className={cn(
-                      "text-xl font-bold text-gray-800 transition-all duration-300 ease-in-out",
+                      "text-xl font-bold text-foreground transition-all duration-300 ease-in-out",
                       transitioningView ? "opacity-0 translate-y-2" : "opacity-100"
                     )}
                   >
                     {activeView.title}
                   </h1>
                   <button
-                    className="hover:bg-gray-100 p-2 rounded-md"
+                    className="hover:bg-muted p-2 rounded-md"
                     onClick={toggleSidebar}
                   >
-                    <X className="h-6 w-6 text-gray-600" />
+                    <X className="h-6 w-6 text-muted-foreground" />
                   </button>
                 </>
               ) : (
                 <button
-                  className="hover:bg-gray-100 p-2 rounded-md"
+                  className="hover:bg-muted p-2 rounded-md"
                   onClick={toggleSidebar}
                 >
-                  <Menu className="h-6 w-6 text-gray-600" />
+                  <Menu className="h-6 w-6 text-muted-foreground" />
                 </button>
               )}
             </div>
@@ -172,9 +172,9 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
                     className={cn(
                       "flex items-center rounded-none transition-all",
                       isActive
-                        ? "bg-gray-300 text-blue-600 font-medium"
-                        : "text-gray-600 hover:bg-gray-300",
-                      open ? "px-5 py-7 my-1" : "p-2 mx-[5px] my-4 justify-center"
+                        ? "bg-muted text-primary font-medium"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      open ? "px-5 py-7 my-1" : "px-5 py-7 mx-[5px] my-4 justify-center"
                     )}
                   >
                     <Link href={link.href} className="w-full" scroll={false}>
@@ -193,10 +193,10 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
           {transitioningView && (
             <div className="flex justify-center items-center h-48">
               <div className="animate-pulse flex flex-col items-center">
-                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <div className="h-6 w-6 rounded-full bg-primary-200 animate-ping"></div>
+                <div className="h-10 w-10 rounded-full bg-primary-300 flex items-center justify-center">
+                  <div className="h-6 w-6 rounded-full bg-primary-300 animate-ping"></div>
                 </div>
-                <div className="mt-3 text-sm text-gray-500">Switching...</div>
+                <div className="mt-3 text-sm text-muted-foreground">Switching...</div>
               </div>
             </div>
           )}
@@ -208,7 +208,7 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
         <SidebarFooter>
           <SidebarMenu>
             {open && (
-              <div className="flex items-center gap-3 px-4 py-2 text-sm text-gray-500 font-medium">
+              <div className="flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground font-medium">
                 <h2>SWITCH ROLE</h2>
                 <ArrowLeftRightIcon className="h-4 w-4" />
               </div>

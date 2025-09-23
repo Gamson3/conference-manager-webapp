@@ -144,7 +144,7 @@ export function SectionCard({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="p-1 rounded-md hover:bg-gray-100">
-                  <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                  <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -177,7 +177,7 @@ export function SectionCard({
             </DropdownMenu>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             {section.room && (
               <span className="flex items-center">
                 <MapPinIcon className="h-4 w-4 mr-1" />

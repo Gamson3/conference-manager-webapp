@@ -57,7 +57,7 @@ export default function DeleteSessionDialog({
                   <li key={p.id} className="truncate">{p.title}</li>
                 ))}
                 {presentations.length > 5 && (
-                  <li className="text-gray-600">...and {presentations.length - 5} more</li>
+                  <li className="text-muted-foreground">...and {presentations.length - 5} more</li>
                 )}
               </ul>
               <div className="mt-2 text-sm">

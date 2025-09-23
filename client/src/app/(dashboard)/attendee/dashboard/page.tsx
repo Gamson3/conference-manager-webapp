@@ -325,9 +325,9 @@ export default function AttendeeDashboard() {
                 <CardContent className="p-6 relative">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
-                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                      <p className="text-xs text-gray-500 mt-1">{stat.change}</p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">{stat.label}</p>
+                      <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
                     </div>
                     <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.bgColor} text-white shadow-lg`}>
                       <stat.icon className="h-6 w-6" />
@@ -356,7 +356,7 @@ export default function AttendeeDashboard() {
                       </div>
                       Quick Actions
                     </CardTitle>
-                    <p className="text-gray-600">Everything you need at your fingertips</p>
+                    <p className="text-muted-foreground">Everything you need at your fingertips</p>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -384,10 +384,10 @@ export default function AttendeeDashboard() {
                                   <action.icon className="h-6 w-6" />
                                 </div>
                                 <div className="flex-1">
-                                  <h3 className="font-bold text-gray-900 mb-2 text-lg group-hover:text-primary-700 transition-colors">
+                                  <h3 className="font-bold text-foreground mb-2 text-lg group-hover:text-primary-700 transition-colors">
                                     {action.title}
                                   </h3>
-                                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                                  <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
                                     {action.description}
                                   </p>
                                   <div className="flex items-center text-sm font-medium text-primary-600 group-hover:text-primary-700">
@@ -432,7 +432,7 @@ export default function AttendeeDashboard() {
                           style={{ width: `${Math.min((stats.completedConferences / 10) * 100, 100)}%` }}
                         ></div>
                       </div>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-muted-foreground">
                         {10 - stats.completedConferences > 0 
                           ? `${10 - stats.completedConferences} more to unlock Scholar Badge!`
                           : "🎉 Scholar Badge Unlocked!"
@@ -452,7 +452,7 @@ export default function AttendeeDashboard() {
                   <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-bold flex items-center justify-between">
                       <span className="flex items-center gap-2">
-                        <ClockIcon className="h-5 w-5 text-gray-600" />
+                        <ClockIcon className="h-5 w-5 text-muted-foreground" />
                         Recent Activity
                       </span>
                       <Button 
@@ -478,12 +478,12 @@ export default function AttendeeDashboard() {
                             onClick={() => router.push(`/attendee/conferences/${conference.id}`)}
                           >
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm truncate text-gray-900">
+                              <p className="font-semibold text-sm truncate text-foreground">
                                 {conference.name}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
                                 <CalendarIcon className="h-3 w-3 text-gray-400" />
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-muted-foreground">
                                   {new Date(conference.date).toLocaleDateString()}
                                 </span>
                               </div>
@@ -497,7 +497,7 @@ export default function AttendeeDashboard() {
                         <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
                           <CalendarIcon className="h-8 w-8 text-blue-600" />
                         </div>
-                        <p className="text-sm text-gray-500 mb-4">No recent activity</p>
+                        <p className="text-sm text-muted-foreground mb-4">No recent activity</p>
                         <Button 
                           size="sm" 
                           onClick={() => router.push('/attendee/discover')}

@@ -91,7 +91,7 @@ export default function SignUpPage() {
                 onChange={handleChange}
                 placeholder="Choose a username"
                 required
-                className="w-full mt-1 h-13 !text-base placeholder:text-gray-500"
+                className="w-full mt-1 h-13 !text-base placeholder:text-muted-foreground"
               />
             </div>
 
@@ -105,7 +105,7 @@ export default function SignUpPage() {
                 onChange={handleChange}
                 placeholder="Enter your email"
                 required
-                className="w-full mt-1 h-13 !text-base placeholder:text-gray-500"
+                className="w-full mt-1 h-13 !text-base placeholder:text-muted-foreground"
               />
             </div>
 
@@ -120,12 +120,12 @@ export default function SignUpPage() {
                   onChange={handleChange}
                   placeholder="Create a password"
                   required
-                  className="w-full mt-1 pr-10 h-13 !text-base placeholder:text-gray-500"
+                  className="w-full mt-1 pr-10 h-13 !text-base placeholder:text-muted-foreground"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-gray-700"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -144,12 +144,12 @@ export default function SignUpPage() {
                   onChange={handleChange}
                   placeholder="Confirm your password"
                   required
-                  className="w-full mt-1 pr-10 h-13 !text-base placeholder:text-gray-500"
+                  className="w-full mt-1 pr-10 h-13 !text-base placeholder:text-muted-foreground"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-gray-700"
                   tabIndex={-1}
                 >
                   {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -184,7 +184,7 @@ export default function SignUpPage() {
             </Button>
           </form>
 
-          <p className="text-base text-center text-gray-500 mt-4">
+          <p className="text-base text-center text-muted-foreground mt-4">
             Already have an account?{" "}
             <Link href="/signin" className="text-blue-500 hover:underline">
               Sign in

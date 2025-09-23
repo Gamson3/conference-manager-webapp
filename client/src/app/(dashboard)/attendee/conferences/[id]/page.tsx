@@ -136,7 +136,7 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
                 <X className="h-8 w-8 text-red-600" />
               </div>
               <h1 className="text-2xl font-bold text-red-600 mb-2">Conference Not Found</h1>
-              <p className="text-gray-600 mb-6">The conference you're looking for doesn't exist or has been removed.</p>
+              <p className="text-muted-foreground mb-6">The conference you're looking for doesn't exist or has been removed.</p>
               <Button onClick={() => router.push('/discover')}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Discover
@@ -404,10 +404,10 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
                                   <div key={type.id} className="p-4 border border-gray-200/50 rounded-lg bg-gradient-to-br from-purple-50/50 to-purple-100/50">
                                     <div className="flex items-center gap-3 mb-2">
                                       <Sparkles className="h-4 w-4 text-purple-600" />
-                                      <h4 className="font-semibold text-gray-900">{type.name}</h4>
+                                      <h4 className="font-semibold text-foreground">{type.name}</h4>
                                     </div>
                                     {type.description && (
-                                      <p className="text-sm text-gray-600">{type.description}</p>
+                                      <p className="text-sm text-muted-foreground">{type.description}</p>
                                     )}
                                     <div className="mt-2 text-xs text-purple-600 font-medium">
                                       Duration: {type.defaultDuration} minutes
@@ -489,7 +489,7 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
                             ) : (
                               <div className="text-center py-4">
                                 <Clock className="h-8 w-8 text-orange-300 mx-auto mb-2" />
-                                <p className="text-sm text-gray-500">No dates published yet</p>
+                                <p className="text-sm text-muted-foreground">No dates published yet</p>
                               </div>
                             )}
                           </CardContent>
@@ -526,8 +526,8 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                               <Clock className="h-8 w-8 text-blue-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Schedule Coming Soon</h3>
-                            <p className="text-gray-600 mb-4">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Schedule Coming Soon</h3>
+                            <p className="text-muted-foreground mb-4">
                               The conference schedule hasn't been published yet. Check back later!
                             </p>
                           </div>
@@ -614,7 +614,7 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
                                       )}
                                     </CardHeader>
                                     <CardContent>
-                                      <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                      <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                                         <Star className="h-4 w-4 text-green-600" />
                                         Presentations ({presenter.presentations.length})
                                       </h4>
@@ -640,8 +640,8 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
                               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Mic className="h-8 w-8 text-green-600" />
                               </div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2">Presenters Coming Soon</h3>
-                              <p className="text-gray-600">
+                              <h3 className="text-lg font-semibold text-foreground mb-2">Presenters Coming Soon</h3>
+                              <p className="text-muted-foreground">
                                 Presenter information will be available once the schedule is finalized.
                               </p>
                             </div>
@@ -686,11 +686,11 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
                                   <CardContent className="p-6">
                                     <div className="flex items-start justify-between mb-4">
                                       <div className="flex-1">
-                                        <h4 className="font-semibold text-gray-900 mb-2 group-hover:text-purple-700 transition-colors">
+                                        <h4 className="font-semibold text-foreground mb-2 group-hover:text-purple-700 transition-colors">
                                           {material.title}
                                         </h4>
                                         {material.description && (
-                                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                                             {material.description}
                                           </p>
                                         )}
@@ -725,8 +725,8 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
                             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                               <BookOpen className="h-8 w-8 text-purple-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Materials Coming Soon</h3>
-                            <p className="text-gray-600 mb-4">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Materials Coming Soon</h3>
+                            <p className="text-muted-foreground mb-4">
                               Conference materials will be available closer to the event date.
                             </p>
                             <Button variant="outline" className="border-purple-200 text-purple-600 hover:bg-purple-50">
@@ -766,7 +766,7 @@ export default function ConferenceDetailPage({ params: routeParams }: { params: 
           <DialogContent className="bg-white border-0 shadow-xl">
             <DialogHeader>
               <DialogTitle className="text-xl">Confirm Unregistration</DialogTitle>
-              <DialogDescription className="text-gray-600">
+              <DialogDescription className="text-muted-foreground">
                 Are you sure you want to cancel your registration for <strong>{conference.name}</strong>? 
                 You can register again later if you change your mind.
               </DialogDescription>

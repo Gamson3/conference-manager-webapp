@@ -122,7 +122,7 @@ export default function PresenterDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold">Presenter Dashboard</h1>
-          <p className="text-gray-500">Manage your conference presentations</p>
+          <p className="text-muted-foreground">Manage your conference presentations</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -171,15 +171,15 @@ export default function PresenterDashboard() {
               <CardContent className="flex flex-col items-center justify-center py-10">
                 <div className="rounded-full bg-gray-100 p-3 mb-4">
                   {activeTab === "upcoming" ? (
-                    <CalendarDays className="h-6 w-6 text-gray-500" />
+                    <CalendarDays className="h-6 w-6 text-muted-foreground" />
                   ) : activeTab === "draft" ? (
-                    <Clock className="h-6 w-6 text-gray-500" />
+                    <Clock className="h-6 w-6 text-muted-foreground" />
                   ) : (
-                    <AlertTriangle className="h-6 w-6 text-gray-500" />
+                    <AlertTriangle className="h-6 w-6 text-muted-foreground" />
                   )}
                 </div>
                 <h3 className="text-lg font-medium">No presentations found</h3>
-                <p className="text-gray-500 text-center max-w-md mt-2">
+                <p className="text-muted-foreground text-center max-w-md mt-2">
                   {activeTab === "upcoming" 
                     ? "You don't have any upcoming presentations scheduled."
                     : activeTab === "draft" 
@@ -213,12 +213,12 @@ export default function PresenterDashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
                       {presentation.abstract || "No abstract provided"}
                     </p>
                     
                     {presentation.startTime && (
-                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                         <CalendarDays className="h-4 w-4" />
                         <span>
                           {new Date(presentation.startTime).toLocaleDateString()} at{' '}

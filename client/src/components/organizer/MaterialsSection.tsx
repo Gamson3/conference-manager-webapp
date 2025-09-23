@@ -37,7 +37,7 @@ export function MaterialsSection({ attachments }: { attachments: Attachment[] })
                 href={file.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-gray-800"
+                className="text-muted-foreground hover:text-gray-800"
                 title="Open in new tab"
               >
                 <ExternalLinkIcon className="h-4 w-4" />

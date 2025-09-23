@@ -234,7 +234,7 @@ export default function PresentationDetail() {
           {getStatusBadge(presentation.status)}
           {presentation.reviewStatus && getReviewStatusBadge(presentation.reviewStatus)}
         </div>
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           Conference: {presentation.conferenceName}
         </p>
       </div>
@@ -265,14 +265,14 @@ export default function PresentationDetail() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Abstract</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Abstract</h3>
                 <p className="text-gray-700 whitespace-pre-line">{presentation.abstract}</p>
               </div>
               
               <div className="flex items-start gap-2">
-                <Tag className="h-4 w-4 mt-1 text-gray-500" />
+                <Tag className="h-4 w-4 mt-1 text-muted-foreground" />
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Keywords</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">Keywords</h3>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {presentation.keywords.map((keyword, index) => (
                       <Badge key={index} variant="secondary" className="bg-gray-100 text-gray-800">
@@ -285,9 +285,9 @@ export default function PresentationDetail() {
               
               {presentation.affiliations && presentation.affiliations.length > 0 && (
                 <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 mt-1 text-gray-500" />
+                  <Info className="h-4 w-4 mt-1 text-muted-foreground" />
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Affiliations</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">Affiliations</h3>
                     <p className="text-gray-700">{presentation.affiliations.join(", ")}</p>
                   </div>
                 </div>
@@ -295,9 +295,9 @@ export default function PresentationDetail() {
               
               {presentation.startTime && (
                 <div className="flex items-start gap-2">
-                  <Calendar className="h-4 w-4 mt-1 text-gray-500" />
+                  <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Schedule</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">Schedule</h3>
                     <p className="text-gray-700">
                       {new Date(presentation.startTime).toLocaleDateString()} at{' '}
                       {new Date(presentation.startTime).toLocaleTimeString([], {
@@ -311,9 +311,9 @@ export default function PresentationDetail() {
               )}
               
               <div className="flex items-start gap-2">
-                <Clock className="h-4 w-4 mt-1 text-gray-500" />
+                <Clock className="h-4 w-4 mt-1 text-muted-foreground" />
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Duration</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">Duration</h3>
                   <p className="text-gray-700">{presentation.duration} minutes</p>
                 </div>
               </div>

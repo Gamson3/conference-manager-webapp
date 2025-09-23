@@ -327,7 +327,7 @@ export default function PublicConferenceDetailPage() {
                                   <h4 className="font-semibold">{type.name}</h4>
                                 </div>
                                 {type.description && (
-                                  <p className="text-sm text-gray-600">{type.description}</p>
+                                  <p className="text-sm text-muted-foreground">{type.description}</p>
                                 )}
                                 <p className="mt-2 text-xs text-purple-700 font-medium">
                                   Duration: {type.defaultDuration} min
@@ -350,13 +350,13 @@ export default function PublicConferenceDetailPage() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Registered</span>
+                          <span className="text-sm text-muted-foreground">Registered</span>
                           <span className="text-lg font-semibold text-emerald-600">
                             {conference._count?.attendances || 0}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Days</span>
+                          <span className="text-sm text-muted-foreground">Days</span>
                           <span className="text-lg font-semibold text-emerald-600">
                             {conference.days?.length || 0}
                           </span>
@@ -384,7 +384,7 @@ export default function PublicConferenceDetailPage() {
                             ))}
                           </ul>
                         ) : (
-                          <p className="text-sm text-gray-500">No dates published yet.</p>
+                          <p className="text-sm text-muted-foreground">No dates published yet.</p>
                         )}
                       </CardContent>
                     </Card>
@@ -404,7 +404,7 @@ export default function PublicConferenceDetailPage() {
                     {conference.days?.length ? (
                       <ConferenceTreeView conference={conference} />
                     ) : (
-                      <div className="text-center py-12 text-gray-600">
+                      <div className="text-center py-12 text-muted-foreground">
                         Schedule not published yet.
                       </div>
                     )}
@@ -446,7 +446,7 @@ export default function PublicConferenceDetailPage() {
                         )
                       );
                       if (!presenters.length) {
-                        return <p className="text-sm text-gray-600">No presenters listed yet.</p>;
+                        return <p className="text-sm text-muted-foreground">No presenters listed yet.</p>;
                       }
                       return (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -502,7 +502,7 @@ export default function PublicConferenceDetailPage() {
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm text-gray-600">No materials available yet.</p>
+                      <p className="text-sm text-muted-foreground">No materials available yet.</p>
                     )}
                   </CardContent>
                 </Card>

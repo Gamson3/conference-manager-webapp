@@ -238,7 +238,7 @@ export default function PresentationDetailPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           {author.title && (
-                            <span className="text-sm text-gray-500">{author.title}</span>
+                            <span className="text-sm text-muted-foreground">{author.title}</span>
                           )}
                           <h4 className="font-semibold">{author.name}</h4>
                           {author.isPresenter && (
@@ -249,14 +249,14 @@ export default function PresentationDetailPage() {
                         </div>
                         
                         {author.affiliation && (
-                          <div className="flex items-center text-sm text-gray-600 mb-1">
+                          <div className="flex items-center text-sm text-muted-foreground mb-1">
                             <BuildingIcon className="h-4 w-4 mr-1" />
                             {author.affiliation}
                           </div>
                         )}
                         
                         {author.email && (
-                          <div className="flex items-center text-sm text-gray-600 mb-2">
+                          <div className="flex items-center text-sm text-muted-foreground mb-2">
                             <MailIcon className="h-4 w-4 mr-1" />
                             {author.email}
                           </div>
@@ -280,20 +280,20 @@ export default function PresentationDetailPage() {
               <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Session</p>
+                    <p className="text-sm text-muted-foreground">Session</p>
                     <p className="font-medium">{presentation.section.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Conference</p>
+                    <p className="text-sm text-muted-foreground">Conference</p>
                     <p className="font-medium">{presentation.conference.name}</p>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex items-center">
-                    <CalendarIcon className="h-4 w-4 mr-2 text-gray-500" />
+                    <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-gray-500">Date</p>
+                      <p className="text-sm text-muted-foreground">Date</p>
                       <p className="font-medium">
                         {new Date(presentation.section.day.date).toLocaleDateString()}
                       </p>
@@ -301,9 +301,9 @@ export default function PresentationDetailPage() {
                   </div>
                   
                   <div className="flex items-center">
-                    <ClockIcon className="h-4 w-4 mr-2 text-gray-500" />
+                    <ClockIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-gray-500">Time</p>
+                      <p className="text-sm text-muted-foreground">Time</p>
                       <p className="font-medium">
                         {new Date(presentation.section.startTime).toLocaleTimeString([], {
                           hour: '2-digit',
@@ -321,9 +321,9 @@ export default function PresentationDetailPage() {
                   
                   {presentation.section.room && (
                     <div className="flex items-center">
-                      <MapPinIcon className="h-4 w-4 mr-2 text-gray-500" />
+                      <MapPinIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-gray-500">Room</p>
+                        <p className="text-sm text-muted-foreground">Room</p>
                         <p className="font-medium">{presentation.section.room}</p>
                       </div>
                     </div>

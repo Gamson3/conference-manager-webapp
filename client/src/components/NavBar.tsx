@@ -84,7 +84,7 @@ const NavBar = () => {
             scroll={false}
           >
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 bg-muted/20 rounded-full flex items-center justify-center">
                 <span className="text-md font-bold">C</span>
                 <span className="text-md font-bold text-secondary-500">M</span>
               </div>
@@ -98,7 +98,7 @@ const NavBar = () => {
           </Link>
           <div className="flex items-center gap-5">
             {/* Show a loading skeleton for user avatar */}
-            <div className="w-8 h-8 rounded-full bg-primary-600/50 animate-pulse"></div>
+            <div className="w-8 h-8 rounded-full bg-primary-600 animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -110,7 +110,7 @@ const NavBar = () => {
       className="fixed top-0 left-0 w-full z-50 shadow-xl"
       style={{ height: `${NAVBAR_HEIGHT}px` }}
     >
-      <div className="flex justify-between items-center w-full py-3 px-8 backdrop-blur-md bg-primary-700/90 border-b border-white/10 text-white">
+      <div className="flex justify-between items-center w-full py-3 px-8 backdrop-blur-md bg-primary-700/90 border-b border-muted/10 text-muted">
         <div className="flex items-center gap-4 md:gap-6">
           {isDashboardPage && (
             <div className="md:hidden">
@@ -123,7 +123,7 @@ const NavBar = () => {
             scroll={false}
           >
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 bg-card/20 rounded-full flex items-center justify-center">
                 <span className="text-md font-bold">C</span>
                 <span className="text-md font-bold text-secondary-500">M</span>
               </div>
@@ -150,8 +150,8 @@ const NavBar = () => {
                     className={cn(
                       "text-sm font-medium transition-colors",
                       isActive
-                        ? "text-white border-b-2 border-secondary-500 pb-1"
-                        : "text-primary-200 hover:text-white"
+                        ? "text-primary-foreground border-b-2 border-secondary-500 pb-1"
+                        : "text-primary-200 hover:text-primary-foreground"
                     )}
                   >
                     {item.name}
@@ -169,7 +169,7 @@ const NavBar = () => {
                   <Menu className="h-6 w-6 text-primary-200" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="bg-white text-primary-700 rounded-xl shadow-lg w-52 p-2"
+                  className="bg-card text-primary-700 rounded-xl shadow-lg w-52 p-2"
                   align="start"
                 >
                   {presenterNav.map((item) => (
@@ -195,7 +195,7 @@ const NavBar = () => {
           {isDashboardPage && authUser && (
             <Button
               variant="secondary"
-              className="ml-2 md:ml-4 bg-primary-50 text-primary-700 hover:bg-secondary-500 hover:text-primary-50"
+              className="ml-2 md:ml-4 bg-primary-50 text-primary-700 hover:bg-secondary-500 hover:text-primary-foreground rounded-lg"
               onClick={() =>
                 router.push(
                   authUser.roles.includes("organizer")
@@ -220,7 +220,7 @@ const NavBar = () => {
         </div>
 
         {!dashboardPage && (
-          <p className="text-primary-200 hidden md:block">
+          <p className="text-primary-foreground md:text-base hidden md:block">
             End-to-end tools to simplify your conference management process.
           </p>
         )}
@@ -251,13 +251,13 @@ const NavBar = () => {
                       {authUser.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <p className="hidden sm:block font-medium text-primary-200">
+                  <p className="hidden sm:block font-medium text-primary-foreground capitalize">
                     {authUser.name}
                   </p>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
-                  className="bg-white text-primary-700 rounded-xl shadow-lg w-68 p-2"
+                  className="bg-card text-primary-700 rounded-xl shadow-lg w-68 p-2"
                   align="end"
                 >
                   {/* Profile Header inside dropdown with close button*/}
@@ -265,12 +265,12 @@ const NavBar = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={authUser.image || ""} />
-                        <AvatarFallback className="bg-primary-600 text-white font-semibold">
+                        <AvatarFallback className="bg-primary-600 border border-border rounded-full text-primary-foreground font-semibold">
                           {authUser.name?.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-semibold text-primary-900">
+                        <p className="font-semibold text-primary-900 capitalize">
                           {authUser.name}
                         </p>
                         <p className="text-sm text-primary-500">
@@ -334,7 +334,7 @@ const NavBar = () => {
               <Link href="/signin">
                 <Button
                   variant="outline"
-                  className="text-white border-white bg-transparent hover:bg-white hover:text-primary-700 rounded-lg"
+                  className="text-primary-foreground border-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary-700 rounded-lg"
                 >
                   Sign In
                 </Button>
@@ -342,7 +342,7 @@ const NavBar = () => {
               <Link href="/signup">
                 <Button
                   variant="secondary"
-                  className="text-white bg-secondary-600 hover:bg-white hover:text-primary-700 rounded-lg"
+                  className="text-primary-foreground bg-secondary-600 hover:bg-primary-foreground hover:text-primary-700 rounded-lg"
                 >
                   Sign Up
                 </Button>
