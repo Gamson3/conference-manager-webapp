@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "impersonatorId": 1,
+    "impersonatedUserId": 3,
+    "action": "Submitted presentation on behalf of user",
+    "createdAt": "2025-08-10T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "impersonatorId": 590,
+    "impersonatedUserId": 4,
+    "presentationId": 2,
+    "action": "Updated presentation materials for speaker",
+    "createdAt": "2024-12-15T14:30:00Z"
+  }
+]

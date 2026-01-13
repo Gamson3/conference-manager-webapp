@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "userId": 2,
+    "externalEmail": null,
+    "presentationId": 1,
+    "assignedById": 2,
+    "secureSubmissionLink": "https://confapp.com/submit/abc123"
+  },
+  {
+    "id": 2,
+    "userId": null,
+    "externalEmail": "external.author@example.com",
+    "presentationId": 2,
+    "assignedById": 2,
+    "secureSubmissionLink": "https://confapp.com/submit/def456"
+  }
+]

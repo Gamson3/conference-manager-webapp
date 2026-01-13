@@ -1,0 +1,66 @@
+[
+  {
+    "id": 1,
+    "userId": 3,
+    "type": "registration",
+    "message": "Your registration for Tech Summit 2025 has been confirmed. We look forward to seeing you at the event!",
+    "read": true,
+    "createdAt": "2024-12-15T14:35:00.000Z"
+  },
+  {
+    "id": 2,
+    "userId": 3,
+    "type": "schedule",
+    "message": "Please note that the 'AI in 2025' session has been moved to Ballroom A and will now start at 10:00 AM.",
+    "read": false,
+    "createdAt": "2025-06-10T09:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "userId": 2,
+    "type": "submission",
+    "message": "Congratulations! Your abstract 'Machine Learning for Medical Diagnostics' has been accepted for presentation at Tech Summit 2025.",
+    "read": true,
+    "createdAt": "2025-02-15T16:30:00.000Z"
+  },
+  {
+    "id": 4,
+    "userId": 2,
+    "type": "reminder",
+    "message": "Please submit your final presentation materials for 'Machine Learning for Medical Diagnostics' by June 1, 2025.",
+    "read": false,
+    "createdAt": "2025-05-15T08:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "userId": 3,
+    "type": "announcement",
+    "message": "A new workshop 'Hands-on with ChatGPT' has been added to the schedule. Limited seats available.",
+    "read": false,
+    "createdAt": "2025-06-01T10:15:00.000Z"
+  },
+  {
+    "id": 6,
+    "userId": 590,
+    "type": "submission",
+    "message": "New submission received: 'Advanced Neural Network Architectures' for Global AI Summit 2025.",
+    "read": false,
+    "createdAt": "2024-12-20T10:00:00.000Z"
+  },
+  {
+    "id": 7,
+    "userId": 590,
+    "type": "registration",
+    "message": "5 new registrations received for DevOps Excellence Conference.",
+    "read": true,
+    "createdAt": "2024-12-18T14:30:00.000Z"
+  },
+  {
+    "id": 8,
+    "userId": 590,
+    "type": "review",
+    "message": "Review completed for submission 'Container Security Best Practices'. Score: 4/5.",
+    "read": false,
+    "createdAt": "2024-12-19T16:45:00.000Z"
+  }
+]

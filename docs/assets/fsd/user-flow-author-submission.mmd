@@ -1,0 +1,22 @@
+flowchart TD
+  U[Author - Authenticated User] --> C1[Open Conference CFP Page]
+  C1 --> G1{Submissions Visibility}
+
+  G1 -->|Public| W1[Start Submission Wizard]
+  G1 -->|Invite-only| I1[Enter Invite Code]
+  I1 -->|Valid| W1
+  I1 -->|Invalid| I2[Show Error / Retry]
+  G1 -->|Private| X1[Show Not Available]
+
+  W1 --> S1[Step 1: Submission Details\nTitle, Abstract, Keywords]
+  S1 --> S2[Step 2: Category + Presentation Type]
+  S2 --> S3[Step 3: Authors\nAdd/Order/Presenter Flag]
+  S3 --> S4[Step 4: Uploads - optional or required\nAbstract File / Full-text File]
+  S4 --> RV[Review & Submit]
+  RV --> ST[Status: Submitted]
+
+  ST --> TR[Track Status in Account]
+  TR -->|Revision Requested| RR[View Feedback]
+  RR --> ED[Edit Submission]
+  ED --> RS[Resubmit]
+  RS --> ST

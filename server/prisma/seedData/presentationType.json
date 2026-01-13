@@ -1,0 +1,146 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 1,
+    "name": "Keynote",
+    "description": "Main stage keynote presentations by industry leaders",
+    "defaultDuration": 60,
+    "maxPerConference": 6
+  },
+  {
+    "id": 2,
+    "conferenceId": 1,
+    "name": "Technical Talk",
+    "description": "In-depth technical presentations on specific topics",
+    "defaultDuration": 30,
+    "maxPerConference": 50
+  },
+  {
+    "id": 3,
+    "conferenceId": 1,
+    "name": "Workshop",
+    "description": "Hands-on interactive sessions with limited attendance",
+    "defaultDuration": 180,
+    "maxPerConference": 10
+  },
+  {
+    "id": 4,
+    "conferenceId": 1,
+    "name": "Panel Discussion",
+    "description": "Expert panel discussions with multiple speakers",
+    "defaultDuration": 90,
+    "maxPerConference": 8
+  },
+  {
+    "id": 5,
+    "conferenceId": 2,
+    "name": "Technical Session",
+    "description": "Standard technical presentations",
+    "defaultDuration": 45,
+    "maxPerConference": 30
+  },
+  {
+    "id": 6,
+    "conferenceId": 2,
+    "name": "Lab Session",
+    "description": "Hands-on lab with exercises",
+    "defaultDuration": 120,
+    "maxPerConference": 8
+  },
+  {
+    "id": 7,
+    "conferenceId": 5,
+    "name": "Briefing",
+    "description": "Threat intelligence briefings",
+    "defaultDuration": 30,
+    "maxPerConference": 25
+  },
+  {
+    "id": 8,
+    "conferenceId": 5,
+    "name": "Demo",
+    "description": "Tool demonstrations and walkthroughs",
+    "defaultDuration": 20,
+    "maxPerConference": 15
+  },
+  {
+    "id": 9,
+    "conferenceId": 6,
+    "name": "Deep Dive",
+    "description": "Technical deep dives into specific technologies",
+    "defaultDuration": 45,
+    "maxPerConference": 20
+  },
+  {
+    "id": 10,
+    "conferenceId": 9,
+    "name": "Research Paper",
+    "description": "Academic research paper presentations",
+    "defaultDuration": 45,
+    "maxPerConference": 10
+  },
+  {
+    "id": 11,
+    "conferenceId": 3,
+    "name": "Clinical Case Study",
+    "description": "Real-world clinical implementation case studies",
+    "defaultDuration": 30,
+    "maxPerConference": 20
+  },
+  {
+    "id": 12,
+    "conferenceId": 3,
+    "name": "Panel Discussion",
+    "description": "Expert panel discussions on healthcare topics",
+    "defaultDuration": 60,
+    "maxPerConference": 8
+  },
+  {
+    "id": 13,
+    "conferenceId": 4,
+    "name": "Code Lab",
+    "description": "Interactive coding sessions",
+    "defaultDuration": 90,
+    "maxPerConference": 12
+  },
+  {
+    "id": 14,
+    "conferenceId": 4,
+    "name": "Framework Comparison",
+    "description": "Side-by-side framework comparisons",
+    "defaultDuration": 45,
+    "maxPerConference": 6
+  },
+  {
+    "id": 15,
+    "conferenceId": 7,
+    "name": "Platform Talk",
+    "description": "iOS or Android platform specific talks",
+    "defaultDuration": 30,
+    "maxPerConference": 25
+  },
+  {
+    "id": 16,
+    "conferenceId": 7,
+    "name": "Cross-Platform Session",
+    "description": "Cross-platform development focused sessions",
+    "defaultDuration": 45,
+    "maxPerConference": 15
+  },
+  {
+    "id": 17,
+    "conferenceId": 10,
+    "name": "Architecture Review",
+    "description": "Cloud architecture review and patterns",
+    "defaultDuration": 40,
+    "maxPerConference": 20
+  },
+  {
+    "id": 18,
+    "conferenceId": 10,
+    "name": "Hands-On Lab",
+    "description": "Practical cloud deployment labs",
+    "defaultDuration": 120,
+    "maxPerConference": 8
+  }
+]

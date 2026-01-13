@@ -1,0 +1,187 @@
+erDiagram
+    User {
+        int id
+        string cognitoId
+        string email
+        string name
+        Role role
+    }
+
+    Conference {
+        int id
+        string name
+        string slug
+        ConferenceStatus status
+        boolean isPublic
+        SubmissionsVisibility submissionsVisibility
+        string submissionInviteCode
+        datetime cfpStartDate
+        datetime cfpEndDate
+        datetime schedulePublishedAt
+        int createdById
+    }
+
+    ConferenceParticipant {
+        int id
+        int userId
+        int conferenceId
+        ConferenceParticipationRole role
+        datetime createdAt
+    }
+
+    Submission {
+        int id
+        int conferenceId
+        int authorId
+        string title
+        string abstract
+        string[] keywords
+        SubmissionStatus status
+        boolean isLocked
+        datetime lockedAt
+        string lockedReason
+        datetime revisionRequestedAt
+        string revisionFeedback
+        datetime resubmittedAt
+    }
+
+    SubmissionAuthorEntry {
+        int id
+        int submissionId
+        string name
+        string email
+        string[] affiliations
+        int order
+        boolean isPresenter
+        boolean isExternal
+    }
+
+    SubmissionReview {
+        int id
+        int submissionId
+        int reviewerId
+        string decision
+        string feedback
+        datetime createdAt
+    }
+
+    Day {
+        int id
+        int conferenceId
+        datetime date
+        string title
+        int order
+    }
+
+    Section {
+        int id
+        int dayId
+        string title
+        datetime startTime
+        datetime endTime
+        string location
+        SectionType type
+        int order
+    }
+
+    Presentation {
+        int id
+        int sectionId
+        int submissionId
+        string title
+        string abstract
+        datetime startTime
+        datetime endTime
+        int order
+    }
+
+    PresentationAuthor {
+        int id
+        int presentationId
+        string name
+        string email
+        int order
+        boolean isPresenter
+    }
+
+    PresentationFavorite {
+        int id
+        int userId
+        int presentationId
+        datetime createdAt
+    }
+
+    ConferenceFavorite {
+        int id
+        int userId
+        int conferenceId
+        datetime createdAt
+    }
+
+    AdminAuditLog {
+        int id
+        int adminId
+        string action
+        string entityType
+        string entityId
+        string ipAddress
+        string userAgent
+        datetime createdAt
+    }
+
+    ImpersonationLog {
+        int id
+        int adminId
+        int impersonatedUserId
+        string reason
+        datetime startedAt
+        datetime endedAt
+    }
+
+    ConferenceCategory {
+        int id
+        int conferenceId
+        string name
+        int order
+    }
+
+    PresentationType {
+        int id
+        int conferenceId
+        string name
+        int durationMinutes
+        int order
+    }
+
+    SubmissionRequirement {
+        int id
+        int conferenceId
+        boolean requireAbstractText
+        boolean requireAbstractFile
+        boolean requireFullTextFile
+    }
+
+    User ||--o{ Conference : creates
+    User ||--o{ Submission : submits
+    User ||--o{ ConferenceParticipant : participates
+    User ||--o{ PresentationFavorite : favourites
+    User ||--o{ ConferenceFavorite : favourites
+    User ||--o{ AdminAuditLog : performs
+    User ||--o{ ImpersonationLog : impersonates
+
+    Conference ||--o{ Day : contains
+    Conference ||--o{ Submission : receives
+    Conference ||--o{ ConferenceParticipant : has
+    Conference ||--o{ ConferenceCategory : defines
+    Conference ||--o{ PresentationType : defines
+    Conference ||--o{ SubmissionRequirement : configures
+
+    Day ||--o{ Section : contains
+    Section ||--o{ Presentation : contains
+
+    Submission ||--o{ SubmissionAuthorEntry : has
+    Submission ||--o{ SubmissionReview : reviewedBy
+    Submission ||--o| Presentation : becomes
+
+    Presentation ||--o{ PresentationAuthor : has
+    Presentation ||--o{ PresentationFavorite : favouritedBy

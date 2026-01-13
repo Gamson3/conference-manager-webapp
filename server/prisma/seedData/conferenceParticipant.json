@@ -1,0 +1,66 @@
+[
+  {"id": 1, "conferenceId": 1, "userId": 590, "role": "attendee", "registeredAt": "2025-10-01T00:00:00.000Z"},
+  {"id": 2, "conferenceId": 1, "userId": 2, "role": "attendee", "registeredAt": "2025-11-15T09:30:00.000Z"},
+  {"id": 3, "conferenceId": 1, "userId": 3, "role": "presenter", "registeredAt": "2025-11-10T14:20:00.000Z"},
+  {"id": 4, "conferenceId": 1, "userId": 4, "role": "presenter", "registeredAt": "2025-11-12T11:45:00.000Z"},
+  {"id": 5, "conferenceId": 1, "userId": 5, "role": "presenter", "registeredAt": "2025-11-08T16:00:00.000Z"},
+  {"id": 6, "conferenceId": 1, "userId": 6, "role": "attendee", "registeredAt": "2025-11-20T10:15:00.000Z"},
+  {"id": 7, "conferenceId": 1, "userId": 7, "role": "attendee", "registeredAt": "2025-11-22T13:30:00.000Z"},
+  {"id": 8, "conferenceId": 1, "userId": 8, "role": "reviewer", "registeredAt": "2025-10-15T08:00:00.000Z"},
+  {"id": 9, "conferenceId": 1, "userId": 9, "role": "reviewer", "registeredAt": "2025-10-16T09:45:00.000Z"},
+  {"id": 10, "conferenceId": 1, "userId": 10, "role": "attendee", "registeredAt": "2025-11-25T15:20:00.000Z"},
+  {"id": 11, "conferenceId": 1, "userId": 1, "role": "presenter", "registeredAt": "2025-11-05T12:00:00.000Z"},
+  
+  {"id": 12, "conferenceId": 2, "userId": 590, "role": "attendee", "registeredAt": "2025-09-15T00:00:00.000Z"},
+  {"id": 13, "conferenceId": 2, "userId": 3, "role": "presenter", "registeredAt": "2025-11-01T10:00:00.000Z"},
+  {"id": 14, "conferenceId": 2, "userId": 4, "role": "attendee", "registeredAt": "2025-11-10T14:30:00.000Z"},
+  {"id": 15, "conferenceId": 2, "userId": 9, "role": "presenter", "registeredAt": "2025-10-28T09:15:00.000Z"},
+  {"id": 16, "conferenceId": 2, "userId": 10, "role": "presenter", "registeredAt": "2025-10-30T11:45:00.000Z"},
+  {"id": 17, "conferenceId": 2, "userId": 6, "role": "attendee", "registeredAt": "2025-11-18T16:20:00.000Z"},
+  
+  {"id": 18, "conferenceId": 3, "userId": 590, "role": "attendee", "registeredAt": "2025-08-01T00:00:00.000Z"},
+  {"id": 19, "conferenceId": 3, "userId": 3, "role": "presenter", "registeredAt": "2025-11-20T10:30:00.000Z"},
+  {"id": 20, "conferenceId": 3, "userId": 5, "role": "attendee", "registeredAt": "2025-11-25T14:00:00.000Z"},
+  
+  {"id": 21, "conferenceId": 4, "userId": 590, "role": "attendee", "registeredAt": "2025-06-01T00:00:00.000Z"},
+  {"id": 22, "conferenceId": 4, "userId": 2, "role": "attendee", "registeredAt": "2025-09-10T09:00:00.000Z"},
+  {"id": 23, "conferenceId": 4, "userId": 3, "role": "presenter", "registeredAt": "2025-08-20T11:30:00.000Z"},
+  {"id": 24, "conferenceId": 4, "userId": 4, "role": "presenter", "registeredAt": "2025-08-22T14:15:00.000Z"},
+  {"id": 25, "conferenceId": 4, "userId": 5, "role": "attendee", "registeredAt": "2025-09-15T10:45:00.000Z"},
+  {"id": 26, "conferenceId": 4, "userId": 6, "role": "attendee", "registeredAt": "2025-09-20T16:30:00.000Z"},
+  {"id": 27, "conferenceId": 4, "userId": 7, "role": "attendee", "registeredAt": "2025-09-25T08:20:00.000Z"},
+  {"id": 28, "conferenceId": 4, "userId": 8, "role": "attendee", "registeredAt": "2025-10-01T12:00:00.000Z"},
+  
+  {"id": 29, "conferenceId": 5, "userId": 590, "role": "attendee", "registeredAt": "2025-10-01T00:00:00.000Z"},
+  {"id": 30, "conferenceId": 5, "userId": 4, "role": "presenter", "registeredAt": "2025-11-05T09:30:00.000Z"},
+  {"id": 31, "conferenceId": 5, "userId": 5, "role": "presenter", "registeredAt": "2025-11-08T11:00:00.000Z"},
+  {"id": 32, "conferenceId": 5, "userId": 6, "role": "presenter", "registeredAt": "2025-11-10T14:45:00.000Z"},
+  {"id": 33, "conferenceId": 5, "userId": 8, "role": "reviewer", "registeredAt": "2025-10-10T10:00:00.000Z"},
+  {"id": 34, "conferenceId": 5, "userId": 9, "role": "attendee", "registeredAt": "2025-11-20T15:30:00.000Z"},
+  {"id": 35, "conferenceId": 5, "userId": 10, "role": "attendee", "registeredAt": "2025-11-22T09:15:00.000Z"},
+  
+  {"id": 36, "conferenceId": 6, "userId": 590, "role": "attendee", "registeredAt": "2025-11-01T00:00:00.000Z"},
+  {"id": 37, "conferenceId": 6, "userId": 6, "role": "presenter", "registeredAt": "2025-11-15T10:00:00.000Z"},
+  {"id": 38, "conferenceId": 6, "userId": 7, "role": "presenter", "registeredAt": "2025-11-18T12:30:00.000Z"},
+  {"id": 39, "conferenceId": 6, "userId": 3, "role": "attendee", "registeredAt": "2025-11-25T14:00:00.000Z"},
+  {"id": 40, "conferenceId": 6, "userId": 4, "role": "attendee", "registeredAt": "2025-11-28T09:45:00.000Z"},
+  
+  {"id": 41, "conferenceId": 7, "userId": 590, "role": "attendee", "registeredAt": "2025-11-15T00:00:00.000Z"},
+  {"id": 42, "conferenceId": 7, "userId": 8, "role": "presenter", "registeredAt": "2025-12-01T11:00:00.000Z"},
+  {"id": 43, "conferenceId": 7, "userId": 5, "role": "attendee", "registeredAt": "2025-12-03T10:30:00.000Z"},
+  
+  {"id": 44, "conferenceId": 8, "userId": 590, "role": "attendee", "registeredAt": "2025-07-01T00:00:00.000Z"},
+  
+  {"id": 45, "conferenceId": 9, "userId": 590, "role": "attendee", "registeredAt": "2025-10-15T00:00:00.000Z"},
+  {"id": 46, "conferenceId": 9, "userId": 9, "role": "presenter", "registeredAt": "2025-11-01T09:00:00.000Z"},
+  {"id": 47, "conferenceId": 9, "userId": 10, "role": "reviewer", "registeredAt": "2025-10-20T14:30:00.000Z"},
+  {"id": 48, "conferenceId": 9, "userId": 3, "role": "attendee", "registeredAt": "2025-11-10T11:15:00.000Z"},
+  {"id": 49, "conferenceId": 9, "userId": 4, "role": "attendee", "registeredAt": "2025-11-12T16:00:00.000Z"},
+  
+  {"id": 50, "conferenceId": 10, "userId": 2, "role": "attendee", "registeredAt": "2025-10-01T00:00:00.000Z"},
+  {"id": 51, "conferenceId": 10, "userId": 8, "role": "presenter", "registeredAt": "2025-11-05T10:00:00.000Z"},
+  {"id": 52, "conferenceId": 10, "userId": 10, "role": "presenter", "registeredAt": "2025-11-08T13:45:00.000Z"},
+  {"id": 53, "conferenceId": 10, "userId": 590, "role": "attendee", "registeredAt": "2025-11-20T09:30:00.000Z"},
+  {"id": 54, "conferenceId": 10, "userId": 3, "role": "attendee", "registeredAt": "2025-11-22T11:00:00.000Z"},
+  {"id": 55, "conferenceId": 10, "userId": 5, "role": "attendee", "registeredAt": "2025-11-25T15:30:00.000Z"}
+]

@@ -1,0 +1,12 @@
+flowchart TD
+  AD[Administrator] --> U1[Manage Users]
+  AD --> C1[Oversee Conferences]
+  AD --> L1[View Audit Logs]
+
+  AD --> IM1[Impersonate User]
+  IM1 --> IM2[Perform Support Actions\nAs User]
+  IM2 --> IM3[End Impersonation]
+  IM1 --> L2[Log Impersonation Event]
+
+  U1 --> L3[Log Admin Action]
+  C1 --> L3

@@ -1,0 +1,66 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 1,
+    "area": "cfp",
+    "title": "Submission Guidelines",
+    "markdown": "## Submission Guidelines for Global AI Summit 2025\n\nWe welcome submissions covering all aspects of artificial intelligence research and applications.\n\n### Topics of Interest\n- Machine Learning and Deep Learning\n- Natural Language Processing\n- Computer Vision\n- AI Ethics and Safety\n- AI Infrastructure and MLOps\n\n### Requirements\n- Abstract must be 100-3000 words\n- Include 4-8 relevant keywords\n- Specify target track (Research, Applied, Workshop)\n- Indicate any special equipment needs",
+    "order": 1
+  },
+  {
+    "id": 2,
+    "conferenceId": 1,
+    "area": "cfp",
+    "title": "Review Criteria",
+    "markdown": "## Review Criteria\n\nSubmissions will be evaluated on:\n1. **Technical Quality** (30%) - Soundness of methodology and results\n2. **Novelty** (25%) - Original contribution to the field\n3. **Clarity** (20%) - Clear presentation of ideas\n4. **Relevance** (15%) - Alignment with conference themes\n5. **Impact** (10%) - Potential influence on the field",
+    "order": 2
+  },
+  {
+    "id": 3,
+    "conferenceId": 2,
+    "area": "cfp",
+    "title": "Call For Proposals",
+    "markdown": "## DevOps Excellence Conference CFP\n\nShare your DevOps journey and learnings with the community.\n\n### We're looking for:\n- CI/CD pipeline innovations\n- Kubernetes and cloud-native experiences\n- SRE and reliability engineering\n- Platform engineering stories\n- DevSecOps integration",
+    "order": 1
+  },
+  {
+    "id": 4,
+    "conferenceId": 2,
+    "area": "cfp",
+    "title": "Evaluation Criteria",
+    "markdown": "## Evaluation Criteria\n\n1. Practical applicability\n2. Real-world experience\n3. Actionable takeaways\n4. Speaker experience",
+    "order": 2
+  },
+  {
+    "id": 5,
+    "conferenceId": 5,
+    "area": "cfp",
+    "title": "Call For Papers",
+    "markdown": "## Cybersecurity World Congress CFP\n\nShare cutting-edge security research and practical defense strategies.\n\n### Tracks\n- Offensive Security & Red Teaming\n- Defensive Security & Blue Teaming\n- Threat Intelligence\n- Cloud & Infrastructure Security\n- Application Security",
+    "order": 1
+  },
+  {
+    "id": 6,
+    "conferenceId": 6,
+    "area": "cfp",
+    "title": "Call For Proposals",
+    "markdown": "## Data Engineering Summit CFP\n\nShare your data engineering expertise and production experiences.\n\n### Focus Areas\n- Data pipeline architecture\n- Streaming and real-time processing\n- Data quality and governance\n- Modern data stack tools\n- Data team best practices",
+    "order": 1
+  },
+  {
+    "id": 7,
+    "conferenceId": 9,
+    "area": "cfp",
+    "title": "Invite-Only Submissions",
+    "markdown": "## AI Research Workshop - Invite Only\n\nThis workshop accepts invited submissions only. Use your invite code to submit.\n\n### Requirements\n- Original, unpublished research\n- Focus on AI safety and alignment\n- Maximum 5000 words\n- ORCID required for all authors",
+    "order": 1
+  },
+  {
+    "id": 8,
+    "conferenceId": 9,
+    "area": "cfp",
+    "title": "Double-Blind Review",
+    "markdown": "## Double-Blind Review\n\nAll submissions undergo rigorous peer review.\n\n1. Technical soundness\n2. Research significance\n3. Novelty of contribution\n4. Clarity of presentation\n5. Reproducibility",
+    "order": 2
+  }
+]

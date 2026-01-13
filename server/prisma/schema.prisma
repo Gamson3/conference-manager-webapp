@@ -1,0 +1,823 @@
+// This is your Prisma schema file,
+//
+// ⚠️  IMPORTANT — SCHEMA INTEGRITY RULES
+// ══════════════════════════════════════════════════════════════════════════════
+// This schema is the SINGLE SOURCE OF TRUTH for the data model.
+//
+// ❌ NEVER run `prisma db pull` or `prisma db pull --force`
+//    → This overwrites semantic relation names with introspected artifacts
+//    → It breaks code ↔ schema alignment
+//
+// ✅ Use `prisma migrate dev` to create new migrations (schema changes)
+// ✅ Use `prisma migrate deploy` to apply existing migrations (CI/CD, test DB)
+// ✅ Use `prisma generate` to regenerate the client after schema changes
+//
+// If schema drift occurs, restore from version control — do NOT re-introspect.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// REFINED ACTIVE SCHEMA (promoted from docs/refined-schema.preview.prisma)
+// Capability-based model with typed participation and unified submissions
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// ===================== ENUMS =====================
+
+enum Role {
+  user
+  organizer
+  admin
+}
+
+enum ConferenceParticipationRole {
+  attendee
+  presenter
+  author
+  reviewer
+  sponsor
+  volunteer
+}
+
+enum ConferenceParticipantStatus {
+  registered
+  canceled
+  waitlisted
+  withdrawn
+}
+
+enum PresentationStatus {
+  draft
+  submitted
+  scheduled
+  locked
+}
+
+enum SubmissionType {
+  internal
+  external
+}
+
+enum SubmissionStatus {
+  draft
+  submitted
+  under_review
+  revision_requested
+  accepted
+  rejected
+  withdrawn
+}
+
+enum ConferenceStatus {
+  draft
+  published
+  canceled
+  completed
+}
+
+enum SectionType {
+  presentation
+  break
+  keynote
+  workshop
+  panel
+  networking
+}
+
+// CFP submissions visibility control
+enum SubmissionsVisibility {
+  public
+  invite_only
+  private
+}
+
+enum AbstractUploadMode {
+  TEXT
+  FILE
+  BOTH
+}
+
+enum FullTextTiming {
+  onSubmission
+  afterAcceptance
+}
+
+enum SubmissionAssistanceRequestStatus {
+  pending
+  approved
+  denied
+  expired
+}
+
+// ===================== MODELS =====================
+
+model User {
+  id        Int      @id @default(autoincrement())
+  cognitoId String   @unique
+  name      String
+  email     String   @unique
+  password  String?
+  role      Role     @default(user)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Global relations
+  conferences           Conference[]            @relation("OrganizerConferences")
+  participations        ConferenceParticipant[]
+  authorAssignments     AuthorAssignment[]      @relation("InternalAuthor")
+  assignedAuthors       AuthorAssignment[]      @relation("AssignedBy")
+  impersonations        ImpersonationLog[]      @relation("Impersonator")
+  impersonatedBy        ImpersonationLog[]      @relation("ImpersonatedUser")
+  conferenceFavorites   ConferenceFavorite[]
+  lockedPresentations   Presentation[]          @relation("LockedByUser")
+  presentationFavorites PresentationFavorite[]
+  authoredPresentations PresentationAuthor[]    @relation("InternalPresentationAuthor")
+
+  // Extended fields
+  bio          String? @db.Text
+  profileImage String?
+  phoneNumber  String?
+  address      String?
+  organization String?
+  jobTitle     String?
+  socialLinks  Json?
+  interests    Json?
+  preferences  Json?
+
+  // Feedback & notifications
+  conferenceFeedback   ConferenceFeedback[]
+  presentationFeedback PresentationFeedback[]
+  notifications        Notification[]
+  sessionAttendance    SessionAttendance[]
+
+  // Submissions & Reviews
+  submissions       Submission[]       @relation("SubmissionAuthor")
+  submissionReviews SubmissionReview[] @relation("SubmissionReviewer")
+
+  // Admin audit logging
+  adminAuditLogs    AdminAuditLog[] @relation("AdminAuditLogs")
+  impersonationLogs AdminAuditLog[] @relation("ImpersonatedUserAudit")
+
+  // Submission assistance (consent-based delegation)
+  assistanceConsentsAsAuthor    SubmissionAssistanceConsent[] @relation("ConsentAuthor")
+  assistanceConsentsAsOrganizer SubmissionAssistanceConsent[] @relation("ConsentOrganizer")
+  assistanceRequestsAsAuthor    SubmissionAssistanceRequest[] @relation("RequestAuthor")
+  assistanceRequestsAsOrganizer SubmissionAssistanceRequest[] @relation("RequestOrganizer")
+}
+
+model Conference {
+  // NOTE: The field is named `name` (not `title`) for consistency with our data model.
+  // Frontend displays this as the conference title/name.
+  // @see docs/Route-Naming-Convention-Analysis.md for naming conventions
+
+  id          Int              @id @default(autoincrement())
+  name        String
+  slug        String?          @unique
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  location    String?
+  status      ConferenceStatus @default(draft)
+  topics      String[]         @default([])
+  createdById Int
+  createdBy   User             @relation("OrganizerConferences", fields: [createdById], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+
+  // Relations
+  sections              Section[]
+  participants          ConferenceParticipant[]
+  favorites             ConferenceFavorite[]
+  days                  Day[]
+  feedback              ConferenceFeedback[]
+  materials             ConferenceMaterial[]
+  submissions           Submission[]
+  categories            ConferenceCategory[]
+  types                 PresentationType[]
+  requirements          SubmissionRequirement?
+  milestones            TimelineMilestone[]
+  registrationQuestions RegistrationQuestion[]
+  websiteContentBlocks  ConferenceWebsiteContentBlock[]
+
+  // Submission assistance relations
+  assistanceConsents SubmissionAssistanceConsent[]
+  assistanceRequests SubmissionAssistanceRequest[]
+
+  // Fields
+  capacity             Int?
+  registrationDeadline DateTime?
+  isPublic             Boolean   @default(true)
+  timezone             String?   @default("UTC")
+  websiteUrl           String?
+  venue                String?
+  venueAddress         String?
+  organizerNotes       String?   @db.Text
+  bannerImageUrl       String?
+  bannerImageKey       String? // R2/S3 object key for banner image
+
+  // CFP (Website)
+  submissionPortalUrl String?
+
+  // Organizer profile
+  organizerName    String?
+  organizerEmail   String?
+  organizerPhone   String?
+  organizerWebsite String?
+  organizerLogoUrl String?
+  organizerLogoKey String? // R2/S3 object key for organizer logo
+
+  // CFP (Call for Papers) and registration windows
+  submissionsOpenFrom   DateTime?
+  submissionsOpenUntil  DateTime?
+  submissionsVisibility SubmissionsVisibility @default(public)
+  submissionInviteCode  String?
+  registrationOpenFrom  DateTime?
+  registrationOpenUntil DateTime?
+
+  // Registration settings
+  registrationEnabled   Boolean @default(true)
+  maxAttendees          Int?
+  waitlistEnabled       Boolean @default(false)
+  requireApproval       Boolean @default(false)
+  confirmationEmailBody String? @db.Text
+
+  // Reviews and schedule publish
+  reviewStartsAt      DateTime?
+  reviewEndsAt        DateTime?
+  schedulePublishedAt DateTime?
+
+  // Limits
+  maxSubmissionsPerUser Int?
+
+  @@index([name])
+  @@index([topics])
+  @@index([status])
+  @@index([startDate])
+  @@index([submissionsOpenFrom])
+  @@index([submissionsOpenUntil])
+  @@index([registrationOpenFrom])
+  @@index([registrationOpenUntil])
+  @@index([reviewStartsAt])
+  @@index([reviewEndsAt])
+  @@index([schedulePublishedAt])
+}
+
+enum WebsiteContentArea {
+  cfp
+}
+
+model ConferenceWebsiteContentBlock {
+  id           Int                @id @default(autoincrement())
+  conferenceId Int
+  area         WebsiteContentArea
+  title        String?
+  markdown     String             @db.Text
+  order        Int
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @default(now()) @updatedAt
+
+  conference Conference @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+
+  @@unique([conferenceId, area, order])
+  @@index([conferenceId, area])
+}
+
+model ConferenceParticipant {
+  id              Int                         @id @default(autoincrement())
+  userId          Int
+  conferenceId    Int
+  role            ConferenceParticipationRole
+  status          ConferenceParticipantStatus @default(registered)
+  registeredAt    DateTime                    @default(now())
+  // Custom question responses stored as JSON
+  customResponses Json?
+
+  user       User       @relation(fields: [userId], references: [id])
+  conference Conference @relation(fields: [conferenceId], references: [id])
+
+  @@unique([userId, conferenceId, role])
+  @@index([conferenceId, role])
+}
+
+// ===================== REGISTRATION QUESTIONS =====================
+
+enum RegistrationQuestionType {
+  text
+  textarea
+  select
+  multiselect
+  checkbox
+  radio
+  number
+  email
+  phone
+  date
+}
+
+model RegistrationQuestion {
+  id           Int                      @id @default(autoincrement())
+  conferenceId Int
+  label        String
+  description  String?
+  type         RegistrationQuestionType @default(text)
+  required     Boolean                  @default(false)
+  options      Json? // For select, multiselect, radio, checkbox options
+  order        Int                      @default(0)
+  placeholder  String?
+  validation   Json? // Custom validation rules (min, max, pattern, etc.)
+  enabled      Boolean                  @default(true)
+  category     String? // Group questions: "personal", "dietary", "accessibility", "other"
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  conference Conference @relation(fields: [conferenceId], references: [id])
+
+  @@index([conferenceId, order])
+  @@index([conferenceId, category])
+}
+
+model Day {
+  id           Int      @id @default(autoincrement())
+  conferenceId Int
+  date         DateTime
+  name         String
+  order        Int      @default(0)
+
+  conference Conference @relation(fields: [conferenceId], references: [id])
+  sections   Section[]
+
+  @@unique([conferenceId, date])
+  @@index([conferenceId, date])
+}
+
+// NOTE: Model is named `Section` in Prisma for historical reasons.
+// Frontend UI and new API routes use "Sessions" terminology.
+// Route paths: /api/organizer/sessions/*, /api/organizer/conferences/:id/sessions
+// @see docs/Route-Naming-Convention-Analysis.md for naming conventions
+model Section {
+  id           Int         @id @default(autoincrement())
+  name         String
+  startTime    DateTime?
+  endTime      DateTime?
+  conferenceId Int
+  dayId        Int?
+  order        Int         @default(0)
+  room         String?
+  capacity     Int?
+  description  String?
+  type         SectionType @default(presentation)
+  chairs       Json?
+
+  conference    Conference          @relation(fields: [conferenceId], references: [id])
+  day           Day?                @relation(fields: [dayId], references: [id])
+  presentations Presentation[]
+  attendees     SessionAttendance[]
+
+  @@index([name])
+  @@index([startTime])
+  @@index([type])
+}
+
+model Presentation {
+  id           Int      @id @default(autoincrement())
+  title        String
+  slug         String?  @unique
+  abstract     String?  @db.Text
+  affiliations String[]
+  keywords     String[]
+  duration     Int?
+  order        Int      @default(0)
+
+  status         PresentationStatus
+  submissionType SubmissionType
+  sectionId      Int
+  section        Section            @relation(fields: [sectionId], references: [id])
+
+  // Optional links to setup entities
+  typeId     Int?
+  type       PresentationType?   @relation(fields: [typeId], references: [id])
+  categoryId Int?
+  category   ConferenceCategory? @relation(fields: [categoryId], references: [id])
+
+  createdAt  DateTime @default(now())
+  lockedById Int?
+  lockedBy   User?    @relation("LockedByUser", fields: [lockedById], references: [id])
+
+  // Relations
+  authors           PresentationAuthor[]
+  favorites         PresentationFavorite[]
+  authorAssignments AuthorAssignment[]
+  impersonationLogs ImpersonationLog[]
+  materials         PresentationMaterial[]
+  feedback          PresentationFeedback[]
+  submission        Submission?
+
+  @@unique([sectionId, order])
+  @@index([title])
+  @@index([keywords])
+}
+
+model PresentationAuthor {
+  id             Int     @id @default(autoincrement())
+  presentationId Int
+  authorName     String
+  authorEmail    String?
+  affiliation    String?
+  isPresenter    Boolean @default(false)
+  isExternal     Boolean @default(true)
+  order          Int     @default(0)
+
+  // Enrichment fields
+  title      String?
+  bio        String? @db.Text
+  profileUrl String?
+  orcidId    String?
+  department String?
+  country    String?
+
+  userId       Int?
+  internalUser User?        @relation("InternalPresentationAuthor", fields: [userId], references: [id])
+  presentation Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+
+  @@index([authorName])
+  @@index([authorEmail])
+  @@index([country])
+}
+
+// ===================== SUBMISSIONS (UNIFIED) =====================
+
+model Submission {
+  id          Int              @id @default(autoincrement())
+  title       String
+  abstract    String?          @db.Text
+  keywords    String[]         @default([])
+  status      SubmissionStatus @default(draft)
+  submittedAt DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Optional file-based abstract upload (stored as URL + metadata)
+  abstractFileUrl       String?
+  abstractFileName      String?
+  abstractFileMimeType  String?
+  abstractFileSizeBytes Int?
+  abstractFileKey       String? // R2/S3 object key for private storage
+
+  // Optional full-text upload (when enabled via SubmissionRequirement)
+  fullTextFileUrl       String?
+  fullTextFileName      String?
+  fullTextFileMimeType  String?
+  fullTextFileSizeBytes Int?
+  fullTextFileKey       String? // R2/S3 object key for private storage
+
+  // Locking mechanism to prevent modifications
+  isLocked     Boolean   @default(false)
+  lockedAt     DateTime?
+  lockedReason String?
+
+  // Revision workflow fields
+  revisionRequestedAt DateTime?
+  revisionFeedback    String?   @db.Text
+  resubmittedAt       DateTime?
+
+  authorId       Int
+  conferenceId   Int
+  presentationId Int? @unique
+
+  // Links to organizer-configured categories and presentation types
+  typeId     Int?
+  categoryId Int?
+
+  // Author information (collected based on SubmissionRequirement settings)
+  authorEmail       String?
+  authorAffiliation String?
+  authorPhone       String?
+  authorOrcid       String?
+
+  author       User                    @relation("SubmissionAuthor", fields: [authorId], references: [id])
+  conference   Conference              @relation(fields: [conferenceId], references: [id])
+  presentation Presentation?           @relation(fields: [presentationId], references: [id])
+  type         PresentationType?       @relation(fields: [typeId], references: [id])
+  category     ConferenceCategory?     @relation(fields: [categoryId], references: [id])
+  reviews      SubmissionReview[]
+  authors      SubmissionAuthorEntry[]
+
+  @@index([conferenceId, status])
+  @@index([typeId])
+  @@index([categoryId])
+}
+
+model SubmissionAuthorEntry {
+  id           Int      @id @default(autoincrement())
+  submissionId Int
+  firstName    String   @default("")
+  lastName     String   @default("")
+  name         String
+  email        String?
+  affiliations String[] @default([])
+  phone        String?
+  orcid        String?
+  order        Int      @default(0)
+  isPresenter  Boolean  @default(false)
+  isExternal   Boolean  @default(true)
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId, order])
+}
+
+model SubmissionReview {
+  id           Int @id @default(autoincrement())
+  submissionId Int
+  reviewerId   Int
+  score        Int
+  // Additional fields can be added (comments, recommendation)
+
+  submission Submission @relation(fields: [submissionId], references: [id])
+  reviewer   User       @relation("SubmissionReviewer", fields: [reviewerId], references: [id])
+}
+
+// ===================== SUBMISSION ASSISTANCE (CONSENT-BASED DELEGATION) =====================
+
+model SubmissionAssistanceConsent {
+  id           Int       @id @default(autoincrement())
+  conferenceId Int
+  authorId     Int
+  organizerId  Int
+  grantedAt    DateTime  @default(now())
+  revokedAt    DateTime?
+  expiresAt    DateTime?
+
+  conference Conference @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+  author     User       @relation("ConsentAuthor", fields: [authorId], references: [id])
+  organizer  User       @relation("ConsentOrganizer", fields: [organizerId], references: [id])
+
+  @@unique([conferenceId, authorId, organizerId])
+  @@index([conferenceId])
+  @@index([authorId])
+  @@index([organizerId])
+}
+
+model SubmissionAssistanceRequest {
+  id           Int                               @id @default(autoincrement())
+  conferenceId Int
+  authorId     Int
+  organizerId  Int
+  message      String?                           @db.Text
+  status       SubmissionAssistanceRequestStatus @default(pending)
+  createdAt    DateTime                          @default(now())
+  respondedAt  DateTime?
+  responseNote String?                           @db.Text
+
+  conference Conference @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+  author     User       @relation("RequestAuthor", fields: [authorId], references: [id])
+  organizer  User       @relation("RequestOrganizer", fields: [organizerId], references: [id])
+
+  @@index([conferenceId])
+  @@index([authorId, status])
+  @@index([organizerId, status])
+}
+
+// ===================== FAVORITES, ASSIGNMENTS, ATTENDANCE =====================
+
+model ConferenceFavorite {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  conferenceId Int
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+  conference Conference @relation(fields: [conferenceId], references: [id])
+
+  @@unique([userId, conferenceId])
+}
+
+model PresentationFavorite {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  presentationId Int
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id])
+  presentation Presentation @relation(fields: [presentationId], references: [id])
+
+  @@unique([userId, presentationId])
+}
+
+model AuthorAssignment {
+  id                   Int     @id @default(autoincrement())
+  userId               Int?
+  externalEmail        String?
+  presentationId       Int
+  assignedById         Int
+  secureSubmissionLink String  @unique
+
+  internalAuthor User?        @relation("InternalAuthor", fields: [userId], references: [id])
+  assignedBy     User         @relation("AssignedBy", fields: [assignedById], references: [id])
+  presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+}
+
+model SessionAttendance {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  sectionId   Int
+  createdAt   DateTime  @default(now())
+  checkedIn   Boolean   @default(false)
+  checkinTime DateTime?
+
+  user    User    @relation(fields: [userId], references: [id])
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sectionId])
+}
+
+// ===================== MATERIALS & FEEDBACK =====================
+
+model ConferenceMaterial {
+  id           Int      @id @default(autoincrement())
+  conferenceId Int
+  title        String
+  description  String?
+  fileUrl      String
+  fileType     String
+  uploadedAt   DateTime @default(now())
+  isPublic     Boolean  @default(true)
+
+  conference Conference @relation(fields: [conferenceId], references: [id])
+}
+
+model PresentationMaterial {
+  id             Int      @id @default(autoincrement())
+  presentationId Int
+  title          String
+  description    String?
+  fileUrl        String
+  fileType       String
+  uploadedAt     DateTime @default(now())
+  isPublic       Boolean  @default(true)
+
+  presentation Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+}
+
+model ConferenceFeedback {
+  id           Int      @id @default(autoincrement())
+  conferenceId Int
+  userId       Int
+  rating       Int
+  comments     String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  conference Conference @relation(fields: [conferenceId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+}
+
+model PresentationFeedback {
+  id             Int      @id @default(autoincrement())
+  presentationId Int
+  userId         Int
+  rating         Int
+  comments       String?  @db.Text
+  createdAt      DateTime @default(now())
+
+  presentation Presentation @relation(fields: [presentationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ImpersonationLog {
+  id                 Int      @id @default(autoincrement())
+  impersonatorId     Int
+  impersonatedUserId Int
+  presentationId     Int?
+  action             String
+  createdAt          DateTime @default(now())
+
+  impersonator     User          @relation("Impersonator", fields: [impersonatorId], references: [id])
+  impersonatedUser User          @relation("ImpersonatedUser", fields: [impersonatedUserId], references: [id])
+  presentation     Presentation? @relation(fields: [presentationId], references: [id])
+}
+
+// ===================== SETUP WIZARD MODELS =====================
+
+model ConferenceCategory {
+  id           Int     @id @default(autoincrement())
+  conferenceId Int
+  name         String
+  description  String?
+
+  conference    Conference     @relation(fields: [conferenceId], references: [id])
+  presentations Presentation[]
+  submissions   Submission[]
+}
+
+model PresentationType {
+  id               Int     @id @default(autoincrement())
+  conferenceId     Int
+  name             String
+  description      String?
+  defaultDuration  Int?
+  maxPerConference Int?
+
+  conference    Conference     @relation(fields: [conferenceId], references: [id])
+  presentations Presentation[]
+  submissions   Submission[]
+}
+
+model SubmissionRequirement {
+  id                Int     @id @default(autoincrement())
+  conferenceId      Int     @unique
+  minKeywords       Int?    @default(5)
+  maxKeywords       Int?    @default(8)
+  abstractMinLength Int?    @default(50)
+  abstractMaxLength Int?    @default(3000)
+  requiresOrcid     Boolean @default(false)
+
+  // Constraints for submissions
+  maxFileSizeMB    Int?     @default(10)
+  allowedFileTypes String[] @default([])
+
+  // Phase 2: General submission form configuration
+  titleMaxWords    Int?
+  bodyTextLabel    String? @default("Abstract text")
+  bodyTextMinWords Int?
+  bodyTextMaxWords Int?
+
+  authorsEnabled           Boolean @default(true)
+  collectAuthorEmail       Boolean @default(true)
+  collectAuthorAffiliation Boolean @default(true)
+  collectAuthorPhone       Boolean @default(false)
+  collectAuthorOrcid       Boolean @default(false)
+
+  abstractUploadMode AbstractUploadMode @default(TEXT)
+  fileFieldLabel     String?            @default("Add Abstract File")
+  fileFieldRequired  Boolean            @default(false)
+
+  // Phase 3: Full Text collection settings
+  collectFullText Boolean         @default(false)
+  fullTextTiming  FullTextTiming? @default(onSubmission)
+
+  conference Conference @relation(fields: [conferenceId], references: [id])
+}
+
+model TimelineMilestone {
+  id           Int      @id @default(autoincrement())
+  conferenceId Int
+  name         String
+  description  String?
+  date         DateTime
+  type         String?
+
+  conference Conference @relation(fields: [conferenceId], references: [id])
+}
+
+// ===================== ADMIN AUDIT LOGS =====================
+
+model AdminAuditLog {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  // Who performed the action
+  adminId Int
+  admin   User @relation("AdminAuditLogs", fields: [adminId], references: [id])
+
+  // What action was performed
+  action     String // e.g., "DELETE_USER", "IMPERSONATE_USER", "PUBLISH_CONFERENCE", "CHANGE_SUBMISSION_STATUS"
+  entityType String // e.g., "User", "Conference", "Submission", "Presentation"
+  entityId   Int? // ID of the affected entity
+
+  // Additional context
+  metadata  Json? // Store details like: { "oldStatus": "draft", "newStatus": "published", "reason": "..." }
+  ipAddress String?
+  userAgent String?
+
+  // For impersonation tracking
+  impersonatedUserId Int?
+  impersonatedUser   User?     @relation("ImpersonatedUserAudit", fields: [impersonatedUserId], references: [id])
+  impersonationEnded DateTime?
+
+  @@index([adminId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ===================== DEPRECATED (removed): Attendance, AbstractSubmission, AbstractReview
+// Code referencing these must be updated to use ConferenceParticipant + Submission/SubmissionReview.
+
+// (Legacy duplicates removed during promotion)

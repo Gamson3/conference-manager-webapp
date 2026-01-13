@@ -1,0 +1,111 @@
+flowchart LR
+  %% Actors
+  A[Attendee / Base User]
+  O[Organizer]
+  AD[Administrator]
+
+  %% System boundary
+  subgraph SYS[Conference Master Web Application]
+    direction TB
+
+    subgraph AUTH[Authentication]
+      direction TB
+      UC_Login((Login / Signup))
+      UC_Refresh((Refresh Token))
+    end
+
+    subgraph PUBLIC[Public Discovery]
+      direction TB
+      UC_Browse((Browse Conferences))
+      UC_Details((View Conference Details))
+      UC_ViewProgram((View Published Program))
+      UC_Search((Search Presentations))
+      UC_Tree((View Tree Schedule))
+    end
+
+    subgraph REG[Registration]
+      direction TB
+      UC_Register((Register for Conference))
+      UC_CustomQ((Answer Custom Questions))
+    end
+
+    subgraph SUB[Submissions - CFP]
+      direction TB
+      UC_Submit((Submit Abstract))
+      UC_Invite((Enter Invite Code))
+      UC_Authors((Manage Author List))
+      UC_Upload((Upload Files))
+      UC_Track((Track Submission Status))
+      UC_Resubmit((Resubmit After Revision Request))
+    end
+
+    subgraph ORG[Organizer Console]
+      direction TB
+      UC_CreateConf((Create Conference))
+      UC_Upgrade((Auto-Upgrade to Organizer))
+      UC_CFP((Configure CFP / Requirements))
+      UC_Review((Review Submissions))
+      UC_RequestRev((Request Revision))
+      UC_Decide((Accept / Reject))
+      UC_Schedule((Build Schedule))
+      UC_Publish((Publish Conference / Program))
+      UC_PublishSchedule((Publish Schedule))
+    end
+
+    subgraph FAV[Favourites]
+      direction TB
+      UC_Fav((Favourite Presentation))
+      UC_ViewFav((View Favourites List))
+    end
+
+    subgraph ADMIN[Administration]
+      direction TB
+      UC_ManageUsers((Manage Users))
+      UC_Audit((View Audit Logs))
+      UC_Impersonate((Impersonate User))
+    end
+  end
+
+  %% Actor associations
+  A --> UC_Login
+  A --> UC_Browse
+  A --> UC_Details
+  A --> UC_Register
+  A --> UC_ViewProgram
+  A --> UC_Tree
+  A --> UC_Search
+  A --> UC_Fav
+  A --> UC_ViewFav
+  A --> UC_Submit
+  A --> UC_Track
+  A --> UC_Resubmit
+
+  O --> UC_Login
+  O --> UC_CreateConf
+  O --> UC_CFP
+  O --> UC_Review
+  O --> UC_Schedule
+  O --> UC_Publish
+  O --> UC_PublishSchedule
+  O --> UC_Impersonate
+
+  AD --> UC_Login
+  AD --> UC_ManageUsers
+  AD --> UC_Audit
+  AD --> UC_Impersonate
+
+  %% Includes / dependencies
+  UC_CreateConf -.-> UC_Upgrade
+  UC_Upgrade -.-> UC_Refresh
+
+  UC_Register -.-> UC_CustomQ
+
+  UC_Submit -.-> UC_Authors
+  UC_Submit -.-> UC_Upload
+  UC_Submit -.-> UC_Invite
+  UC_Resubmit -.-> UC_Submit
+
+  UC_Review -.-> UC_RequestRev
+  UC_Review -.-> UC_Decide
+
+  UC_Fav -.-> UC_ViewFav

@@ -1,0 +1,19 @@
+flowchart TD
+  O[Organizer] --> C1[Create Conference]
+  C1 --> UG{First Conference?}
+  UG -->|Yes| U1[Auto-Upgrade to Organizer\nToken Refresh]
+  UG -->|No| S1
+  U1 --> S1[Configure Settings\nBasics, Dates, Visibility]
+
+  S1 --> CFP[Configure CFP\nRequirements, Categories, Types, Questions]
+  CFP --> PUB1[Publish Conference - Public Visibility]
+
+  PUB1 --> R1[Review Submissions]
+  R1 --> D1{Decision}
+  D1 -->|Accept| A1[Mark Accepted]
+  D1 -->|Reject| RJ1[Mark Rejected]
+  D1 -->|Request Revision| RV1[Send Feedback\nStatus: Revision Requested]
+  RV1 --> R1
+
+  A1 --> SCH1[Build Schedule\nDays → Sessions → Presentations]
+  SCH1 --> PUB2[Publish Schedule]

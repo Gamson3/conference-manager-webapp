@@ -1,0 +1,209 @@
+[
+  {
+    "id": 1,
+    "cognitoId": "817b3540-a061-707b-742a-a28391181149",
+    "name": "Alice Admin",
+    "email": "alice@conf.com",
+    "password": "hashedpassword123",
+    "role": "admin",
+    "bio": "Conference management professional with 10+ years experience in the tech industry. Specialized in large-scale technical events.",
+    "profileImage": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+    "phoneNumber": "+1-555-123-4567",
+    "address": "123 Admin St, San Francisco, CA 94105",
+    "organization": "TechConf Inc.",
+    "jobTitle": "Chief Events Officer",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/aliceadmin",
+      "twitter": "https://twitter.com/aliceadmin"
+    }
+  },
+  {
+    "id": 2,
+    "cognitoId": "us-east-2:87654321-90ab-cdef-1234-567890abcdef",
+    "name": "Oliver Organizer",
+    "email": "oliver@conf.com",
+    "password": "hashedpassword456",
+    "role": "organizer",
+    "bio": "Event coordinator and content creator focused on innovative conference experiences. Background in computer science and UX design.",
+    "profileImage": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
+    "phoneNumber": "+1-555-987-6543",
+    "address": "456 Organizer Ave, Boston, MA 02115",
+    "organization": "EventPro Solutions",
+    "jobTitle": "Senior Event Coordinator",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/oliverorg",
+      "github": "https://github.com/oliverorg"
+    }
+  },
+  {
+    "id": 3,
+    "cognitoId": "us-east-2:98765432-90ab-cdef-1234-567890abcdef",
+    "name": "Anita Attendee",
+    "email": "anita@conf.com",
+    "password": "hashedpassword789",
+    "role": "user",
+    "bio": "Software developer specializing in AI and machine learning applications. Regular conference attendee seeking to network and learn.",
+    "profileImage": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
+    "phoneNumber": "+1-555-234-5678",
+    "address": "789 Attendee Blvd, Seattle, WA 98101",
+    "organization": "TechInnovate LLC",
+    "jobTitle": "Senior Developer",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/anitadev",
+      "github": "https://github.com/anitadev",
+      "twitter": "https://twitter.com/anitadev"
+    }
+  },
+  {
+    "id": 4,
+    "cognitoId": "us-east-2:12345678-abcd-efgh-ijkl-123456789012",
+    "name": "Peter Presenter",
+    "email": "peter@conf.com",
+    "password": "hashedpassword101",
+    "role": "user",
+    "bio": "Data scientist and frequent speaker on big data analytics. Published author with expertise in predictive modeling.",
+    "profileImage": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
+    "phoneNumber": "+1-555-345-6789",
+    "address": "101 Speaker St, New York, NY 10001",
+    "organization": "DataInsight Corp",
+    "jobTitle": "Lead Data Scientist",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/peterpresenter",
+      "github": "https://github.com/peterpresenter",
+      "website": "https://peterpresenter.com"
+    }
+  },
+  {
+    "id": 5,
+    "cognitoId": "us-east-2:abcdef12-3456-7890-abcd-ef1234567890",
+    "name": "Rachel Reviewer",
+    "email": "rachel@conf.com",
+    "password": "hashedpassword202",
+    "role": "organizer",
+    "bio": "Academic researcher and journal editor specializing in computer science education. Experienced in peer review processes.",
+    "profileImage": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150",
+    "phoneNumber": "+1-555-456-7890",
+    "address": "202 Review Rd, Chicago, IL 60607",
+    "organization": "Tech University",
+    "jobTitle": "Associate Professor",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/rachelreviewer",
+      "googleScholar": "https://scholar.google.com/citations?user=rachelr"
+    }
+  },
+  {
+    "id": 6,
+    "cognitoId": "us-east-2:speaker001-1234-5678-90ab-cdef12345678",
+    "name": "Dr. Sarah Chen",
+    "email": "sarah.chen@university.edu",
+    "password": "hashedpassword303",
+    "role": "user",
+    "bio": "Professor of Artificial Intelligence at MIT. Research focuses on neural networks and natural language processing. Keynote speaker at over 50 international conferences.",
+    "profileImage": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150",
+    "phoneNumber": "+1-555-567-8901",
+    "address": "MIT Campus, Cambridge, MA 02139",
+    "organization": "Massachusetts Institute of Technology",
+    "jobTitle": "Professor of AI",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/sarahchen",
+      "googleScholar": "https://scholar.google.com/citations?user=sarahchen"
+    }
+  },
+  {
+    "id": 7,
+    "cognitoId": "us-east-2:speaker002-2345-6789-01ab-cdef23456789",
+    "name": "Marcus Johnson",
+    "email": "marcus.j@techgiant.com",
+    "password": "hashedpassword404",
+    "role": "user",
+    "bio": "VP of Engineering at TechGiant. 15 years experience in distributed systems. Author of 'Scaling for Success'.",
+    "profileImage": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+    "phoneNumber": "+1-555-678-9012",
+    "address": "1 TechGiant Way, Mountain View, CA 94043",
+    "organization": "TechGiant Inc.",
+    "jobTitle": "VP of Engineering",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/marcusjohnson",
+      "twitter": "https://twitter.com/marcusj_tech"
+    }
+  },
+  {
+    "id": 8,
+    "cognitoId": "us-east-2:speaker003-3456-7890-12ab-cdef34567890",
+    "name": "Dr. Elena Rodriguez",
+    "email": "elena.r@biotech.com",
+    "password": "hashedpassword505",
+    "role": "user",
+    "bio": "Chief Science Officer at BioTech Innovations. Pioneer in CRISPR gene editing technology. Nobel Prize nominee 2023.",
+    "profileImage": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=150",
+    "phoneNumber": "+1-555-789-0123",
+    "address": "500 Biotech Blvd, San Diego, CA 92121",
+    "organization": "BioTech Innovations",
+    "jobTitle": "Chief Science Officer",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/elenarodriguez",
+      "researchgate": "https://www.researchgate.net/profile/Elena-Rodriguez"
+    }
+  },
+  {
+    "id": 9,
+    "cognitoId": "us-east-2:attendee001-4567-8901-23ab-cdef45678901",
+    "name": "James Wilson",
+    "email": "james.wilson@startup.io",
+    "password": "hashedpassword606",
+    "role": "user",
+    "bio": "Startup founder and tech enthusiast. Always looking for the next big idea.",
+    "profileImage": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150",
+    "phoneNumber": "+1-555-890-1234",
+    "address": "42 Innovation Way, Austin, TX 78701",
+    "organization": "InnovateTech Startup",
+    "jobTitle": "CEO & Founder",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/jameswilson",
+      "twitter": "https://twitter.com/jameswilson_tech"
+    }
+  },
+  {
+    "id": 10,
+    "cognitoId": "us-east-2:attendee002-5678-9012-34ab-cdef56789012",
+    "name": "Emily Park",
+    "email": "emily.park@designco.com",
+    "password": "hashedpassword707",
+    "role": "user",
+    "bio": "UX Designer passionate about creating accessible digital experiences. Speaker and workshop facilitator.",
+    "profileImage": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+    "phoneNumber": "+1-555-901-2345",
+    "address": "100 Design District, Portland, OR 97209",
+    "organization": "DesignCo Studio",
+    "jobTitle": "Lead UX Designer",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/emilypark",
+      "dribbble": "https://dribbble.com/emilypark"
+    }
+  },
+  {
+    "id": 590,
+    "cognitoId": "10fc39dc-1021-70df-2771-b3cb73370f46",
+    "name": "Trevis",
+    "email": "3ninety9@gmail.com",
+    "password": "",
+    "role": "organizer",
+    "bio": "Conference Master developer and test organizer. Building the future of conference management platforms with a passion for creating seamless event experiences.",
+    "profileImage": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150",
+    "phoneNumber": "+1-555-999-0000",
+    "address": "Conference Master HQ, Tech City",
+    "organization": "Conference Master",
+    "jobTitle": "Lead Developer & Organizer",
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/trevis-dev",
+      "github": "https://github.com/trevis",
+      "twitter": "https://twitter.com/trevis_dev"
+    },
+    "interests": ["Conference Technology", "Event Management", "Developer Experience", "Web Development"],
+    "preferences": {
+      "theme": "dark",
+      "notifications": true,
+      "emailDigest": "weekly"
+    }
+  }
+]

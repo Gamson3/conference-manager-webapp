@@ -1,0 +1,65 @@
+/* Suggested Updated and Commented @theme inline block */
+@layer base {
+  @theme inline {
+    :root {
+      --theme: light;
+      --radius: 0.5rem;
+
+      /* Font families */
+      --font-sans: theme(fontFamily.sans);
+      --font-heading: var(--font-geist); /* Assuming you're using a custom Geist font */
+      --font-mono: var(--font-geist-mono);
+
+      /* Core colors */
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 222.2 84% 4.9%;
+      --primary: 222.2 47.4% 11.2%;
+      --primary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+      --destructive: 0 100% 50%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 222.2 84% 4.9%;
+      --shadow: 0 0% 0%;
+
+      /* Chart colors */
+      --color-chart-1: 340 65% 47%;
+      --color-chart-2: 230 57% 53%;
+      --color-chart-3: 180 75% 41%;
+      --color-chart-4: 40 96% 61%;
+      --color-chart-5: 260 64% 59%;
+
+      /* Color aliases — potentially redundant */
+      --color-background: var(--background); /* Duplicate of --background */
+      --color-foreground: var(--foreground); /* Duplicate of --foreground */
+      --color-card: var(--card);             /* Duplicate of --card */
+      --color-card-foreground: var(--card-foreground); /* Duplicate */
+      --color-popover: var(--popover);       /* Duplicate */
+      --color-popover-foreground: var(--popover-foreground); /* Duplicate */
+      --color-primary: var(--primary);       /* Duplicate */
+      --color-primary-foreground: var(--primary-foreground); /* Duplicate */
+      --color-secondary: var(--secondary);   /* Duplicate */
+      --color-secondary-foreground: var(--secondary-foreground); /* Duplicate */
+      --color-muted: var(--muted);           /* Duplicate */
+      --color-muted-foreground: var(--muted-foreground); /* Duplicate */
+      --color-accent: var(--accent);         /* Duplicate */
+      --color-accent-foreground: var(--accent-foreground); /* Duplicate */
+      --color-destructive: var(--destructive); /* Duplicate */
+      --color-destructive-foreground: var(--destructive-foreground); /* Duplicate */
+      --color-border: var(--border);         /* Duplicate */
+      --color-input: var(--input);           /* Duplicate */
+      --color-ring: var(--ring);             /* Duplicate */
+      --color-shadow: var(--shadow);         /* Duplicate */
+    }
+  }
+}

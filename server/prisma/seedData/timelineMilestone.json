@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 1,
+    "name": "CFP Opens",
+    "description": "Call for papers submission portal opens",
+    "date": "2024-12-01T00:00:00.000Z",
+    "type": "deadline"
+  },
+  {
+    "id": 2,
+    "conferenceId": 1,
+    "name": "Early Bird Registration Deadline",
+    "description": "Last day for discounted registration",
+    "date": "2025-01-31T23:59:59.000Z",
+    "type": "deadline"
+  },
+  {
+    "id": 3,
+    "conferenceId": 1,
+    "name": "CFP Closes",
+    "description": "Last day to submit abstracts",
+    "date": "2025-02-15T23:59:59.000Z",
+    "type": "deadline"
+  },
+  {
+    "id": 4,
+    "conferenceId": 1,
+    "name": "Speaker Notifications",
+    "description": "Accepted speakers will be notified",
+    "date": "2025-03-01T00:00:00.000Z",
+    "type": "notification"
+  },
+  {
+    "id": 5,
+    "conferenceId": 1,
+    "name": "Schedule Published",
+    "description": "Full conference schedule available",
+    "date": "2025-03-05T00:00:00.000Z",
+    "type": "announcement"
+  },
+  {
+    "id": 6,
+    "conferenceId": 1,
+    "name": "Conference Start",
+    "description": "Global AI Summit 2025 begins!",
+    "date": "2025-03-15T09:00:00.000Z",
+    "type": "event"
+  },
+  {
+    "id": 7,
+    "conferenceId": 2,
+    "name": "Registration Opens",
+    "description": "Registration for DevOps Excellence opens",
+    "date": "2024-12-01T00:00:00.000Z",
+    "type": "announcement"
+  },
+  {
+    "id": 8,
+    "conferenceId": 2,
+    "name": "CFP Deadline",
+    "description": "Submit your session proposals",
+    "date": "2025-03-01T23:59:59.000Z",
+    "type": "deadline"
+  },
+  {
+    "id": 9,
+    "conferenceId": 2,
+    "name": "Conference Dates",
+    "description": "April 20-22, 2025 in Austin",
+    "date": "2025-04-20T08:00:00.000Z",
+    "type": "event"
+  },
+  {
+    "id": 10,
+    "conferenceId": 5,
+    "name": "CTF Registration Opens",
+    "description": "Register your team for the CTF competition",
+    "date": "2025-04-01T00:00:00.000Z",
+    "type": "announcement"
+  },
+  {
+    "id": 11,
+    "conferenceId": 5,
+    "name": "CFP Closes",
+    "description": "Final day for talk submissions",
+    "date": "2025-03-31T23:59:59.000Z",
+    "type": "deadline"
+  },
+  {
+    "id": 12,
+    "conferenceId": 5,
+    "name": "Conference Week",
+    "description": "Cybersecurity World Congress 2025",
+    "date": "2025-06-05T09:00:00.000Z",
+    "type": "event"
+  },
+  {
+    "id": 13,
+    "conferenceId": 6,
+    "name": "Workshop Sign-up Opens",
+    "description": "Register for hands-on workshops",
+    "date": "2025-05-01T00:00:00.000Z",
+    "type": "announcement"
+  },
+  {
+    "id": 14,
+    "conferenceId": 9,
+    "name": "Invite Codes Distributed",
+    "description": "Invited researchers receive submission codes",
+    "date": "2024-12-01T00:00:00.000Z",
+    "type": "notification"
+  },
+  {
+    "id": 15,
+    "conferenceId": 9,
+    "name": "Paper Deadline",
+    "description": "Research papers due",
+    "date": "2025-02-28T23:59:59.000Z",
+    "type": "deadline"
+  }
+]

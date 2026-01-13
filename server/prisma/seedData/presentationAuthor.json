@@ -1,0 +1,722 @@
+[
+  {
+    "id": 1,
+    "presentationId": 1,
+    "authorName": "Dr. Sarah Chen",
+    "authorEmail": "sarah.chen@airesearch.org",
+    "affiliation": "AI Research Institute",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Dr. Sarah Chen is Chief AI Scientist at AI Research Institute, leading research on foundation models. She has published over 50 papers and was named to MIT Technology Review's 35 Under 35."
+  },
+  {
+    "id": 2,
+    "presentationId": 2,
+    "authorName": "Dr. Michael Park",
+    "authorEmail": "m.park@techgiant.com",
+    "affiliation": "TechGiant AI Labs",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "ML Infrastructure Lead at TechGiant, specializing in LLM optimization and efficient inference systems."
+  },
+  {
+    "id": 3,
+    "presentationId": 2,
+    "authorName": "Dr. Lisa Wang",
+    "authorEmail": "lisa.wang@techgiant.com",
+    "affiliation": "TechGiant AI Labs",
+    "isPresenter": false,
+    "order": 2,
+    "bio": "Senior Research Scientist focusing on model compression and quantization techniques."
+  },
+  {
+    "id": 4,
+    "presentationId": 3,
+    "authorName": "James Rodriguez",
+    "authorEmail": "james@vectordb.io",
+    "affiliation": "VectorDB Inc.",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "CTO of VectorDB Inc., building next-generation vector database infrastructure for AI applications."
+  },
+  {
+    "id": 5,
+    "presentationId": 3,
+    "authorName": "Dr. Emily Foster",
+    "authorEmail": "emily.foster@university.edu",
+    "affiliation": "Stanford University",
+    "isPresenter": false,
+    "order": 2,
+    "bio": "Assistant Professor of Computer Science, researching information retrieval and RAG systems."
+  },
+  {
+    "id": 6,
+    "presentationId": 4,
+    "authorName": "Dr. David Kim",
+    "authorEmail": "dkim@fintech.ai",
+    "affiliation": "FinTech AI Solutions",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Head of AI at FinTech AI Solutions, specializing in domain-specific language models for financial services."
+  },
+  {
+    "id": 7,
+    "presentationId": 5,
+    "authorName": "Dr. Alex Thompson",
+    "authorEmail": "athompson@vision.ai",
+    "affiliation": "Vision AI Labs",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Research Director at Vision AI Labs, pioneering real-time object detection systems for autonomous vehicles."
+  },
+  {
+    "id": 8,
+    "presentationId": 6,
+    "authorName": "Dr. Maria Garcia",
+    "authorEmail": "mgarcia@multimodal.research.org",
+    "affiliation": "Multimodal Research Institute",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Leading researcher in vision-language models with over 100 citations on VLM architectures."
+  },
+  {
+    "id": 9,
+    "presentationId": 6,
+    "authorName": "Chen Wei",
+    "authorEmail": "chen.wei@multimodal.research.org",
+    "affiliation": "Multimodal Research Institute",
+    "isPresenter": false,
+    "order": 2,
+    "bio": "PhD researcher working on visual grounding and image-text alignment."
+  },
+  {
+    "id": 10,
+    "presentationId": 7,
+    "authorName": "Dr. Robert Brown",
+    "authorEmail": "rbrown@videointel.com",
+    "affiliation": "VideoIntel Corp",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Chief Scientist at VideoIntel Corp, developing transformer architectures for video understanding."
+  },
+  {
+    "id": 11,
+    "presentationId": 8,
+    "authorName": "Dr. Jennifer Liu",
+    "authorEmail": "jliu@automl.systems",
+    "affiliation": "AutoML Systems",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Founder of AutoML Systems, creating accessible neural architecture search tools."
+  },
+  {
+    "id": 12,
+    "presentationId": 9,
+    "authorName": "Dr. Kevin Zhang",
+    "authorEmail": "kzhang@scalai.com",
+    "affiliation": "ScalAI",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "VP of Research at ScalAI, specializing in mixture of experts and efficient model architectures."
+  },
+  {
+    "id": 13,
+    "presentationId": 9,
+    "authorName": "Dr. Amanda Chen",
+    "authorEmail": "achen@scalai.com",
+    "affiliation": "ScalAI",
+    "isPresenter": false,
+    "order": 2,
+    "bio": "Research Scientist working on sparse model training and routing algorithms."
+  },
+  {
+    "id": 14,
+    "presentationId": 10,
+    "authorName": "Dr. Marcus Johnson",
+    "authorEmail": "mjohnson@robotics.mit.edu",
+    "affiliation": "MIT Robotics Lab",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Professor of Robotics at MIT, pioneering sim-to-real transfer learning for robot manipulation."
+  },
+  {
+    "id": 15,
+    "presentationId": 11,
+    "authorName": "Dr. Sophia Martinez",
+    "authorEmail": "smartinez@alignai.org",
+    "affiliation": "Align AI Research",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Research Director at Align AI Research, focusing on RLHF and AI alignment techniques."
+  },
+  {
+    "id": 16,
+    "presentationId": 12,
+    "authorName": "Dr. Thomas Wilson",
+    "authorEmail": "twilson@ethicsai.org",
+    "affiliation": "AI Ethics Institute",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Director of AI Ethics Institute, advising Fortune 500 companies on responsible AI deployment."
+  },
+  {
+    "id": 17,
+    "presentationId": 12,
+    "authorName": "Dr. Patricia Lee",
+    "authorEmail": "plee@fairness.research.edu",
+    "affiliation": "University of Berkeley",
+    "isPresenter": false,
+    "order": 2,
+    "bio": "Associate Professor researching algorithmic fairness and bias mitigation."
+  },
+  {
+    "id": 18,
+    "presentationId": 12,
+    "authorName": "Dr. James Wright",
+    "authorEmail": "jwright@regulators.gov",
+    "affiliation": "Federal AI Regulatory Office",
+    "isPresenter": false,
+    "order": 3,
+    "bio": "Senior Advisor on AI Policy at the Federal AI Regulatory Office."
+  },
+  {
+    "id": 19,
+    "presentationId": 13,
+    "authorName": "Dr. Richard Taylor",
+    "authorEmail": "rtaylor@hyperscale.systems",
+    "affiliation": "HyperScale Systems",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "CTO of HyperScale Systems, building AI infrastructure serving billions of requests daily."
+  },
+  {
+    "id": 20,
+    "presentationId": 14,
+    "authorName": "Alexandra Kim",
+    "authorEmail": "akim@mlops.expert",
+    "affiliation": "MLOps Expert Consulting",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "ML Platform Architect and Kubeflow contributor with 15 years of production ML experience."
+  },
+  {
+    "id": 21,
+    "presentationId": 15,
+    "authorName": "Dr. Nathan Foster",
+    "authorEmail": "nfoster@llm.academy",
+    "affiliation": "LLM Academy",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Founder of LLM Academy, training thousands of practitioners in fine-tuning techniques."
+  },
+  {
+    "id": 22,
+    "presentationId": 16,
+    "authorName": "Christine Anderson",
+    "authorEmail": "canderson@mlplatform.co",
+    "affiliation": "ML Platform Co",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "VP of Engineering at ML Platform Co, leading enterprise ML platform development."
+  },
+  {
+    "id": 23,
+    "presentationId": 17,
+    "authorName": "Dr. Samuel Lee",
+    "authorEmail": "slee@featengr.io",
+    "affiliation": "Feature Engineering Systems",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Chief Architect at Feature Engineering Systems, building large-scale feature store infrastructure."
+  },
+  {
+    "id": 24,
+    "presentationId": 18,
+    "authorName": "Dr. Angela White",
+    "authorEmail": "awhite@edgeml.dev",
+    "affiliation": "EdgeML Development",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Edge ML expert specializing in model optimization for resource-constrained devices."
+  },
+  {
+    "id": 25,
+    "presentationId": 19,
+    "authorName": "Dr. Paul Martinez",
+    "authorEmail": "pmartinez@tinyml.foundation",
+    "affiliation": "TinyML Foundation",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Executive Director of TinyML Foundation, promoting ML on microcontrollers."
+  },
+  {
+    "id": 26,
+    "presentationId": 20,
+    "authorName": "Dr. Rachel Green",
+    "authorEmail": "rgreen@agentbuilders.ai",
+    "affiliation": "Agent Builders AI",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "CEO of Agent Builders AI, creating tools for building autonomous AI agents."
+  },
+  {
+    "id": 27,
+    "presentationId": 20,
+    "authorName": "Dr. Eric Chen",
+    "authorEmail": "echen@agentbuilders.ai",
+    "affiliation": "Agent Builders AI",
+    "isPresenter": false,
+    "order": 2,
+    "bio": "CTO of Agent Builders AI, expert in multi-agent systems and coordination."
+  },
+  {
+    "id": 28,
+    "presentationId": 21,
+    "authorName": "Jennifer Thompson",
+    "authorEmail": "jthompson@enterprise.ai",
+    "affiliation": "Enterprise AI Consulting",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Managing Partner at Enterprise AI Consulting, advising CIOs on AI transformation."
+  },
+  {
+    "id": 29,
+    "presentationId": 22,
+    "authorName": "Dr. William Davis",
+    "authorEmail": "wdavis@futureai.research",
+    "affiliation": "Future AI Research Lab",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Director of Future AI Research Lab, studying long-term AI trajectories and implications."
+  },
+  {
+    "id": 30,
+    "presentationId": 23,
+    "authorName": "Michelle Roberts",
+    "authorEmail": "mroberts@devops.research.org",
+    "affiliation": "DevOps Research Association",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Lead Researcher at DevOps Research Association, authoring the annual State of DevOps report."
+  },
+  {
+    "id": 31,
+    "presentationId": 24,
+    "authorName": "Brian Wilson",
+    "authorEmail": "bwilson@github.com",
+    "affiliation": "GitHub",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Senior Developer Advocate at GitHub, specializing in Actions and CI/CD workflows."
+  },
+  {
+    "id": 32,
+    "presentationId": 25,
+    "authorName": "Laura Miller",
+    "authorEmail": "lmiller@gitlab.com",
+    "affiliation": "GitLab",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Principal Solutions Architect at GitLab, helping enterprises implement DevOps pipelines."
+  },
+  {
+    "id": 33,
+    "presentationId": 26,
+    "authorName": "Christopher Hall",
+    "authorEmail": "chall@hashicorp.consulting",
+    "affiliation": "HashiCorp Consulting Partners",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "HashiCorp Certified Trainer with 10 years of Terraform experience across major cloud providers."
+  },
+  {
+    "id": 34,
+    "presentationId": 27,
+    "authorName": "Dr. Andrew Jackson",
+    "authorEmail": "ajackson@kubescale.io",
+    "affiliation": "KubeScale",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Kubernetes SIG member and author of 'Kubernetes at Scale', operating 500+ production clusters."
+  },
+  {
+    "id": 35,
+    "presentationId": 28,
+    "authorName": "Dr. Sarah Thompson",
+    "authorEmail": "sthompson@kubesecurity.io",
+    "affiliation": "KubeSecurity",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Founder of KubeSecurity, specializing in container and Kubernetes security hardening."
+  },
+  {
+    "id": 36,
+    "presentationId": 29,
+    "authorName": "Daniel Martinez",
+    "authorEmail": "dmartinez@argocd.expert",
+    "affiliation": "ArgoCD Expert Services",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "ArgoCD maintainer and GitOps practitioner with extensive multi-cluster experience."
+  },
+  {
+    "id": 37,
+    "presentationId": 30,
+    "authorName": "Rebecca Lee",
+    "authorEmail": "rlee@observability.systems",
+    "affiliation": "Observability Systems Inc",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "OpenTelemetry contributor and observability consultant for enterprise systems."
+  },
+  {
+    "id": 38,
+    "presentationId": 31,
+    "authorName": "Matthew Brown",
+    "authorEmail": "mbrown@devsecops.io",
+    "affiliation": "DevSecOps Institute",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Director of DevSecOps Institute, developing security integration standards for CI/CD."
+  },
+  {
+    "id": 39,
+    "presentationId": 32,
+    "authorName": "Jessica Wright",
+    "authorEmail": "jwright@platformeng.tech",
+    "affiliation": "Platform Engineering Tech",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "VP of Platform Engineering at Platform Engineering Tech, building internal developer platforms."
+  },
+  {
+    "id": 40,
+    "presentationId": 33,
+    "authorName": "Robert Chen",
+    "authorEmail": "rchen@devops.future",
+    "affiliation": "DevOps Future Labs",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Futurist and DevOps strategist, advising technology leaders on emerging trends."
+  },
+  {
+    "id": 41,
+    "presentationId": 34,
+    "authorName": "Dr. Elizabeth Morgan",
+    "authorEmail": "emorgan@healthit.systems",
+    "affiliation": "HealthIT Systems",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Chief Medical Information Officer leading health data interoperability initiatives."
+  },
+  {
+    "id": 42,
+    "presentationId": 35,
+    "authorName": "Dr. Jonathan Clark",
+    "authorEmail": "jclark@wearables.health",
+    "affiliation": "Wearables Health Inc",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Medical Director at Wearables Health, integrating consumer devices into clinical care."
+  },
+  {
+    "id": 43,
+    "presentationId": 36,
+    "authorName": "Dr. Michelle Park",
+    "authorEmail": "mpark@radiology.ai",
+    "affiliation": "Radiology AI Institute",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Professor of Radiology and AI researcher developing FDA-cleared imaging algorithms."
+  },
+  {
+    "id": 44,
+    "presentationId": 37,
+    "authorName": "Dr. Steven Harris",
+    "authorEmail": "sharris@meddevice.regulatory",
+    "affiliation": "MedDevice Regulatory Consulting",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Former FDA reviewer, now consulting on AI/ML medical device regulatory pathways."
+  },
+  {
+    "id": 45,
+    "presentationId": 38,
+    "authorName": "Dr. Karen Williams",
+    "authorEmail": "kwilliams@cdss.healthcare",
+    "affiliation": "CDSS Healthcare Solutions",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Clinical informaticist with 20 years experience implementing decision support systems."
+  },
+  {
+    "id": 46,
+    "presentationId": 39,
+    "authorName": "Stephanie Adams",
+    "authorEmail": "sadams@css.expert",
+    "affiliation": "CSS Expert Studios",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "CSS Working Group participant and author of 'Modern CSS Mastery'."
+  },
+  {
+    "id": 47,
+    "presentationId": 40,
+    "authorName": "Ryan Mitchell",
+    "authorEmail": "rmitchell@jsperf.io",
+    "affiliation": "JS Performance Labs",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "JavaScript performance engineer, core team member of web performance benchmarking tools."
+  },
+  {
+    "id": 48,
+    "presentationId": 41,
+    "authorName": "Katie Johnson",
+    "authorEmail": "kjohnson@react.community",
+    "affiliation": "React Community",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "React Core Team member and educator, creator of popular React courses with 100k+ students."
+  },
+  {
+    "id": 49,
+    "presentationId": 42,
+    "authorName": "Trevor Scott",
+    "authorEmail": "tscott@vercel.com",
+    "affiliation": "Vercel",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Developer Relations at Vercel, helping teams adopt Next.js App Router successfully."
+  },
+  {
+    "id": 50,
+    "presentationId": 43,
+    "authorName": "Dr. Michael Ortiz",
+    "authorEmail": "mortiz@threatintel.security",
+    "affiliation": "Threat Intelligence Security",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Director of Threat Research, tracking advanced persistent threats and emerging attack vectors."
+  },
+  {
+    "id": 51,
+    "presentationId": 44,
+    "authorName": "Diana Foster",
+    "authorEmail": "dfoster@zerotrust.architects",
+    "affiliation": "Zero Trust Architects",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Zero Trust security architect with implementations at Fortune 100 organizations."
+  },
+  {
+    "id": 52,
+    "presentationId": 45,
+    "authorName": "Carlos Mendez",
+    "authorEmail": "cmendez@pentest.academy",
+    "affiliation": "Penetration Testing Academy",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "OSCP certified penetration tester and security trainer with 15 years experience."
+  },
+  {
+    "id": 53,
+    "presentationId": 46,
+    "authorName": "Dr. Lisa Chang",
+    "authorEmail": "lchang@ransomware.defense",
+    "affiliation": "Ransomware Defense Coalition",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Former FBI cyber investigator, now leading ransomware response and prevention efforts."
+  },
+  {
+    "id": 54,
+    "presentationId": 47,
+    "authorName": "Alexander Kim",
+    "authorEmail": "akim@cloudsec.posture",
+    "affiliation": "Cloud Security Posture Management",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Cloud security architect specializing in multi-cloud security posture management."
+  },
+  {
+    "id": 55,
+    "presentationId": 48,
+    "authorName": "Dr. Angela Rivera",
+    "authorEmail": "arivera@dataeng.summit",
+    "affiliation": "Data Engineering Summit",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "VP of Data Engineering at a major financial institution, keynote speaker on data trends."
+  },
+  {
+    "id": 56,
+    "presentationId": 49,
+    "authorName": "Jason Park",
+    "authorEmail": "jpark@lakehouse.architecture",
+    "affiliation": "Lakehouse Architecture Partners",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Delta Lake contributor and lakehouse architecture consultant."
+  },
+  {
+    "id": 57,
+    "presentationId": 50,
+    "authorName": "Dr. Nicole Thompson",
+    "authorEmail": "nthompson@kafka.scale",
+    "affiliation": "Kafka Scale Solutions",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Kafka committer operating clusters processing billions of events daily."
+  },
+  {
+    "id": 58,
+    "presentationId": 51,
+    "authorName": "David Chen",
+    "authorEmail": "dchen@streamproc.io",
+    "affiliation": "Stream Processing Systems",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Apache Flink PMC member and streaming architecture expert."
+  },
+  {
+    "id": 59,
+    "presentationId": 52,
+    "authorName": "Emma Rodriguez",
+    "authorEmail": "erodriguez@crossplatform.dev",
+    "affiliation": "Cross Platform Development",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Mobile architect with production experience in both Flutter and React Native."
+  },
+  {
+    "id": 60,
+    "presentationId": 53,
+    "authorName": "Patrick O'Brien",
+    "authorEmail": "pobrien@ios.performance",
+    "affiliation": "iOS Performance Labs",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Apple platform specialist, former Apple engineer focused on iOS performance optimization."
+  },
+  {
+    "id": 61,
+    "presentationId": 54,
+    "authorName": "Kevin Nguyen",
+    "authorEmail": "knguyen@android.experts",
+    "affiliation": "Android Expert Consulting",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Google Developer Expert for Android, Compose early adopter and advocate."
+  },
+  {
+    "id": 62,
+    "presentationId": 55,
+    "authorName": "Dr. Helena Schmidt",
+    "authorEmail": "hschmidt@math.transformer.research",
+    "affiliation": "Mathematical Foundations Research",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Professor of Applied Mathematics, researching theoretical foundations of deep learning."
+  },
+  {
+    "id": 63,
+    "presentationId": 56,
+    "authorName": "Dr. Victor Petrov",
+    "authorEmail": "vpetrov@distributed.training",
+    "affiliation": "Distributed Training Labs",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Research scientist specializing in distributed systems and efficient model training."
+  },
+  {
+    "id": 64,
+    "presentationId": 57,
+    "authorName": "Margaret Wilson",
+    "authorEmail": "mwilson@multicloud.strategy",
+    "affiliation": "Multi-Cloud Strategy Group",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Cloud strategist helping enterprises navigate multi-cloud architectures."
+  },
+  {
+    "id": 65,
+    "presentationId": 58,
+    "authorName": "Brandon Taylor",
+    "authorEmail": "btaylor@aws.architects",
+    "affiliation": "AWS Architecture Partners",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "AWS Solutions Architect Professional, Well-Architected Framework reviewer."
+  },
+  {
+    "id": 66,
+    "presentationId": 59,
+    "authorName": "Christina Moore",
+    "authorEmail": "cmoore@azure.landing.zones",
+    "affiliation": "Azure Landing Zone Specialists",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Microsoft MVP for Azure, specializing in enterprise Azure deployments."
+  },
+  {
+    "id": 67,
+    "presentationId": 60,
+    "authorName": "Anthony Harris",
+    "authorEmail": "aharris@cloudsec.best",
+    "affiliation": "Cloud Security Best Practices",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Cloud security architect with certifications across AWS, Azure, and GCP."
+  },
+  {
+    "id": 68,
+    "presentationId": 61,
+    "authorName": "Laura Anderson",
+    "authorEmail": "landerson@finops.certified",
+    "affiliation": "FinOps Foundation",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "FinOps Foundation certified practitioner helping enterprises optimize cloud costs."
+  },
+  {
+    "id": 69,
+    "presentationId": 62,
+    "authorName": "Dr. James Peterson",
+    "authorEmail": "jpeterson@prompt.science",
+    "affiliation": "Prompt Science Lab",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Researcher studying prompt engineering techniques and their effectiveness."
+  },
+  {
+    "id": 70,
+    "presentationId": 63,
+    "authorName": "Dr. Maria Santos",
+    "authorEmail": "msantos@efficient.attention",
+    "affiliation": "Efficient Attention Research",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Postdoctoral researcher working on efficient attention mechanisms and state space models."
+  },
+  {
+    "id": 71,
+    "presentationId": 64,
+    "authorName": "Dr. Andrew Kim",
+    "authorEmail": "akim@multiagent.systems",
+    "affiliation": "Multi-Agent Systems Lab",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "Associate Professor researching multi-agent coordination and emergent AI behaviors."
+  },
+  {
+    "id": 72,
+    "presentationId": 65,
+    "authorName": "Susan Clark",
+    "authorEmail": "sclark@model.monitoring",
+    "affiliation": "Model Monitoring Solutions",
+    "isPresenter": true,
+    "order": 1,
+    "bio": "ML Platform engineer specializing in production model monitoring and drift detection."
+  }
+]

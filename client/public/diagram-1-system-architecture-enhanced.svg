@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900">
+  <defs>
+    <style>
+      .layer-header { font-size: 20px; font-weight: bold; fill: #1a1a1a; }
+      .component-title { font-size: 15px; font-weight: bold; fill: white; }
+      .component-text { font-size: 12px; fill: white; }
+      .flow-label { font-size: 12px; fill: white; font-weight: bold; text-anchor: middle; }
+      .data-flow { font-size: 13px; fill: #1a1a1a; font-weight: 600; }
+      .arrow-bold { stroke: #333; stroke-width: 3; fill: none; marker-end: url(#arrowhead-bold); }
+      .arrow-thin { stroke: #888; stroke-width: 2; fill: none; stroke-dasharray: 5,5; marker-end: url(#arrowhead-thin); }
+      .stats { font-size: 12px; fill: #666; }
+    </style>
+    <marker id="arrowhead-bold" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333" />
+    </marker>
+    <marker id="arrowhead-thin" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#888" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="900" fill="#f8f9fa"/>
+
+  <!-- Title -->
+  <text x="700" y="40" style="font-size: 32px; font-weight: bold; text-anchor: middle; fill: #1a1a1a;">Conference Master: System Architecture</text>
+  <text x="700" y="65" style="font-size: 14px; text-anchor: middle; fill: #666;">Complete Information Flow | 150+ API Endpoints | 30+ Database Tables</text>
+
+  <!-- ============ FRONTEND LAYER ============ -->
+  <text x="50" y="110" class="layer-header">FRONTEND LAYER (React / Next.js / Tailwind)</text>
+
+  <!-- User Interface -->
+  <rect x="50" y="140" width="280" height="160" rx="10" fill="#3b82f6" stroke="#1e40af" stroke-width="2"/>
+  <text x="190" y="165" class="component-title" text-anchor="middle">User Interfaces</text>
+  <text x="190" y="190" class="component-text" text-anchor="middle">├─ Organizer Dashboard</text>
+  <text x="190" y="210" class="component-text" text-anchor="middle">├─ Conference Viewer</text>
+  <text x="190" y="230" class="component-text" text-anchor="middle">├─ Submission Manager</text>
+  <text x="190" y="250" class="component-text" text-anchor="middle">├─ Program Builder</text>
+  <text x="190" y="270" class="component-text" text-anchor="middle">└─ Admin Panel</text>
+  <text x="190" y="285" style="font-size: 11px; fill: #cce5ff; text-anchor: middle;">60+ Pages</text>
+
+  <!-- Context Providers -->
+  <rect x="380" y="140" width="280" height="160" rx="10" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2"/>
+  <text x="520" y="165" class="component-title" text-anchor="middle">Context Providers</text>
+  <text x="520" y="190" class="component-text" text-anchor="middle">├─ AuthProvider</text>
+  <text x="520" y="210" class="component-text" text-anchor="middle">├─ FavoritesProvider</text>
+  <text x="520" y="230" class="component-text" text-anchor="middle">├─ ConferenceProvider</text>
+  <text x="520" y="250" class="component-text" text-anchor="middle">├─ SubmissionProvider</text>
+  <text x="520" y="270" class="component-text" text-anchor="middle">└─ ProgramProvider</text>
+  <text x="520" y="285" style="font-size: 11px; fill: #e9d5ff; text-anchor: middle;">State Management</text>
+
+  <!-- Guards & Middleware -->
+  <rect x="710" y="140" width="280" height="160" rx="10" fill="#06b6d4" stroke="#0891b2" stroke-width="2"/>
+  <text x="850" y="165" class="component-title" text-anchor="middle">Guards &amp; Middleware</text>
+  <text x="850" y="190" class="component-text" text-anchor="middle">├─ OrganizerGuard</text>
+  <text x="850" y="210" class="component-text" text-anchor="middle">├─ AdminGuard</text>
+  <text x="850" y="230" class="component-text" text-anchor="middle">├─ ProtectedRoute</text>
+  <text x="850" y="250" class="component-text" text-anchor="middle">├─ redirection logic</text>
+  <text x="850" y="270" class="component-text" text-anchor="middle">└─ JWT validation</text>
+  <text x="850" y="285" style="font-size: 11px; fill: #cffafe; text-anchor: middle;">Route Protection</text>
+
+  <!-- Authentication -->
+  <rect x="1040" y="140" width="280" height="160" rx="10" fill="#ec4899" stroke="#be185d" stroke-width="2"/>
+  <text x="1180" y="165" class="component-title" text-anchor="middle">Authentication</text>
+  <text x="1180" y="190" class="component-text" text-anchor="middle">├─ AWS Cognito</text>
+  <text x="1180" y="210" class="component-text" text-anchor="middle">├─ JWT Tokens</text>
+  <text x="1180" y="230" class="component-text" text-anchor="middle">├─ Sign In/Out flows</text>
+  <text x="1180" y="250" class="component-text" text-anchor="middle">├─ MFA support</text>
+  <text x="1180" y="270" class="component-text" text-anchor="middle">└─ Pre-signup triggers</text>
+  <text x="1180" y="285" style="font-size: 11px; fill: #fce7f3; text-anchor: middle;">Identity Verification</text>
+
+  <!-- Data flows from frontend -->
+  <path d="M 190 300 L 520 350" class="arrow-bold" stroke="#3b82f6"/>
+  <text x="340" y="320" class="flow-label" style="fill: #3b82f6;">User actions</text>
+
+  <path d="M 520 300 L 850 350" class="arrow-bold" stroke="#8b5cf6"/>
+  <text x="670" y="320" class="flow-label" style="fill: #8b5cf6;">Check access</text>
+
+  <path d="M 850 300 L 1180 350" class="arrow-bold" stroke="#06b6d4"/>
+  <text x="1000" y="320" class="flow-label" style="fill: #06b6d4;">JWT token</text>
+
+  <!-- ============ NETWORK BARRIER ============ -->
+  <rect x="40" y="350" width="1320" height="3" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+  <text x="700" y="375" style="font-size: 13px; font-weight: bold; text-anchor: middle; fill: #d97706;">⬇ HTTPS REQUEST ⬇  (JWT in Authorization Header)</text>
+
+  <!-- ============ BACKEND LAYER ============ -->
+  <text x="50" y="410" class="layer-header">BACKEND LAYER (Node.js / Express / TypeScript)</text>
+
+  <!-- Entry Point -->
+  <rect x="50" y="440" width="260" height="140" rx="10" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+  <text x="180" y="465" class="component-title" text-anchor="middle">Entry Point</text>
+  <text x="180" y="490" class="component-text" text-anchor="middle">① Cognito Verifies JWT</text>
+  <text x="180" y="510" class="component-text" text-anchor="middle">② authMiddleware runs</text>
+  <text x="180" y="530" class="component-text" text-anchor="middle">③ Queries User from DB</text>
+  <text x="180" y="550" class="component-text" text-anchor="middle">④ Attaches role to request</text>
+
+  <!-- Routes & Controllers -->
+  <rect x="350" y="440" width="260" height="140" rx="10" fill="#10b981" stroke="#059669" stroke-width="2"/>
+  <text x="480" y="465" class="component-title" text-anchor="middle">Routes &amp; Controllers</text>
+  <text x="480" y="490" class="component-text" text-anchor="middle">├─ Conference endpoints</text>
+  <text x="480" y="510" class="component-text" text-anchor="middle">├─ Submission endpoints</text>
+  <text x="480" y="530" class="component-text" text-anchor="middle">├─ Participant endpoints</text>
+  <text x="480" y="550" class="component-text" text-anchor="middle">└─ Program endpoints</text>
+
+  <!-- Business Logic -->
+  <rect x="650" y="440" width="260" height="140" rx="10" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2"/>
+  <text x="780" y="465" class="component-title" text-anchor="middle">Business Logic</text>
+  <text x="780" y="490" class="component-text" text-anchor="middle">├─ Authorization checks</text>
+  <text x="780" y="510" class="component-text" text-anchor="middle">├─ Ownership validation</text>
+  <text x="780" y="530" class="component-text" text-anchor="middle">├─ Status transitions</text>
+  <text x="780" y="550" class="component-text" text-anchor="middle">└─ Capability checks</text>
+
+  <!-- Database Access Layer (Prisma) -->
+  <rect x="950" y="440" width="260" height="140" rx="10" fill="#06b6d4" stroke="#0891b2" stroke-width="2"/>
+  <text x="1080" y="465" class="component-title" text-anchor="middle">Prisma ORM</text>
+  <text x="1080" y="490" class="component-text" text-anchor="middle">├─ Type-safe queries</text>
+  <text x="1080" y="510" class="component-text" text-anchor="middle">├─ Migrations</text>
+  <text x="1080" y="530" class="component-text" text-anchor="middle">├─ Seed management</text>
+  <text x="1080" y="550" class="component-text" text-anchor="middle">└─ Connection pooling</text>
+
+  <!-- External Services -->
+  <rect x="1250" y="440" width="120" height="140" rx="10" fill="#f43f5e" stroke="#be123c" stroke-width="2"/>
+  <text x="1310" y="465" class="component-title" text-anchor="middle">External</text>
+  <text x="1310" y="490" class="component-text" text-anchor="middle">AWS</text>
+  <text x="1310" y="510" class="component-text" text-anchor="middle">S3</text>
+  <text x="1310" y="530" class="component-text" text-anchor="middle">(Files)</text>
+  <text x="1310" y="550" class="component-text" text-anchor="middle">SES</text>
+
+  <!-- Backend flow -->
+  <path d="M 180 580 L 350 510" class="arrow-bold" stroke="#f59e0b"/>
+  <text x="250" y="530" class="flow-label" style="fill: #f59e0b;">authorize</text>
+
+  <path d="M 480 580 L 650 510" class="arrow-bold" stroke="#10b981"/>
+  <text x="550" y="530" class="flow-label" style="fill: #10b981;">execute</text>
+
+  <path d="M 780 580 L 950 510" class="arrow-bold" stroke="#8b5cf6"/>
+  <text x="850" y="530" class="flow-label" style="fill: #8b5cf6;">query</text>
+
+  <path d="M 1080 580 L 1250 510" class="arrow-thin" stroke="#06b6d4"/>
+  <text x="1150" y="530" class="flow-label" style="fill: #06b6d4;">upload</text>
+
+  <!-- ============ DATABASE LAYER ============ -->
+  <text x="50" y="640" class="layer-header">DATABASE LAYER (PostgreSQL | 30+ Tables)</text>
+
+  <!-- Core Tables -->
+  <rect x="50" y="670" width="240" height="200" rx="10" fill="#10b981" stroke="#059669" stroke-width="2"/>
+  <text x="170" y="695" class="component-title" text-anchor="middle" style="font-size: 14px;">Core Tables</text>
+  <text x="170" y="720" class="component-text" text-anchor="middle">📋 User</text>
+  <text x="170" y="735" class="component-text" text-anchor="middle">(id, email, role)</text>
+  <text x="170" y="755" class="component-text" text-anchor="middle">📋 Conference</text>
+  <text x="170" y="770" class="component-text" text-anchor="middle">(id, title, status)</text>
+  <text x="170" y="790" class="component-text" text-anchor="middle">📋 Submission</text>
+  <text x="170" y="805" class="component-text" text-anchor="middle">(id, abstract, status)</text>
+  <text x="170" y="825" class="component-text" text-anchor="middle">📋 Presentation</text>
+  <text x="170" y="840" class="component-text" text-anchor="middle">(id, title, day)</text>
+
+  <!-- Authorization Tables -->
+  <rect x="340" y="670" width="240" height="200" rx="10" fill="#ec4899" stroke="#be185d" stroke-width="2"/>
+  <text x="460" y="695" class="component-title" text-anchor="middle" style="font-size: 14px;">Authorization</text>
+  <text x="460" y="720" class="component-text" text-anchor="middle">👤 Participant</text>
+  <text x="460" y="735" class="component-text" text-anchor="middle">(capability: author|</text>
+  <text x="460" y="745" class="component-text" text-anchor="middle">presenter|reviewer|...)</text>
+  <text x="460" y="765" class="component-text" text-anchor="middle">👥 Reviewer</text>
+  <text x="460" y="780" class="component-text" text-anchor="middle">(track, expertise)</text>
+  <text x="460" y="800" class="component-text" text-anchor="middle">👥 Sponsor</text>
+  <text x="460" y="815" class="component-text" text-anchor="middle">(tier, visibility)</text>
+
+  <!-- Configuration Tables -->
+  <rect x="630" y="670" width="240" height="200" rx="10" fill="#3b82f6" stroke="#1e40af" stroke-width="2"/>
+  <text x="750" y="695" class="component-title" text-anchor="middle" style="font-size: 14px;">Configuration</text>
+  <text x="750" y="720" class="component-text" text-anchor="middle">⚙️ Track</text>
+  <text x="750" y="735" class="component-text" text-anchor="middle">(name, description)</text>
+  <text x="750" y="755" class="component-text" text-anchor="middle">⚙️ TimeSlot</text>
+  <text x="750" y="770" class="component-text" text-anchor="middle">(day, start, end)</text>
+  <text x="750" y="790" class="component-text" text-anchor="middle">⚙️ Room</text>
+  <text x="750" y="805" class="component-text" text-anchor="middle">(capacity, location)</text>
+  <text x="750" y="825" class="component-text" text-anchor="middle">⚙️ Settings</text>
+
+  <!-- Relational Tables -->
+  <rect x="920" y="670" width="240" height="200" rx="10" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2"/>
+  <text x="1040" y="695" class="component-title" text-anchor="middle" style="font-size: 14px;">Relations</text>
+  <text x="1040" y="720" class="component-text" text-anchor="middle">🔗 PresentationReview</text>
+  <text x="1040" y="735" class="component-text" text-anchor="middle">(presentation, reviewer)</text>
+  <text x="1040" y="755" class="component-text" text-anchor="middle">🔗 PresentationFavorite</text>
+  <text x="1040" y="770" class="component-text" text-anchor="middle">(user, presentation)</text>
+  <text x="1040" y="790" class="component-text" text-anchor="middle">🔗 ConferenceFile</text>
+  <text x="1040" y="805" class="component-text" text-anchor="middle">(conference, s3key)</text>
+  <text x="1040" y="825" class="component-text" text-anchor="middle">... 20+ more tables</text>
+
+  <!-- Audit Tables -->
+  <rect x="1210" y="670" width="180" height="200" rx="10" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+  <text x="1300" y="695" class="component-title" text-anchor="middle" style="font-size: 13px;">Audit &amp; Logging</text>
+  <text x="1300" y="720" class="component-text" text-anchor="middle">📊 Event</text>
+  <text x="1300" y="735" class="component-text" text-anchor="middle">(action, user,</text>
+  <text x="1300" y="745" class="component-text" text-anchor="middle">timestamp)</text>
+  <text x="1300" y="765" class="component-text" text-anchor="middle">🔐 AuditLog</text>
+  <text x="1300" y="780" class="component-text" text-anchor="middle">(changes)</text>
+  <text x="1300" y="800" class="component-text" text-anchor="middle">📍 Schedule</text>
+  <text x="1300" y="815" class="component-text" text-anchor="middle">(version)</text>
+
+  <!-- DB connections -->
+  <path d="M 170 580 L 170 670" class="arrow-bold" stroke="#10b981"/>
+  <path d="M 460 580 L 460 670" class="arrow-bold" stroke="#ec4899"/>
+  <path d="M 750 580 L 750 670" class="arrow-bold" stroke="#3b82f6"/>
+  <path d="M 1040 580 L 1040 670" class="arrow-bold" stroke="#8b5cf6"/>
+  <path d="M 1300 580 L 1300 670" class="arrow-bold" stroke="#f59e0b"/>
+
+  <!-- Legend Box -->
+  <rect x="50" y="890" width="1320" height="1" fill="#ccc"/>
+  <text x="70" y="895" style="font-size: 11px; fill: #666;">🔐 SOURCE OF TRUTH: Database stores all authorization data. Frontend guards + middleware + controllers + DB all verify permissions (defense-in-depth). | 📊 STATS: 150+ Endpoints | 30+ Tables | 60+ Pages | 2-Layer Authorization Model</text>
+</svg>

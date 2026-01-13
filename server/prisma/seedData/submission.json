@@ -1,0 +1,302 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 1,
+    "authorId": 3,
+    "title": "Federated Learning for Privacy-Preserving Healthcare AI",
+    "abstract": "This paper presents a novel federated learning framework designed specifically for healthcare applications where patient data privacy is paramount. We introduce FedHealth, a system that enables multiple hospitals to collaboratively train machine learning models without sharing raw patient data. Our approach addresses key challenges including non-IID data distribution across institutions, varying data quality, and communication efficiency.\n\nWe evaluated FedHealth on three healthcare prediction tasks: diabetic retinopathy detection, ICU mortality prediction, and medication recommendation. Results show that FedHealth achieves 95% of the performance of centralized training while providing formal differential privacy guarantees (ε=1.0). We also introduce a novel aggregation strategy that handles heterogeneous hospital data more effectively than standard FedAvg.\n\nKey contributions include: (1) a privacy-preserving communication protocol with 10x compression, (2) an adaptive client selection algorithm that balances data diversity and training efficiency, and (3) comprehensive evaluation on real multi-institutional datasets. Our work demonstrates that privacy and performance can coexist in healthcare AI systems.",
+    "keywords": "federated learning, privacy-preserving ML, healthcare AI, differential privacy, distributed learning",
+    
+    "status": "submitted",
+    "submittedAt": "2025-12-01T10:30:00.000Z",
+    "updatedAt": "2025-12-01T10:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "conferenceId": 1,
+    "authorId": 4,
+    "title": "Attention is Not All You Need: Hybrid Architectures for Long-Range Dependencies",
+    "abstract": "While transformers have revolutionized NLP and beyond, their quadratic attention complexity limits applicability to long sequences. We present HybridFormer, an architecture combining linear attention mechanisms with structured state spaces to efficiently model sequences up to 1 million tokens.\n\nHybridFormer interleaves efficient local attention with global state space layers, achieving O(n log n) complexity while maintaining the modeling capacity of full attention. We introduce a novel gating mechanism that dynamically routes information between local and global pathways based on input characteristics.\n\nExtensive experiments on Long Range Arena benchmarks show HybridFormer outperforms both pure transformers and state space models. On document understanding tasks requiring full-document context, we achieve 15% improvement over previous SOTA while using 8x less memory. We release optimized CUDA kernels enabling practical deployment.\n\nThis work suggests the future of sequence modeling lies in hybrid architectures that combine the strengths of different approaches rather than relying on attention alone.",
+    "keywords": "transformers, state space models, attention mechanisms, long sequences, efficient ML",
+    
+    "status": "under_review",
+    "submittedAt": "2025-11-28T14:20:00.000Z",
+    "updatedAt": "2025-12-02T09:15:00.000Z"
+  },
+  {
+    "id": 3,
+    "conferenceId": 1,
+    "authorId": 5,
+    "title": "Interpretable Machine Learning for Credit Risk Assessment",
+    "abstract": "Regulatory requirements in financial services demand interpretable models for credit decisions. However, complex ML models often outperform traditional scorecards. We present ExplainCredit, a framework that achieves both high accuracy and regulatory-grade interpretability.\n\nExplainCredit uses a novel monotonic neural network architecture with built-in feature importance constraints. This ensures that higher income always leads to lower risk scores (all else equal), satisfying regulatory monotonicity requirements. We introduce local explanation methods that produce reason codes compliant with ECOA and FCRA requirements.\n\nOn a dataset of 10 million loan applications, ExplainCredit achieves AUC of 0.847, compared to 0.851 for an unconstrained XGBoost model, while producing human-readable explanations for every decision. A/B testing at a major lender showed 23% reduction in consumer complaints about credit decisions.\n\nWe discuss practical deployment considerations including model governance, monitoring, and fair lending compliance. This work demonstrates that interpretability and performance need not be at odds in high-stakes ML applications.",
+    "keywords": "interpretable ML, credit risk, financial services, regulatory compliance, explainable AI",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-15T16:45:00.000Z",
+    "updatedAt": "2025-11-30T11:20:00.000Z"
+  },
+  {
+    "id": 4,
+    "conferenceId": 1,
+    "authorId": 6,
+    "title": "Real-Time Anomaly Detection in Industrial IoT Streams",
+    "abstract": "Industrial IoT deployments generate massive, high-velocity data streams requiring real-time anomaly detection. We present StreamGuard, a system capable of processing 10 million events per second while detecting anomalies with sub-100ms latency.\n\nStreamGuard combines lightweight autoencoder models with streaming sketches for efficient approximate statistics. Our key innovation is a hierarchical detection architecture: fast statistical tests flag potential anomalies, which are then verified by learned models. This reduces compute requirements by 95% while maintaining high recall.\n\nWe evaluate StreamGuard on datasets from manufacturing, energy, and transportation sectors. Results show F1 scores of 0.89-0.94 across domains, with median detection latency of 47ms. In a real deployment at a semiconductor fab, StreamGuard detected 87% of equipment failures before they caused production impact, saving an estimated $2.3M annually.\n\nThe paper includes detailed system architecture, deployment patterns, and lessons learned from production operation. We open-source StreamGuard with connectors for Kafka, Flink, and major industrial protocols.",
+    "keywords": "anomaly detection, IoT, streaming systems, real-time ML, industrial AI",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-20T08:10:00.000Z",
+    "updatedAt": "2025-11-29T14:55:00.000Z"
+  },
+  {
+    "id": 5,
+    "conferenceId": 1,
+    "authorId": 7,
+    "title": "Constitutional AI: Training Language Models with Principled Guidelines",
+    "abstract": "Aligning large language models with human values remains challenging. RLHF relies on potentially inconsistent human feedback, while rule-based approaches are brittle. We present Constitutional Training (CT), a framework for training LLMs with explicit, interpretable principles.\n\nCT begins by specifying a 'constitution' of principles the model should follow (e.g., 'be helpful', 'avoid harmful content', 'acknowledge uncertainty'). During training, the model generates responses, critiques them against the constitution, and revises them. This self-improvement loop, combined with reinforcement learning from AI feedback (RLAIF), produces aligned models.\n\nWe apply CT to train a 70B parameter model, comparing against RLHF baselines. Human evaluation shows CT models are preferred 67% of the time for helpfulness and 82% for harmlessness. Critically, CT models can explain their reasoning in terms of constitutional principles, enabling meaningful oversight.\n\nWe analyze failure modes and discuss how CT complements other alignment approaches. Our constitution and training code are released to enable reproducible alignment research.",
+    "keywords": "AI alignment, constitutional AI, RLHF, language models, AI safety",
+    
+    "status": "under_review",
+    "submittedAt": "2025-11-25T12:30:00.000Z",
+    "updatedAt": "2025-12-03T10:40:00.000Z"
+  },
+  {
+    "id": 6,
+    "conferenceId": 1,
+    "authorId": 8,
+    "title": "Efficient Video Understanding with Temporal Sparse Transformers",
+    "abstract": "Video transformers achieve impressive results but their computational cost prohibits practical deployment. We introduce TST (Temporal Sparse Transformer), an architecture that reduces video processing cost by 12x while maintaining accuracy.\n\nTST employs a two-stage approach: (1) a lightweight temporal selector identifies informative frames, and (2) full attention is applied only to selected frames with sparse temporal connections. This mimics how humans understand video - focusing attention on key moments rather than processing every frame uniformly.\n\nWe evaluate TST on Kinetics-700, Something-Something V2, and ActivityNet benchmarks. TST matches TimeSformer accuracy while processing 55 frames/second on a single GPU (vs. 4.5 for full attention). On hour-long videos for meeting summarization, TST enables practical deployment where previous methods required prohibitive compute.\n\nWe provide comprehensive ablations on frame selection strategies and attention patterns. TST is integrated into popular video libraries, enabling immediate practical impact.",
+    "keywords": "video understanding, efficient transformers, action recognition, temporal modeling, video AI",
+    
+    "status": "submitted",
+    "submittedAt": "2025-12-02T15:20:00.000Z",
+    "updatedAt": "2025-12-02T15:20:00.000Z"
+  },
+  {
+    "id": 7,
+    "conferenceId": 2,
+    "authorId": 9,
+    "title": "GitOps at Scale: Lessons from 10,000 Microservices",
+    "abstract": "Implementing GitOps for a handful of services is straightforward. Scaling it to 10,000+ microservices across 500 teams reveals fundamental challenges in sync performance, access control, and change management. This talk shares our journey implementing GitOps at enterprise scale.\n\nWe discuss the evolution from monorepo to multi-repo GitOps, including the tooling and processes that make both work. Key topics include: hierarchical application sets, progressive delivery with automatic rollback, multi-cluster sync strategies, and audit logging for compliance.\n\nCritical learnings include: (1) sync performance degrades non-linearly - we'll share our optimization techniques, (2) RBAC complexity explodes - our solution using inheritance hierarchies, (3) drift detection becomes essential - our approach to reconciliation. We reduced deployment incidents by 73% while increasing deployment frequency 10x.\n\nAttendees will learn concrete patterns for scaling GitOps, common pitfalls to avoid, and metrics for measuring GitOps health. We share templates and tools developed during our implementation.",
+    "keywords": "GitOps, Kubernetes, microservices, ArgoCD, DevOps at scale",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-10T09:00:00.000Z",
+    "updatedAt": "2025-11-25T16:30:00.000Z"
+  },
+  {
+    "id": 8,
+    "conferenceId": 2,
+    "authorId": 10,
+    "title": "eBPF for Production Observability",
+    "abstract": "Traditional observability requires code instrumentation or agent overhead. eBPF enables zero-instrumentation observability with negligible performance impact. This talk demonstrates practical eBPF patterns for production monitoring.\n\nWe cover four key use cases: (1) automated distributed tracing without code changes, (2) network flow visibility across Kubernetes pods, (3) security monitoring for syscall anomalies, and (4) performance profiling with minimal overhead.\n\nLive demos show implementing each pattern using Cilium, Pixie, and custom eBPF programs. We discuss trade-offs between different approaches and when custom eBPF development makes sense. Performance benchmarks demonstrate <1% overhead even under heavy load.\n\nPractical guidance includes eBPF program lifecycle management, dealing with kernel version differences, and integrating eBPF data into existing observability stacks (Prometheus, Grafana, etc.). Attendees will leave with concrete next steps for adding eBPF to their observability strategy.",
+    "keywords": "eBPF, observability, Kubernetes, monitoring, Linux kernel",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-12T11:45:00.000Z",
+    "updatedAt": "2025-11-28T14:20:00.000Z"
+  },
+  {
+    "id": 9,
+    "conferenceId": 3,
+    "authorId": 3,
+    "title": "AI-Assisted Diagnostic Pathology: From Research to Clinical Deployment",
+    "abstract": "Computational pathology holds promise for improving diagnostic accuracy and efficiency. However, the path from research accuracy metrics to clinical deployment is complex. This presentation shares our experience deploying AI diagnostic tools in a 500-pathologist network.\n\nWe cover the full lifecycle: algorithm development with pathologist-in-the-loop annotation, validation studies for regulatory submission, clinical workflow integration, and ongoing performance monitoring. Key challenges addressed include: handling whole-slide images at scale (average 1GB per image), managing pathologist trust and adoption, and ensuring consistent performance across different scanner manufacturers.\n\nResults from deployment show 15% improvement in cancer detection sensitivity with no increase in false positives. Pathologist efficiency improved 25% for screening cases. However, we also share failures - cases where AI underperformed and lessons learned.\n\nPractical guidance includes: regulatory pathway navigation (FDA, CE marking), change management strategies for clinical adoption, and building sustainable clinical AI programs. This talk is relevant for anyone bringing AI tools into clinical practice.",
+    "keywords": "digital pathology, clinical AI, medical imaging, FDA approval, healthcare AI deployment",
+    
+    "status": "submitted",
+    "submittedAt": "2025-12-03T10:15:00.000Z",
+    "updatedAt": "2025-12-03T10:15:00.000Z"
+  },
+  {
+    "id": 10,
+    "conferenceId": 5,
+    "authorId": 4,
+    "title": "Supply Chain Attack Detection: Beyond Software Composition Analysis",
+    "abstract": "Supply chain attacks have emerged as a critical threat vector. While SCA tools detect known vulnerabilities, they miss sophisticated attacks like the SolarWinds breach. We present ChainGuard, a multi-layered defense against supply chain attacks.\n\nChainGuard combines static analysis, behavioral monitoring, and provenance verification. Key innovations include: (1) detecting malicious behaviors in build systems, (2) verifying artifact provenance against declared dependencies, and (3) runtime anomaly detection for newly deployed code.\n\nWe evaluated ChainGuard against a dataset of 150 known supply chain attacks, achieving 94% detection rate with 0.1% false positive rate. On clean codebases, ChainGuard adds <5 minutes to CI pipeline time. In production deployment, we detected 3 previously unknown compromised packages before they caused damage.\n\nThe talk covers practical deployment including integration with existing CI/CD pipelines, investigation workflows for alerts, and organizational response procedures. We discuss the evolving threat landscape and how defenders can stay ahead.",
+    "keywords": "supply chain security, software composition analysis, CI/CD security, threat detection, DevSecOps",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-18T14:30:00.000Z",
+    "updatedAt": "2025-11-30T09:45:00.000Z"
+  },
+  {
+    "id": 11,
+    "conferenceId": 5,
+    "authorId": 5,
+    "title": "Zero Trust Architecture Implementation Guide",
+    "abstract": "Zero Trust has become the dominant security paradigm, but implementation remains challenging. This presentation provides a practical roadmap based on our experience implementing Zero Trust across 50+ enterprise environments.\n\nWe cover the five pillars of Zero Trust: identity, devices, networks, applications, and data. For each pillar, we discuss maturity levels from basic to advanced, common implementation patterns, and critical success factors. Real examples illustrate both successful implementations and instructive failures.\n\nKey topics include: micro-segmentation strategies that don't break applications, identity verification beyond passwords, continuous authorization for long-running sessions, and Zero Trust for legacy applications. We address the organizational aspects - getting buy-in, measuring progress, and handling the inevitable pushback from teams whose workflows change.\n\nAttendees receive a Zero Trust assessment framework and prioritization guide. Whether starting Zero Trust journey or optimizing existing implementation, this talk provides actionable guidance.",
+    "keywords": "Zero Trust, identity security, network security, enterprise security, security architecture",
+    
+    "status": "under_review",
+    "submittedAt": "2025-11-22T16:00:00.000Z",
+    "updatedAt": "2025-12-01T13:25:00.000Z"
+  },
+  {
+    "id": 12,
+    "conferenceId": 6,
+    "authorId": 6,
+    "title": "Building Data Products: From Data Warehouse to Data Mesh",
+    "abstract": "The data mesh paradigm shifts ownership from central data teams to domain teams, treating data as products. This presentation shares our transformation journey from a traditional data warehouse to a functioning data mesh.\n\nWe cover organizational design (convincing domain teams to own data), technical architecture (self-serve data infrastructure), and governance (maintaining quality and compliance in a decentralized model). Key challenges included: defining data product boundaries, establishing contracts between producers and consumers, and building data literacy across the organization.\n\nResults show 60% reduction in time-to-insight for new analytics use cases, 40% reduction in data team bottlenecks, and improved data quality (domains care more about data they own). However, infrastructure complexity increased and we discuss mitigation strategies.\n\nPractical guidance includes: starting your mesh journey (don't boil the ocean), tooling choices that support decentralization, and metrics for measuring mesh health. Relevant for data leaders considering or implementing data mesh principles.",
+    "keywords": "data mesh, data products, data architecture, domain-driven design, data platform",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-08T11:20:00.000Z",
+    "updatedAt": "2025-11-22T15:40:00.000Z"
+  },
+  {
+    "id": 13,
+    "conferenceId": 6,
+    "authorId": 7,
+    "title": "Real-Time Feature Engineering for ML at Scale",
+    "abstract": "ML models are only as good as their features. Real-time features are essential for fraud detection, recommendations, and dynamic pricing. This talk presents our architecture for computing features at 1M+ events/second with p99 latency under 50ms.\n\nWe cover the feature engineering stack: stream processing (Flink) for real-time aggregations, feature store (Feast) for serving, and Spark for batch backfills. Key challenges addressed include: point-in-time correctness, managing feature drift, and maintaining training-serving consistency.\n\nArchitecture patterns include: sliding window aggregations, sessionization features, and entity resolution across streams. We discuss when real-time features matter (hint: not always) and how to prioritize feature engineering efforts.\n\nLive demo shows adding a new real-time feature from definition to serving in under 30 minutes. Performance benchmarks demonstrate scaling to petabyte-scale feature stores. Templates and code are shared for common feature patterns.",
+    "keywords": "feature engineering, real-time ML, feature store, stream processing, ML infrastructure",
+    
+    "status": "submitted",
+    "submittedAt": "2025-12-04T09:30:00.000Z",
+    "updatedAt": "2025-12-04T09:30:00.000Z"
+  },
+  {
+    "id": 14,
+    "conferenceId": 7,
+    "authorId": 8,
+    "title": "Cross-Platform Development: Shared Business Logic with Native UI",
+    "abstract": "Cross-platform tools promise write-once-run-everywhere, but native feel remains important. This talk presents an architecture pattern: shared business logic with platform-native UI layers. We've used this approach to ship apps to iOS, Android, and Web with 70% code sharing.\n\nThe architecture uses Kotlin Multiplatform for shared business logic (networking, data processing, business rules) with SwiftUI, Jetpack Compose, and React for respective platforms. We discuss module boundaries, abstraction strategies, and avoiding the lowest-common-denominator trap.\n\nKey challenges addressed: platform-specific behaviors (permissions, storage, networking), testing strategies across platforms, and CI/CD for multi-platform builds. We compare this approach to alternatives (Flutter, React Native, pure native) with concrete trade-off analysis.\n\nCase study: rebuilding a 100k MAU app from three separate codebases to shared architecture reduced development cost by 45% while improving feature parity and reducing bugs. Attendees learn when this pattern makes sense and how to start.",
+    "keywords": "cross-platform development, Kotlin Multiplatform, mobile development, architecture patterns",
+    
+    "status": "submitted",
+    "submittedAt": "2025-12-05T08:45:00.000Z",
+    "updatedAt": "2025-12-05T08:45:00.000Z"
+  },
+  {
+    "id": 15,
+    "conferenceId": 9,
+    "authorId": 9,
+    "title": "Emergent Reasoning in Large Language Models",
+    "abstract": "As language models scale, unexpected capabilities emerge. This paper systematically studies emergent reasoning abilities in models from 1B to 500B parameters, identifying scaling laws for different reasoning types.\n\nWe evaluate models on carefully constructed benchmarks for: logical reasoning, mathematical problem-solving, causal inference, counterfactual reasoning, and analogical reasoning. For each category, we identify the approximate scale at which capability emerges and characterize the sharpness of the emergence.\n\nKey findings: (1) arithmetic emerges sharply at ~10B parameters, (2) multi-step logical reasoning emerges gradually between 50-200B, (3) causal reasoning remains weak even at largest scales without specific training. We analyze why emergence patterns differ and propose a theoretical framework linking emergence to data properties.\n\nImplications for AI safety: emergent capabilities are predictable in aggregate but unpredictable in specifics. We discuss what this means for capability evaluation and safety assessment of frontier models. Dataset and evaluation code are released for reproducibility.",
+    "keywords": "emergent capabilities, LLM scaling, reasoning, AI capabilities, language models",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-05T13:00:00.000Z",
+    "updatedAt": "2025-11-20T10:30:00.000Z"
+  },
+  {
+    "id": 16,
+    "conferenceId": 10,
+    "authorId": 10,
+    "title": "Cost-Efficient Kubernetes: Running 80% of Workloads on Spot Instances",
+    "abstract": "Cloud costs dominate infrastructure budgets. We reduced our Kubernetes compute costs by 65% by running most workloads on spot/preemptible instances. This talk shares the architecture, tooling, and organizational changes that made this possible.\n\nTechnical approach includes: node pool configuration for spot instances, pod disruption budgets that tolerate interruptions, graceful shutdown handling, and workload classification (spot-friendly vs. spot-hostile). We cover integration with cluster autoscaler and capacity planning.\n\nKey challenges: handling cascading failures when spot capacity is reclaimed, maintaining SLOs during interruptions, and preventing cost optimization from becoming reliability risk. We share the metrics dashboard used to balance cost and reliability.\n\nOrganizational aspects: getting buy-in from teams, defining workload classification criteria, and establishing cost accountability. Results show 65% cost reduction with <0.1% increase in error rate. Template configurations and tooling are shared.",
+    "keywords": "Kubernetes, cost optimization, spot instances, cloud economics, FinOps",
+    
+    "status": "under_review",
+    "submittedAt": "2025-11-24T15:15:00.000Z",
+    "updatedAt": "2025-12-02T11:50:00.000Z"
+  },
+  {
+    "id": 17,
+    "conferenceId": 1,
+    "authorId": 10,
+    "title": "Workshop: Hands-On Prompt Engineering for Production Applications",
+    "abstract": "Move beyond basic prompting to production-grade prompt engineering. This hands-on workshop covers techniques used in deployed LLM applications serving millions of users.\n\nTopics include: chain-of-thought prompting, few-shot learning optimization, prompt templating systems, output parsing and validation, error handling and fallbacks, and prompt versioning/A/B testing.\n\nParticipants will build a complete prompt engineering pipeline including: structured output extraction, multi-turn conversation management, and automated prompt evaluation. We work with multiple LLM providers (OpenAI, Anthropic, open-source) to understand provider-specific considerations.\n\nAdvanced topics: prompt injection defense, cost optimization through prompt compression, and maintaining prompt quality over model updates. Participants leave with a production-ready prompt engineering toolkit and best practices documentation.\n\nPrerequisites: Basic Python, familiarity with LLM APIs. Bring laptop with development environment. API keys provided for workshop.",
+    "keywords": "prompt engineering, LLM applications, workshop, hands-on, production ML",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-14T10:00:00.000Z",
+    "updatedAt": "2025-11-28T09:30:00.000Z"
+  },
+  {
+    "id": 18,
+    "conferenceId": 2,
+    "authorId": 3,
+    "title": "Workshop: Building Internal Developer Platforms with Backstage",
+    "abstract": "Internal Developer Platforms (IDPs) improve developer productivity by providing self-service capabilities. Backstage has emerged as the leading open-source IDP framework. This workshop provides hands-on experience building and extending Backstage.\n\nWe cover: Backstage architecture and concepts, software catalog population, tech docs setup, template creation for self-service, and plugin development. Participants will build a complete IDP capable of provisioning infrastructure, creating new services, and managing documentation.\n\nHands-on exercises include: integrating with existing CI/CD (GitHub Actions, GitLab CI), connecting to cloud providers (AWS, GCP), and building custom plugins for organization-specific workflows.\n\nAdvanced topics: scaling Backstage, authentication and authorization, and measuring IDP adoption. By workshop end, participants will have a functional Backstage instance and roadmap for organization deployment.\n\nPrerequisites: Familiarity with Kubernetes and basic React. Bring laptop with Docker installed. Cloud accounts optional but helpful.",
+    "keywords": "Backstage, developer platform, IDP, platform engineering, workshop",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-16T14:45:00.000Z",
+    "updatedAt": "2025-11-30T16:20:00.000Z"
+  },
+  {
+    "id": 19,
+    "conferenceId": 1,
+    "authorId": 4,
+    "title": "Panel Discussion: AI Governance in the Enterprise",
+    "abstract": "As AI becomes critical to business operations, governance frameworks become essential. This panel brings together AI leaders, legal experts, and ethicists to discuss practical AI governance.\n\nTopics include: model risk management frameworks, bias testing and fairness requirements, regulatory compliance (EU AI Act, NIST AI RMF), and incident response for AI failures. Panelists share experiences from their organizations and debate emerging best practices.\n\nKey questions addressed: How do you balance innovation speed with governance requirements? What organizational structures support effective AI governance? How do you handle third-party AI tools and APIs? What metrics indicate healthy AI governance?\n\nFormat: 20 minutes of panelist presentations, 40 minutes of moderated discussion, 30 minutes of audience Q&A. Attendees receive a framework template for starting or improving AI governance programs.",
+    "keywords": "AI governance, enterprise AI, compliance, responsible AI, panel discussion",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-19T11:30:00.000Z",
+    "updatedAt": "2025-12-01T14:00:00.000Z"
+  },
+  {
+    "id": 20,
+    "conferenceId": 1,
+    "authorId": 5,
+    "title": "Multimodal Learning: Unifying Vision, Language, and Audio",
+    "abstract": "The next frontier in AI is models that understand multiple modalities together. This paper presents UniModal, a unified architecture that processes text, images, and audio within a single model, enabling cross-modal reasoning.\n\nUniModal uses modality-specific encoders feeding into a shared transformer backbone. Novel contributions include: (1) cross-modal attention patterns that learn modality relationships, (2) a unified tokenization scheme for heterogeneous inputs, and (3) training procedures that balance learning across modalities.\n\nWe evaluate on diverse benchmarks: image captioning, visual QA, audio-visual event detection, and novel cross-modal tasks. UniModal achieves state-of-the-art on 8 of 12 benchmarks while using a single model (vs. specialized models per task). Notably, UniModal exhibits emergent cross-modal capabilities not present in training data.\n\nAnalysis reveals learned modality relationships and attention patterns. We discuss limitations, particularly in domains with weak cross-modal training data. Model weights and training code are released.",
+    "keywords": "multimodal learning, vision-language, audio-visual, unified models, cross-modal AI",
+    
+    "status": "under_review",
+    "submittedAt": "2025-11-26T09:20:00.000Z",
+    "updatedAt": "2025-12-03T15:45:00.000Z"
+  },
+  {
+    "id": 21,
+    "conferenceId": 5,
+    "authorId": 6,
+    "title": "Workshop: Incident Response Tabletop Exercise",
+    "abstract": "Incident response capabilities are only proven during real incidents - unless you practice. This workshop runs participants through realistic security incident scenarios in a tabletop exercise format.\n\nScenarios include: ransomware outbreak, data breach discovery, insider threat detection, and supply chain compromise. For each scenario, participants work through detection, containment, eradication, and recovery phases. Facilitators inject realistic complications and time pressure.\n\nParticipants learn: incident classification frameworks, communication protocols (internal and external), technical response procedures, and post-incident review practices. Discussion covers common mistakes and how to avoid them.\n\nIdeal for security teams, incident commanders, and executives who may be involved in incident response. No technical prerequisites - scenarios appropriate for both technical and non-technical roles. Participants receive scenario templates for running exercises at their organizations.",
+    "keywords": "incident response, tabletop exercise, security workshop, crisis management, cybersecurity",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-21T16:30:00.000Z",
+    "updatedAt": "2025-12-02T10:15:00.000Z"
+  },
+  {
+    "id": 22,
+    "conferenceId": 6,
+    "authorId": 7,
+    "title": "Apache Iceberg: The Future of Data Lake Tables",
+    "abstract": "Apache Iceberg is transforming data lakes by bringing ACID transactions, schema evolution, and time travel to file-based storage. This talk provides deep dive into Iceberg architecture and best practices.\n\nWe cover: Iceberg table format internals, query optimization through partition pruning and data skipping, compaction strategies for optimal performance, and integration with query engines (Spark, Trino, Flink). Comparison with alternatives (Delta Lake, Hudi) highlights Iceberg's unique capabilities.\n\nAdvanced topics include: hidden partitioning for schema evolution, incremental processing patterns, and multi-engine access patterns. Performance benchmarks show query speedups of 10-100x compared to Hive tables on same data.\n\nReal-world case study: migrating 500TB data warehouse to Iceberg reduced storage costs 40% while improving query performance 5x. We discuss migration strategies, pitfalls, and lessons learned.\n\nAttendees gain deep understanding of Iceberg capabilities and practical guidance for adoption.",
+    "keywords": "Apache Iceberg, data lake, table format, big data, analytics architecture",
+    
+    "status": "submitted",
+    "submittedAt": "2025-12-02T13:45:00.000Z",
+    "updatedAt": "2025-12-02T13:45:00.000Z"
+  },
+  {
+    "id": 23,
+    "conferenceId": 10,
+    "authorId": 8,
+    "title": "Multi-Cloud Networking: Connecting Clouds Securely",
+    "abstract": "Multi-cloud strategies are common, but networking between clouds remains challenging. This talk presents architectural patterns for secure, performant multi-cloud connectivity.\n\nWe cover: transit gateway architectures, cloud interconnect options (AWS Direct Connect, Azure ExpressRoute, GCP Interconnect), software-defined networking approaches, and mesh networking solutions. Each pattern is evaluated for latency, throughput, cost, and operational complexity.\n\nSecurity considerations include: encryption in transit, network segmentation across clouds, identity federation, and consistent policy enforcement. We discuss zero trust networking principles applied to multi-cloud.\n\nCase study: building global application spanning AWS, Azure, and GCP with consistent networking, achieving <50ms cross-cloud latency and 99.99% availability. We share terraform modules and architectural diagrams.\n\nPractical guidance for choosing between patterns based on requirements. Common pitfalls and how to avoid them. Relevant for anyone operating in multiple clouds.",
+    "keywords": "multi-cloud, cloud networking, hybrid cloud, network architecture, cloud connectivity",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-17T10:00:00.000Z",
+    "updatedAt": "2025-11-29T13:20:00.000Z"
+  },
+  {
+    "id": 24,
+    "conferenceId": 1,
+    "authorId": 9,
+    "title": "Efficient Parameter-Efficient Fine-Tuning: A Comprehensive Study",
+    "abstract": "Fine-tuning large models is expensive. Parameter-efficient methods (LoRA, Adapters, Prefix-tuning) promise to reduce costs while maintaining quality. This paper provides the most comprehensive comparison of PEFT methods to date.\n\nWe evaluate 8 PEFT methods across 20 tasks spanning NLU, NLG, and reasoning. Beyond accuracy, we measure training cost, inference overhead, and multi-task performance. Novel analysis includes: method combinations, scaling behavior, and failure mode characterization.\n\nKey findings: (1) LoRA offers best accuracy/efficiency trade-off for most tasks, (2) method combinations rarely improve over best single method, (3) PEFT methods show different scaling behavior than full fine-tuning - efficiency gap narrows at larger scales.\n\nPractical guidance: decision framework for choosing PEFT method based on task, model size, and resource constraints. We release unified PEFT library with optimized implementations and benchmarking tools.",
+    "keywords": "PEFT, LoRA, fine-tuning, efficient ML, parameter-efficient, LLM",
+    
+    "status": "accepted",
+    "submittedAt": "2025-11-11T14:15:00.000Z",
+    "updatedAt": "2025-11-26T11:40:00.000Z"
+  },
+  {
+    "id": 25,
+    "conferenceId": 2,
+    "authorId": 10,
+    "title": "Chaos Engineering in Production: Principles and Practices",
+    "abstract": "Systems fail in production. Chaos engineering helps you find weaknesses before they become outages. This talk shares principles and practices from running chaos experiments at scale.\n\nWe cover: the scientific method applied to chaos (hypotheses, experiments, analysis), designing experiments that find issues without causing customer impact, and building organizational support for chaos engineering.\n\nPractical techniques include: fault injection patterns (network, compute, dependency), blast radius control, automated rollback, and experiment scheduling. Tool comparison covers Chaos Monkey, LitmusChaos, and Gremlin with guidance on build vs. buy.\n\nCase studies: chaos experiments that found critical issues before they caused outages, and lessons from experiments that went wrong. We share the framework used to prioritize which chaos experiments to run.\n\nOrganizational aspects: getting buy-in, communicating results, and building chaos engineering capability. Attendees leave with concrete next steps for starting or advancing chaos engineering programs.",
+    "keywords": "chaos engineering, reliability, fault injection, site reliability, production testing",
+    
+    "status": "under_review",
+    "submittedAt": "2025-11-23T12:00:00.000Z",
+    "updatedAt": "2025-12-01T16:35:00.000Z"
+  }
+]

@@ -1,0 +1,19 @@
+flowchart TD
+  U[Attendee / Base User] --> P1[Browse Conferences]
+  P1 --> P2[Open Conference Details]
+
+  P2 -->|If Registration Open| R1[Register]
+  R1 --> R2[Answer Custom Questions - optional]
+  R2 --> R3[Registration Confirmed]
+
+  P2 -->|If Program Published| S1[View Program]
+  S1 --> S2[Timeline View]
+  S1 --> S3[Tree View]
+  S2 --> D1[Open Presentation Details]
+  S3 --> D1
+
+  D1 --> F1[Toggle Favourite]
+  F1 --> F2[View Favourites List]
+
+  P2 --> SR1[Search Presentations]
+  SR1 --> D1

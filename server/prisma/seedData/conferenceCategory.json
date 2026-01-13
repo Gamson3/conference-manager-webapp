@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "conferenceId": 1,
+    "name": "AI/ML Research",
+    "description": "Fundamental research in artificial intelligence and machine learning algorithms"
+  },
+  {
+    "id": 2,
+    "conferenceId": 1,
+    "name": "AI Infrastructure",
+    "description": "Systems and infrastructure for training and deploying AI models"
+  },
+  {
+    "id": 3,
+    "conferenceId": 1,
+    "name": "Computer Vision",
+    "description": "Image recognition, object detection, and visual AI applications"
+  },
+  {
+    "id": 4,
+    "conferenceId": 2,
+    "name": "DevOps Practices",
+    "description": "CI/CD, automation, and operational excellence"
+  },
+  {
+    "id": 5,
+    "conferenceId": 4,
+    "name": "Frontend Development",
+    "description": "React, Next.js, and modern frontend frameworks"
+  },
+  {
+    "id": 6,
+    "conferenceId": 5,
+    "name": "Threat Intelligence",
+    "description": "Threat analysis, detection, and response"
+  },
+  {
+    "id": 7,
+    "conferenceId": 6,
+    "name": "Data Engineering",
+    "description": "Data pipelines, ETL, and data infrastructure"
+  },
+  {
+    "id": 8,
+    "conferenceId": 1,
+    "name": "NLP & Language",
+    "description": "Natural language processing and language model research"
+  },
+  {
+    "id": 9,
+    "conferenceId": 1,
+    "name": "AI Safety & Ethics",
+    "description": "Responsible AI development, alignment, and ethical considerations"
+  },
+  {
+    "id": 10,
+    "conferenceId": 5,
+    "name": "Cloud Security",
+    "description": "Securing cloud infrastructure and workloads"
+  },
+  {
+    "id": 11,
+    "conferenceId": 10,
+    "name": "Cloud Architecture",
+    "description": "Multi-cloud and hybrid cloud architecture patterns"
+  },
+  {
+    "id": 12,
+    "conferenceId": 9,
+    "name": "Alignment Research",
+    "description": "AI alignment theory and practice"
+  }
+]

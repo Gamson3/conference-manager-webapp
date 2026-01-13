@@ -1,0 +1,339 @@
+// // Proposed simplified and requirement-complete schema for the Conference Manager Web App
+// // This schema focuses on:
+// // - Core conference scheduling (day/section/presentation) including breaks
+// // - Presentation categories (tracks) and types (with duration rules)
+// // - Abstract/presentation submissions and acceptance workflow
+// // - Search by author/title/section/keyword
+// // - Favorites for presentations
+// // - Multiple organizers per conference
+// //
+// // Non-essential/phase-2 features (materials, notifications, reviews, etc.) are intentionally excluded
+// // or can be added later to keep the MVP practical for a 2-week delivery.
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// enum Role {
+//   attendee
+//   organizer
+//   admin
+// }
+
+// enum OrganizerRole {
+//   owner
+//   organizer
+// }
+
+// enum ConferenceStatus {
+//   draft
+//   published
+//   canceled
+//   completed
+// }
+
+// enum SectionType {
+//   presentation
+//   keynote
+//   workshop
+//   panel
+//   networking
+//   break
+// }
+
+// enum PresentationStatus {
+//   draft
+//   scheduled
+// }
+
+// enum SubmissionStatus {
+//   submitted
+//   under_review
+//   accepted
+//   rejected
+// }
+
+// model User {
+//   id        Int      @id @default(autoincrement())
+//   cognitoId String   @unique
+//   name      String
+//   email     String   @unique
+//   role      Role
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   // Relations
+//   conferencesOwned ConferenceOrganizer[]
+//   attendances      Attendance[]
+//   presentationFavorites PresentationFavorite[]
+//   submissions      AbstractSubmission[] @relation("SubmitterSubmissions")
+//   conferenceFavorites ConferenceFavorite[]
+//   presentationAuthorsInternal PresentationAuthor[] @relation("PresentationAuthorInternalUser")
+//   submissionAuthorsInternal   SubmissionAuthor[]   @relation("SubmissionAuthorInternalUser")
+//   decidedSubmissions          AbstractSubmission[] @relation("DeciderSubmissions")
+// }
+
+// model Conference {
+//   id          Int              @id @default(autoincrement())
+//   name        String
+//   description String?
+//   startDate   DateTime
+//   endDate     DateTime
+//   location    String?
+//   status      ConferenceStatus @default(draft)
+//   topics      String[]         @default([])
+//   createdAt   DateTime         @default(now())
+//   updatedAt   DateTime         @updatedAt
+
+//   // Relations
+//   organizers  ConferenceOrganizer[]
+//   tracks      Track[]
+//   types       PresentationType[]
+//   submissionPolicy ConferenceSubmissionPolicy?
+//   days        Day[]
+//   sections    Section[]
+//   attendances Attendance[]
+//   favorites   ConferenceFavorite[]
+//   submissions AbstractSubmission[] @relation("ConferenceSubmissions")
+
+//   @@index([name])
+//   @@index([status])
+//   @@index([startDate])
+// }
+
+// // Join table for multiple organizers per conference
+// model ConferenceOrganizer {
+//   id           Int           @id @default(autoincrement())
+//   conferenceId Int
+//   userId       Int
+//   role         OrganizerRole @default(organizer)
+
+//   conference   Conference    @relation(fields: [conferenceId], references: [id])
+//   user         User          @relation(fields: [userId], references: [id])
+
+//   @@unique([conferenceId, userId])
+//   @@index([userId])
+// }
+
+// // Presentation categories (e.g., Civil Engineering 1, Architecture 2)
+// model Track {
+//   id           Int        @id @default(autoincrement())
+//   conferenceId Int
+//   name         String
+//   description  String?
+//   order        Int        @default(0)
+
+//   conference   Conference @relation(fields: [conferenceId], references: [id])
+//   presentations Presentation[]
+//   submissions   AbstractSubmission[]
+
+//   @@unique([conferenceId, name])
+//   @@index([conferenceId])
+// }
+
+// // Presentation types with duration rules (e.g., oral 15min, poster, keynote)
+// model PresentationType {
+//   id             Int        @id @default(autoincrement())
+//   conferenceId   Int
+//   name           String
+//   description    String?
+//   defaultDuration Int?      // minutes
+//   minDuration     Int?
+//   maxDuration     Int?
+
+//   conference   Conference @relation(fields: [conferenceId], references: [id])
+//   presentations Presentation[]
+//   submissions   AbstractSubmission[]
+
+//   @@unique([conferenceId, name])
+//   @@index([conferenceId])
+// }
+
+// // Submission policy per conference (requirements)
+// model ConferenceSubmissionPolicy {
+//   id                    Int      @id @default(autoincrement())
+//   conferenceId          Int      @unique
+//   requireAbstract       Boolean  @default(true)
+//   minKeywords           Int      @default(3)
+//   maxKeywords           Int      @default(10)
+//   maxAuthors            Int      @default(10)
+//   allowedFileTypes      String[] @default([]) // e.g., ["pdf", "docx"]
+//   allowExternalAuthors  Boolean  @default(true)
+//   requireTrack          Boolean  @default(true)
+//   requireType           Boolean  @default(true)
+//   submissionOpenAt      DateTime?
+//   submissionCloseAt     DateTime?
+
+//   conference Conference @relation(fields: [conferenceId], references: [id])
+// }
+
+// model Day {
+//   id           Int        @id @default(autoincrement())
+//   conferenceId Int
+//   date         DateTime
+//   name         String
+//   order        Int        @default(0)
+
+//   conference   Conference @relation(fields: [conferenceId], references: [id])
+//   sections     Section[]
+
+//   @@unique([conferenceId, date])
+//   @@index([conferenceId, date])
+// }
+
+// model Section {
+//   id           Int         @id @default(autoincrement())
+//   conferenceId Int
+//   dayId        Int?
+//   name         String
+//   startTime    DateTime?
+//   endTime      DateTime?
+//   type         SectionType @default(presentation)
+//   order        Int         @default(0)
+//   room         String?
+//   capacity     Int?
+
+//   conference   Conference  @relation(fields: [conferenceId], references: [id])
+//   day          Day?        @relation(fields: [dayId], references: [id])
+//   presentations Presentation[]
+
+//   @@index([conferenceId])
+//   @@index([startTime])
+//   @@index([name])
+// }
+
+// model Presentation {
+//   id             Int               @id @default(autoincrement())
+//   sectionId      Int
+//   title          String
+//   abstract       String?
+//   duration       Int?
+//   order          Int               @default(0)
+//   status         PresentationStatus @default(draft)
+//   keywords       String[]          @default([])
+
+//   // Classification
+//   trackId        Int?
+//   typeId         Int?
+//   acceptedSubmissionId Int?    @unique
+
+//   section        Section           @relation(fields: [sectionId], references: [id])
+//   track          Track?            @relation(fields: [trackId], references: [id])
+//   type           PresentationType? @relation(fields: [typeId], references: [id])
+//   acceptedSubmission AbstractSubmission? @relation(fields: [acceptedSubmissionId], references: [id])
+//   authors        PresentationAuthor[]
+//   favorites      PresentationFavorite[]
+
+//   @@index([sectionId])
+//   @@index([title])
+// }
+
+// model PresentationAuthor {
+//   id             Int      @id @default(autoincrement())
+//   presentationId Int
+//   authorName     String
+//   authorEmail    String?
+//   affiliation    String?
+//   isPresenter    Boolean  @default(false)
+//   isExternal     Boolean  @default(true)
+//   order          Int      @default(0)
+//   userId         Int?
+
+//   presentation   Presentation @relation(fields: [presentationId], references: [id])
+//   internalUser   User?        @relation("PresentationAuthorInternalUser", fields: [userId], references: [id])
+
+//   @@index([authorName])
+//   @@index([authorEmail])
+// }
+
+// model PresentationFavorite {
+//   id             Int      @id @default(autoincrement())
+//   userId         Int
+//   presentationId Int
+//   createdAt      DateTime @default(now())
+
+//   user           User         @relation(fields: [userId], references: [id])
+//   presentation   Presentation @relation(fields: [presentationId], references: [id])
+
+//   @@unique([userId, presentationId])
+//   @@index([presentationId])
+// }
+
+// model ConferenceFavorite {
+//   id           Int      @id @default(autoincrement())
+//   userId       Int
+//   conferenceId Int
+//   createdAt    DateTime @default(now())
+
+//   user         User       @relation(fields: [userId], references: [id])
+//   conference   Conference @relation(fields: [conferenceId], references: [id])
+
+//   @@unique([userId, conferenceId])
+// }
+
+// model Attendance {
+//   id           Int      @id @default(autoincrement())
+//   userId       Int
+//   conferenceId Int
+//   status       String   @default("registered")
+//   registeredAt DateTime @default(now())
+//   checkInTime  DateTime?
+
+//   user         User       @relation(fields: [userId], references: [id])
+//   conference   Conference @relation(fields: [conferenceId], references: [id])
+
+//   @@unique([userId, conferenceId])
+// }
+
+// // Submissions (abstract + presentation proposals)
+// model AbstractSubmission {
+//   id            Int              @id @default(autoincrement())
+//   conferenceId  Int
+//   submitterId   Int
+//   title         String
+//   abstract      String?
+//   keywords      String[]         @default([])
+//   trackId       Int?
+//   typeId        Int?
+//   status        SubmissionStatus @default(submitted)
+//   submittedAt   DateTime         @default(now())
+//   decidedAt     DateTime?
+//   decidedById   Int?
+//   decisionNote  String?
+
+//   conference    Conference       @relation("ConferenceSubmissions", fields: [conferenceId], references: [id])
+//   submitter     User             @relation("SubmitterSubmissions", fields: [submitterId], references: [id])
+//   decidedBy     User?            @relation("DeciderSubmissions", fields: [decidedById], references: [id])
+//   track         Track?           @relation(fields: [trackId], references: [id])
+//   type          PresentationType? @relation(fields: [typeId], references: [id])
+
+//   authors       SubmissionAuthor[]
+//   acceptedPresentation Presentation?
+
+//   @@index([conferenceId])
+//   @@index([status])
+//   @@index([title])
+// }
+
+// model SubmissionAuthor {
+//   id               Int      @id @default(autoincrement())
+//   submissionId     Int
+//   authorName       String
+//   authorEmail      String?
+//   affiliation      String?
+//   isPresenter      Boolean  @default(false)
+//   isExternal       Boolean  @default(true)
+//   order            Int      @default(0)
+//   userId           Int?
+
+//   submission       AbstractSubmission @relation(fields: [submissionId], references: [id])
+//   internalUser     User?              @relation("SubmissionAuthorInternalUser", fields: [userId], references: [id])
+
+//   @@index([authorName])
+//   @@index([authorEmail])
+// }
