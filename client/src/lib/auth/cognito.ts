@@ -30,7 +30,7 @@ export function configureAmplify() {
     Auth: {
       Cognito: {
         userPoolId: userPoolId || '',
-  userPoolClientId: userPoolClientId || '',
+        userPoolClientId: userPoolClientId || '',
         loginWith: { username: false, email: true, phone: false },
       },
     },
@@ -48,7 +48,8 @@ export async function signIn(email: string, password: string) {
 export async function signUp(name: string, email: string, password: string) {
   // When the pool uses email as an alias, Cognito rejects usernames that look like emails.
   // Use a generated username while storing the real email in user attributes.
-  const username = `user_${email.replace(/[^A-Za-z0-9]/g, '_')}_${Date.now()}`;
+  // const username = `user_${email.replace(/[^A-Za-z0-9]/g, '_')}_${Date.now()}`;
+  const username = email;
   const res = await amplifySignUp({
     username,
     password,
