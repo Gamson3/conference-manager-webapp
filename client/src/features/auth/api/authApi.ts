@@ -52,7 +52,19 @@ export const upgradeOrganizer = async (): Promise<{ message: string; user: User;
   return data;
 };
 
-export const updateAccountProfile = async (payload: { preferences?: UserPreferences }) => {
-  const { data } = await apiClient.put(API_ENDPOINTS.ACCOUNT.PROFILE, payload);
+export type UpdateAccountProfilePayload = {
+  name?: string;
+  bio?: string;
+  phoneNumber?: string;
+  address?: string;
+  organization?: string;
+  jobTitle?: string;
+  socialLinks?: Record<string, string>;
+  interests?: string[];
+  preferences?: UserPreferences;
+};
+
+export const updateAccountProfile = async (payload: UpdateAccountProfilePayload): Promise<User> => {
+  const { data } = await apiClient.put<User>(API_ENDPOINTS.ACCOUNT.PROFILE, payload);
   return data;
 };

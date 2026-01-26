@@ -10,7 +10,6 @@ import {
   FileText, 
   Star,
   Settings,
-  User,
   ChevronRight,
   UserCheck,
 } from 'lucide-react';
@@ -62,12 +61,6 @@ const accountLinks: SidebarLink[] = [
     label: 'Settings', 
     icon: Settings,
     description: 'Preferences & notifications'
-  },
-  { 
-    href: '/account/profile', 
-    label: 'Profile', 
-    icon: User,
-    description: 'Your public profile'
   },
 ];
 

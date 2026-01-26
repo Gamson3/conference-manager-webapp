@@ -36,7 +36,7 @@ export const createConference = async (payload: CreateConferenceInput): Promise<
   };
 
   const response = await apiClient.post<CreateConferenceResponse>(
-    API_ENDPOINTS.CONFERENCES.BASE,
+    API_ENDPOINTS.ORGANIZER.CONFERENCES,
     payload,
     config
   );

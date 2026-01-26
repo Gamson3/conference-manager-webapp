@@ -14,6 +14,7 @@
     "seed:full": "ts-node prisma/seed-full-conference.ts",
     "seed:manual-test": "ts-node prisma/seed-manual-testing-minimal.ts",
     "seed:manual-test-main": "ts-node prisma/seed-manual-testing.ts",
+    "seed:prod-sample": "ts-node prisma/seed-production-sample.ts",
     "prisma:generate": "prisma generate",
     "prisma:backfill-slugs": "ts-node prisma/backfill-slugs.ts",
     "postprisma:generate": "shx cp -r node_modules/.prisma/client/index.d.ts ../client/src/types/prismaTypes.d.ts"

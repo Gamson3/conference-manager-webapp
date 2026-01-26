@@ -71,11 +71,22 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 // Configure CORS with specific origins for credentials support
+const normalizeOrigin = (origin: string): string => origin.trim().replace(/\/+$/, "");
+const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined;
+const envOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URLS,
+  vercelUrl,
+]
+  .filter(Boolean)
+  .flatMap((value) => String(value).split(",").map(normalizeOrigin))
+  .filter((origin) => origin.length > 0);
+
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+  ...envOrigins,
+].map(normalizeOrigin);
 
 app.use(cors({
   origin: (origin, callback) => {
