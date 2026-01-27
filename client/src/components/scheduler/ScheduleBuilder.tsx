@@ -332,23 +332,31 @@ type AcceptedPresentationAuthor = {
   isPresenter: boolean;
 };
 
-type AcceptedPresentationItem = {
+type ConferencePresentation = {
   id: number;
   title: string;
-  presentation: null | {
+  duration: number | null;
+  order: number;
+  status: string;
+  submissionId: number | null;
+  submissionType: string;
+  authors: Array<{
     id: number;
-    title: string;
-    duration: number | null;
-    type: null | {
-      id: number;
-      name: string;
-      defaultDuration: number;
-    };
-    category: null | {
-      id: number;
-      name: string;
-    };
-    authors: AcceptedPresentationAuthor[];
+    name: string;
+    email: string | null;
+    affiliation: string | null;
+    isPresenter: boolean;
+    isExternal: boolean;
+    order: number;
+  }>;
+  type?: {
+    id: number;
+    name: string;
+    defaultDuration: number | null;
+  };
+  category?: {
+    id: number;
+    name: string;
   };
 };
 
@@ -398,14 +406,14 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
     setError(null);
 
     try {
-      // Fetch schedule structure and accepted presentations in parallel
-      const [scheduleRes, acceptedRes] = await Promise.all([
+      // Fetch schedule structure and all presentations in parallel
+      const [scheduleRes, presentationsRes] = await Promise.all([
         apiClient.get<ConferenceScheduleResponse>(API_ENDPOINTS.ORGANIZER.SCHEDULE(conferenceId)),
-        apiClient.get<AcceptedPresentationItem[]>(API_ENDPOINTS.ORGANIZER.ACCEPTED_PRESENTATIONS(conferenceId)),
+        apiClient.get<ConferencePresentation[]>(API_ENDPOINTS.ORGANIZER.PRESENTATIONS(conferenceId)),
       ]);
 
       const scheduleData = scheduleRes.data;
-      const acceptedData = acceptedRes.data;
+      const presentationsData = presentationsRes.data;
 
       // Build the scheduler state
       // Map schedule days with their sessions and presentations
@@ -424,7 +432,9 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
           type: section.type,
           order: section.order || 0,
           chairs: undefined,
-          presentations: section.presentations.map((p) => ({
+          presentations: section.presentations
+            .filter((p) => p.status === 'scheduled' || p.status === 'locked')
+            .map((p) => ({
             id: p.id,
             title: p.title,
             order: p.order || 0,
@@ -461,32 +471,31 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
       days.forEach(day => {
         day.sessions.forEach(session => {
           session.presentations.forEach(p => {
-            scheduledIds.add(p.id);
+            if (p.status === 'scheduled' || p.status === 'locked') {
+              scheduledIds.add(p.id);
+            }
           });
         });
       });
 
-      // Unassigned = accepted but not scheduled
-      const unassigned: SchedulerPresentation[] = acceptedData
-        .map((item) => item.presentation)
-        .filter(
-          (p): p is NonNullable<AcceptedPresentationItem["presentation"]> => p !== null
-        )
+      // Unassigned = not scheduled/locked and not currently in any scheduled session
+      const unassigned: SchedulerPresentation[] = presentationsData
+        .filter((p) => !scheduledIds.has(p.id))
+        .filter((p) => p.status !== 'scheduled' && p.status !== 'locked')
         .map((presentation) => {
           const durationMins = presentation.duration ?? presentation.type?.defaultDuration ?? 15;
-
           return {
             id: presentation.id,
             title: presentation.title,
             order: 0,
             durationMins,
-            status: "accepted",
+            status: presentation.status,
             presenters: presentation.authors
               .filter((a) => a.isPresenter)
               .map((a) => ({
                 id: a.id,
-                name: a.authorName,
-                email: a.authorEmail ?? undefined,
+                name: a.name,
+                email: a.email ?? undefined,
                 affiliation: a.affiliation ?? undefined,
                 isPresenter: a.isPresenter,
               })),
@@ -494,7 +503,7 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
               ? {
                   id: presentation.type.id,
                   name: presentation.type.name,
-                  defaultDuration: presentation.type.defaultDuration,
+                  defaultDuration: presentation.type.defaultDuration ?? 15,
                 }
               : undefined,
             category: presentation.category
@@ -504,8 +513,7 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
                 }
               : undefined,
           };
-        })
-        .filter((p) => !scheduledIds.has(p.id));
+        });
 
       dispatch({
         type: "LOAD_SCHEDULE",
