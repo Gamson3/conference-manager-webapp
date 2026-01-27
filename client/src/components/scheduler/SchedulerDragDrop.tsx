@@ -29,10 +29,21 @@ const formatSessionTime = (timeStr?: string): string => {
   if (!timeStr) return "";
   // If it's an ISO datetime string (e.g., "2026-06-15T10:30:00.000Z"), extract the time part
   if (timeStr.includes('T')) {
-    return timeStr.split('T')[1].slice(0, 5); // Returns "HH:MM"
+    const extracted = timeStr.split('T')[1]?.replace('Z', '') || timeStr;
+    return extracted.slice(0, 5); // Returns "HH:MM"
   }
   // If it's already just a time string (e.g., "10:30"), return it
   return timeStr.slice(0, 5);
+};
+
+const computeSessionCapacityMins = (startTime?: string, endTime?: string): number => {
+  const startHHmm = formatSessionTime(startTime);
+  const endHHmm = formatSessionTime(endTime);
+  if (!startHHmm || !endHHmm) return 0;
+  const start = new Date(`2000-01-01T${startHHmm}`);
+  const end = new Date(`2000-01-01T${endHHmm}`);
+  const delta = (end.getTime() - start.getTime()) / (1000 * 60);
+  return Number.isFinite(delta) && delta > 0 ? delta : 0;
 };
 
 // ============================================================================
@@ -143,6 +154,39 @@ export function DroppableSession({ session, conflicts }: DroppableSessionProps) 
       type: "session",
       session,
     },
+    disabled: ['break', 'networking', 'ceremony'].includes(
+      session.type?.toLowerCase() || ''
+    ),
+  });
+
+  const {
+    setNodeRef: setEmptyDropRef,
+    isOver: isOverEmpty,
+  } = useDroppable({
+    id: `session-empty-${session.id}`,
+    data: {
+      type: "session-dropzone",
+      sessionId: session.id,
+      position: "empty",
+    },
+    disabled: ['break', 'networking', 'ceremony'].includes(
+      session.type?.toLowerCase() || ''
+    ),
+  });
+
+  const {
+    setNodeRef: setEndDropRef,
+    isOver: isOverEnd,
+  } = useDroppable({
+    id: `session-end-${session.id}`,
+    data: {
+      type: "session-dropzone",
+      sessionId: session.id,
+      position: "end",
+    },
+    disabled: ['break', 'networking', 'ceremony'].includes(
+      session.type?.toLowerCase() || ''
+    ),
   });
 
   // Check if this session is a break/non-presentation session
@@ -172,14 +216,11 @@ export function DroppableSession({ session, conflicts }: DroppableSessionProps) 
   );
 
   // Calculate session capacity in minutes
-  let sessionCapacity = 0;
-  if (session.startTime && session.endTime) {
-    const start = new Date(`2000-01-01T${session.startTime}`);
-    const end = new Date(`2000-01-01T${session.endTime}`);
-    sessionCapacity = (end.getTime() - start.getTime()) / (1000 * 60);
-  }
+  const sessionCapacity = computeSessionCapacityMins(session.startTime, session.endTime);
 
   const isOverflow = sessionCapacity > 0 && totalDuration > sessionCapacity;
+
+  const isOverAny = isOver || isOverEmpty || isOverEnd;
 
   return (
     <Card
@@ -187,7 +228,7 @@ export function DroppableSession({ session, conflicts }: DroppableSessionProps) 
       ref={setNodeRef}
       className={`
         transition-all min-h-[200px]
-        ${isOver && !isNonPresentationSession ? "ring-2 ring-primary/50 bg-primary/5" : ""}
+        ${isOverAny && !isNonPresentationSession ? "ring-2 ring-primary/50 bg-primary/5" : ""}
         ${sessionConflicts.length > 0 ? "border-red-300" : ""}
         ${isNonPresentationSession ? "opacity-75 bg-muted/30" : ""}
       `}
@@ -255,11 +296,12 @@ export function DroppableSession({ session, conflicts }: DroppableSessionProps) 
           <div className="space-y-2 min-h-[100px] overflow-hidden">
             {session.presentations.length === 0 ? (
               <div
+                ref={!isNonPresentationSession ? setEmptyDropRef : undefined}
                 className={`
                   flex flex-col items-center justify-center h-24 
                   border-2 border-dashed rounded-md
                   text-muted-foreground text-sm
-                  ${isNonPresentationSession ? "border-muted bg-muted/20 cursor-not-allowed opacity-50" : isOver ? "border-primary bg-primary/5" : "border-muted"}
+                  ${isNonPresentationSession ? "border-muted bg-muted/20 cursor-not-allowed opacity-50" : isOverAny ? "border-primary bg-primary/5" : "border-muted"}
                 `}
               >
                 <Package className="h-6 w-6 mb-1 opacity-50" />
@@ -281,6 +323,13 @@ export function DroppableSession({ session, conflicts }: DroppableSessionProps) 
                   hasConflict={conflictingPresentationIds.has(presentation.id)}
                 />
               ))
+            )}
+
+            {!isNonPresentationSession && (
+              <div
+                ref={setEndDropRef}
+                className={`h-3 rounded-sm ${isOverEnd ? "bg-primary/20" : "bg-transparent"}`}
+              />
             )}
           </div>
         </SortableContext>

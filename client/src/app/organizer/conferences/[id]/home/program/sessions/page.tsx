@@ -139,12 +139,27 @@ export default function SessionsManagementPage() {
     setSubmitting(true);
     setFormError(null);
     try {
+      const startTime = formData.startTime
+        ? resolveDateTimeIso({
+            timeHhMm: formData.startTime,
+            selectedDayId: formData.dayId,
+            fallbackIso: null,
+          })
+        : null;
+      const endTime = formData.endTime
+        ? resolveDateTimeIso({
+            timeHhMm: formData.endTime,
+            selectedDayId: formData.dayId,
+            fallbackIso: null,
+          })
+        : null;
+
       await apiClient.post(endpoints.ORGANIZER.SESSION_CREATE, {
         ...formData,
         conferenceId,
         capacity: formData.capacity ? Number(formData.capacity) : null,
-        startTime: formData.startTime || null,
-        endTime: formData.endTime || null,
+        startTime,
+        endTime,
         dayId: formData.dayId ? Number(formData.dayId) : null,
       });
 
@@ -169,11 +184,26 @@ export default function SessionsManagementPage() {
     setSubmitting(true);
     setFormError(null);
     try {
+      const startTime = formData.startTime
+        ? resolveDateTimeIso({
+            timeHhMm: formData.startTime,
+            selectedDayId: formData.dayId,
+            fallbackIso: selectedSession.startTime,
+          })
+        : null;
+      const endTime = formData.endTime
+        ? resolveDateTimeIso({
+            timeHhMm: formData.endTime,
+            selectedDayId: formData.dayId,
+            fallbackIso: selectedSession.endTime,
+          })
+        : null;
+
       await apiClient.put(endpoints.ORGANIZER.SESSION(selectedSession.id), {
         ...formData,
         capacity: formData.capacity ? Number(formData.capacity) : null,
-        startTime: formData.startTime || null,
-        endTime: formData.endTime || null,
+        startTime,
+        endTime,
         dayId: formData.dayId ? Number(formData.dayId) : null,
       });
 
@@ -235,12 +265,8 @@ export default function SessionsManagementPage() {
 
   const openEditDialog = (session: Session) => {
     setSelectedSession(session);
-    const startTime = session.startTime 
-      ? (session.startTime.includes('T') ? session.startTime.split('T')[1].slice(0, 5) : session.startTime.slice(0, 5))
-      : "";
-    const endTime = session.endTime 
-      ? (session.endTime.includes('T') ? session.endTime.split('T')[1].slice(0, 5) : session.endTime.slice(0, 5))
-      : "";
+    const startTime = toLocalTimeInputValue(session.startTime);
+    const endTime = toLocalTimeInputValue(session.endTime);
     setFormData({
       name: session.name,
       type: session.type,
@@ -266,9 +292,57 @@ export default function SessionsManagementPage() {
     setIsCreateOpen(true);
   };
 
-  const formatTime = (isoString: string | null) => {
-    if (!isoString) return "—";
-    const date = new Date(isoString);
+  const getLocalDateYmd = (date: Date): string => {
+    const y = String(date.getFullYear());
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
+  const isHhMm = (value: string): boolean => /^\d{2}:\d{2}$/.test(value);
+
+  const toLocalTimeInputValue = (value: string | null): string => {
+    if (!value) return "";
+    if (!value.includes("T") && isHhMm(value)) return value;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const hh = String(date.getHours()).padStart(2, "0");
+    const mm = String(date.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
+  const resolveDateTimeIso = (args: {
+    timeHhMm: string;
+    selectedDayId: string;
+    fallbackIso: string | null;
+  }): string => {
+    const { timeHhMm, selectedDayId, fallbackIso } = args;
+
+    const selectedDay = selectedDayId
+      ? days.find((d) => d.id === Number(selectedDayId))
+      : undefined;
+
+    if (selectedDay) {
+      return new Date(`${selectedDay.date}T${timeHhMm}:00`).toISOString();
+    }
+
+    if (fallbackIso) {
+      const fallbackDate = new Date(fallbackIso);
+      if (!Number.isNaN(fallbackDate.getTime())) {
+        const ymd = getLocalDateYmd(fallbackDate);
+        return new Date(`${ymd}T${timeHhMm}:00`).toISOString();
+      }
+    }
+
+    // Last resort: preserve previous behavior if we can't infer a date.
+    return timeHhMm;
+  };
+
+  const formatTime = (value: string | null) => {
+    if (!value) return "—";
+    if (!value.includes("T") && isHhMm(value)) return value;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
     return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
   };
 
@@ -481,7 +555,7 @@ export default function SessionsManagementPage() {
                 <Input
                   id="start-time"
                   type="time"
-                  value={formData.startTime ? formData.startTime.slice(11, 16) : ""}
+                  value={formData.startTime}
                   onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                 />
               </div>
@@ -490,7 +564,7 @@ export default function SessionsManagementPage() {
                 <Input
                   id="end-time"
                   type="time"
-                  value={formData.endTime ? formData.endTime.slice(11, 16) : ""}
+                  value={formData.endTime}
                   onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                 />
               </div>

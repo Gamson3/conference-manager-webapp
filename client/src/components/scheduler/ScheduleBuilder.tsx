@@ -2,12 +2,14 @@
 
 import React, { useEffect, useReducer, useCallback, useMemo, useState } from "react";
 import {
+  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
   closestCenter,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -54,7 +56,27 @@ import {
 } from "@/types/scheduler";
 
 import { DroppableSession, UnassignedSidebar } from "./SchedulerDragDrop";
-import { ConflictPanel } from "./ConflictPanel";
+import { ConflictDialog } from "./ConflictPanel";
+
+const NON_PRESENTATION_SESSION_TYPES = new Set(["break", "networking", "ceremony"]);
+
+const normalizeTimeToHHmm = (timeStr: string | undefined): string | undefined => {
+  if (!timeStr) return undefined;
+
+  let candidate = timeStr;
+  if (candidate.includes("T")) {
+    candidate = candidate.split("T")[1] ?? candidate;
+  }
+  candidate = candidate.replace("Z", "");
+  candidate = candidate.split(".")[0] ?? candidate;
+
+  // Support HH:mm:ss by trimming to HH:mm
+  if (/^\d{2}:\d{2}/.test(candidate)) {
+    return candidate.slice(0, 5);
+  }
+
+  return undefined;
+};
 
 // ============================================================================
 // Reducer for managing scheduler state
@@ -348,6 +370,7 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
   const [confirmPublish, setConfirmPublish] = useState(false);
   const [confirmUnpublish, setConfirmUnpublish] = useState(false);
   const [mobileUnassignedOpen, setMobileUnassignedOpen] = useState(false);
+  const [conflictsOpen, setConflictsOpen] = useState(false);
 
   // DnD sensors
   const sensors = useSensors(
@@ -357,6 +380,14 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
       },
     })
   );
+
+  const collisionDetection = useMemo<CollisionDetection>(() => {
+    return (args) => {
+      const pointerCollisions = pointerWithin(args);
+      if (pointerCollisions.length > 0) return pointerCollisions;
+      return closestCenter(args);
+    };
+  }, []);
 
   // ============================================================================
   // Data Fetching
@@ -527,8 +558,8 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
           id: session.id,
           name: session.name,
           room: session.room,
-          startTime: session.startTime,
-          endTime: session.endTime,
+          startTime: normalizeTimeToHHmm(session.startTime),
+          endTime: normalizeTimeToHHmm(session.endTime),
           presentations: session.presentations.map((p, idx) => ({
             id: p.id,
             order: idx,
@@ -550,8 +581,10 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
       dispatch({ type: "SET_CONFLICTS", payload: data.conflicts });
       
       if (data.conflicts.length === 0) {
+        setConflictsOpen(false);
         toast.success("✓ Schedule validation passed - no conflicts found!");
       } else {
+        setConflictsOpen(true);
         toast.error(`Schedule has ${data.conflicts.length} conflict(s) - see details below`);
       }
       return data.conflicts;
@@ -574,6 +607,10 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
       if (data.saved) {
         dispatch({ type: "MARK_SAVED", payload: { lastSavedAt: data.lastSavedAt! } });
         dispatch({ type: "SET_CONFLICTS", payload: data.conflicts });
+
+        if (data.conflicts.length > 0) {
+          setConflictsOpen(true);
+        }
         
         // Check for skipped presentations
         if (data.skippedPresentations && data.skippedPresentations.length > 0) {
@@ -593,6 +630,10 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
         }
       } else {
         dispatch({ type: "SET_CONFLICTS", payload: data.conflicts });
+
+        if (data.conflicts.length > 0) {
+          setConflictsOpen(true);
+        }
         toast.error(data.message || "Failed to save schedule");
       }
     } catch (err: unknown) {
@@ -703,6 +744,18 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
             break;
           }
         }
+      } else if (overData?.type === "session-dropzone") {
+        const dropzoneSessionId = (overData as { sessionId?: unknown }).sessionId;
+        if (typeof dropzoneSessionId === "number") {
+          targetSessionId = dropzoneSessionId;
+          const targetSession = state.days
+            .flatMap((d) => d.sessions)
+            .find((s) => s.id === targetSessionId);
+          const targetCount = targetSession?.presentations.length ?? 0;
+
+          const position = (overData as { position?: unknown }).position;
+          targetIndex = position === "empty" ? 0 : targetCount;
+        }
       } else if (overData?.type === "presentation") {
         // Dropped on another presentation
         targetSessionId = overData.sessionId;
@@ -719,6 +772,20 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
         // Dropped on unassigned sidebar
         targetSessionId = null;
         targetIndex = state.unassignedPresentations.length;
+      }
+
+      if (typeof targetSessionId === "number") {
+        const targetSession = state.days
+          .flatMap((d) => d.sessions)
+          .find((s) => s.id === targetSessionId);
+
+        if (targetSession) {
+          const sessionType = targetSession.type?.toLowerCase();
+          if (sessionType && NON_PRESENTATION_SESSION_TYPES.has(sessionType)) {
+            toast.error(`Can't add presentations to a ${targetSession.type} session`);
+            return;
+          }
+        }
       }
 
       // Check if it's a reorder within the same session
@@ -790,7 +857,7 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -937,18 +1004,17 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
             )}
           </div>
 
-          {/* Conflict Panel */}
-          {state.conflicts.length > 0 && (
-            <ConflictPanel
-              conflicts={state.conflicts}
-              days={state.days}
-              onNavigate={(sessionId: number) => {
-                // Scroll to session - could implement smooth scroll
-                const el = document.getElementById(`session-${sessionId}`);
-                el?.scrollIntoView({ behavior: "smooth", block: "center" });
-              }}
-            />
-          )}
+          <ConflictDialog
+            open={conflictsOpen}
+            onOpenChange={setConflictsOpen}
+            conflicts={state.conflicts}
+            days={state.days}
+            onNavigate={(sessionId: number) => {
+              const el = document.getElementById(`session-${sessionId}`);
+              el?.scrollIntoView({ behavior: "smooth", block: "center" });
+              setConflictsOpen(false);
+            }}
+          />
         </div>
 
         {/* Drag Overlay */}

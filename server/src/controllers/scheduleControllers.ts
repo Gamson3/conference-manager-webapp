@@ -865,12 +865,40 @@ interface SchedulePayload {
   timezone?: string;
 }
 
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) return error.message;
+  return 'Unknown error';
+};
+
+const normalizeTimeForValidation = (timeStr: string): string | null => {
+  let candidate = timeStr;
+
+  // Accept ISO timestamps, HH:mm, or HH:mm:ss
+  if (candidate.includes('T')) {
+    candidate = candidate.split('T')[1] ?? candidate;
+  }
+
+  candidate = candidate.replace('Z', '');
+  candidate = (candidate.split('.')[0] ?? candidate).trim();
+
+  // Trim to HH:mm when possible
+  const hhmmMatch = candidate.match(/^\d{2}:\d{2}/);
+  if (hhmmMatch) {
+    return candidate.slice(0, 5);
+  }
+
+  return null;
+};
+
 // Helper: Convert date+time to timestamp
 const toTimestamp = (dateStr: string, timeStr: string | undefined): number => {
   if (!timeStr) return 0;
-  // Parse as ISO-like format
-  const dt = new Date(`${dateStr}T${timeStr}`);
-  return dt.getTime();
+  const hhmm = normalizeTimeForValidation(timeStr);
+  if (!hhmm) return 0;
+
+  const dt = new Date(`${dateStr}T${hhmm}`);
+  const ms = dt.getTime();
+  return Number.isFinite(ms) ? ms : 0;
 };
 
 // Helper: Check if two intervals overlap
@@ -986,9 +1014,9 @@ export const validateSchedule = async (req: Request, res: Response) => {
     const conflicts = validateSchedulePayload(schedulePayload);
 
     res.json({ conflicts });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error validating schedule:', error);
-    res.status(500).json({ message: 'Failed to validate schedule', error: error.message });
+    res.status(500).json({ message: 'Failed to validate schedule', error: getErrorMessage(error) });
   }
 };
 
@@ -1030,17 +1058,32 @@ export const saveSchedule = async (req: Request, res: Response) => {
 
     // Process the schedule transactionally
     await prisma.$transaction(async (tx) => {
+      const ORDER_OFFSET = 10000;
+
       // Get all current presentations for this conference to track assignments
       const existingPresentations = await tx.presentation.findMany({
         where: { section: { conferenceId: Number(id) } },
-        select: { id: true, sectionId: true, status: true, lockedById: true }
+        select: { id: true, sectionId: true, status: true, lockedById: true, order: true }
       });
 
       const lockedPresentationIds = new Set(
         existingPresentations
-          .filter(p => p.lockedById !== null)
+          .filter(p => p.lockedById !== null || p.status === 'locked')
           .map(p => p.id)
       );
+
+      const lockedOrdersBySessionId = new Map<number, Set<number>>();
+      for (const p of existingPresentations) {
+        if (!lockedPresentationIds.has(p.id)) continue;
+        if (!lockedOrdersBySessionId.has(p.sectionId)) {
+          lockedOrdersBySessionId.set(p.sectionId, new Set<number>());
+        }
+        lockedOrdersBySessionId.get(p.sectionId)!.add(p.order);
+      }
+
+      // Phase 1: temporarily offset unlocked orders to avoid @@unique collisions
+      // Phase 2: write final contiguous ordering
+      const offsetAppliedSessionIds = new Set<number>();
 
       // Track which presentations are being assigned in this payload
       const assignedPresentationIds = new Set<number>();
@@ -1068,6 +1111,24 @@ export const saveSchedule = async (req: Request, res: Response) => {
             console.log(`[DEBUG] Session ${sessionPayload.id} not found for conference ${id}, skipping`);
             continue;
           }
+
+          // Apply a temporary order offset for unlocked presentations in this session.
+          // This prevents unique constraint failures during reordering (sectionId, order).
+          if (!offsetAppliedSessionIds.has(sessionPayload.id)) {
+            await tx.presentation.updateMany({
+              where: {
+                sectionId: sessionPayload.id,
+                lockedById: null,
+                NOT: { status: 'locked' },
+              },
+              data: {
+                order: { increment: ORDER_OFFSET },
+              },
+            });
+            offsetAppliedSessionIds.add(sessionPayload.id);
+          }
+
+          const usedOrders = new Set<number>(lockedOrdersBySessionId.get(sessionPayload.id) ?? []);
 
           // Update session metadata if provided
           if (sessionPayload.room !== undefined || sessionPayload.startTime !== undefined || sessionPayload.endTime !== undefined) {
@@ -1139,15 +1200,22 @@ export const saveSchedule = async (req: Request, res: Response) => {
             }
 
             // Update presentation assignment
+            let safeOrder = presPayload.order;
+            while (usedOrders.has(safeOrder)) {
+              safeOrder += 1;
+            }
+
             await tx.presentation.update({
               where: { id: presPayload.id },
               data: {
                 sectionId: sessionPayload.id,
-                order: presPayload.order,
+                order: safeOrder,
                 duration: presPayload.durationMins,
                 status: 'scheduled'
               }
             });
+
+            usedOrders.add(safeOrder);
 
             assignedPresentationIds.add(presPayload.id);
           }
@@ -1182,17 +1250,21 @@ export const saveSchedule = async (req: Request, res: Response) => {
       skippedPresentations,
       warnings: warnings.length > 0 ? warnings : undefined
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error saving schedule:', error);
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack?.split('\n').slice(0, 5).join('\n')
-    });
+    console.error('Error details:',
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack?.split('\n').slice(0, 5).join('\n')
+          }
+        : { name: 'UnknownError', message: getErrorMessage(error) }
+    );
     res.status(500).json({
       saved: false,
       message: 'Failed to save schedule',
-      error: error.message,
+      error: getErrorMessage(error),
       conflicts: []
     });
   }
@@ -1304,12 +1376,12 @@ export const publishSchedule = async (req: Request, res: Response) => {
       publishedAt: publishedAt.toISOString(),
       conflicts // Return any warnings (like SESSION_OVERFLOW)
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error publishing schedule:', error);
     res.status(500).json({
       published: false,
       message: 'Failed to publish schedule',
-      error: error.message
+      error: getErrorMessage(error)
     });
   }
 };
@@ -1353,12 +1425,12 @@ export const unpublishSchedule = async (req: Request, res: Response) => {
     console.log(`[DEBUG] Schedule unpublished successfully for conference ${id}`);
 
     res.json({ unpublished: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error unpublishing schedule:', error);
     res.status(500).json({
       unpublished: false,
       message: 'Failed to unpublish schedule',
-      error: error.message
+      error: getErrorMessage(error)
     });
   }
 };

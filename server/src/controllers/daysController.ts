@@ -2,11 +2,27 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { getUserId, isAdmin } from '../utils/authHelper';
 
+type ConferenceAccessConference = {
+  id: number;
+  createdById: number;
+  startDate: Date;
+  endDate: Date;
+};
+
+type ConferenceAccessResult =
+  | { authorized: true; conference: ConferenceAccessConference }
+  | { authorized: false; conference: ConferenceAccessConference | null; error: string };
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) return error.message;
+  return 'Unknown error';
+};
+
 // Helper to check conference ownership
 const checkConferenceAccess = async (
   req: Request,
   conferenceId: number
-): Promise<{ authorized: boolean; conference: any; error?: string }> => {
+): Promise<ConferenceAccessResult> => {
   const userId = getUserId(req);
   const conference = await prisma.conference.findUnique({
     where: { id: conferenceId },
@@ -28,10 +44,12 @@ const checkConferenceAccess = async (
 export const listDays = async (req: Request, res: Response) => {
   try {
     const conferenceId = Number(req.params.id);
-    const { authorized, error } = await checkConferenceAccess(req, conferenceId);
+    const access = await checkConferenceAccess(req, conferenceId);
 
-    if (!authorized) {
-      res.status(error === 'Conference not found' ? 404 : 403).json({ message: error });
+    if (!access.authorized) {
+      res
+        .status(access.error === 'Conference not found' ? 404 : 403)
+        .json({ message: access.error });
       return;
     }
 
@@ -56,9 +74,9 @@ export const listDays = async (req: Request, res: Response) => {
     }));
 
     res.json(payload);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error listing days:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getErrorMessage(error) });
   }
 };
 
@@ -68,9 +86,11 @@ export const getDay = async (req: Request, res: Response) => {
     const conferenceId = Number(req.params.id);
     const dayId = Number(req.params.dayId);
 
-    const { authorized, error } = await checkConferenceAccess(req, conferenceId);
-    if (!authorized) {
-      res.status(error === 'Conference not found' ? 404 : 403).json({ message: error });
+    const access = await checkConferenceAccess(req, conferenceId);
+    if (!access.authorized) {
+      res
+        .status(access.error === 'Conference not found' ? 404 : 403)
+        .json({ message: access.error });
       return;
     }
 
@@ -109,9 +129,9 @@ export const getDay = async (req: Request, res: Response) => {
         presentationsCount: s._count.presentations,
       })),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting day:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getErrorMessage(error) });
   }
 };
 
@@ -126,14 +146,21 @@ export const createDay = async (req: Request, res: Response) => {
       return;
     }
 
-    const { authorized, conference, error } = await checkConferenceAccess(req, conferenceId);
-    if (!authorized) {
-      res.status(error === 'Conference not found' ? 404 : 403).json({ message: error });
+    const access = await checkConferenceAccess(req, conferenceId);
+    if (!access.authorized) {
+      res
+        .status(access.error === 'Conference not found' ? 404 : 403)
+        .json({ message: access.error });
       return;
     }
+    const conference = access.conference;
 
     // Parse date (expect YYYY-MM-DD)
     const dayDate = new Date(date);
+    if (Number.isNaN(dayDate.getTime())) {
+      res.status(500).json({ message: 'Invalid date format' });
+      return;
+    }
     dayDate.setUTCHours(0, 0, 0, 0);
 
     // Validate date is within conference range
@@ -184,9 +211,9 @@ export const createDay = async (req: Request, res: Response) => {
       order: day.order,
       sessionsCount: 0,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating day:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getErrorMessage(error) });
   }
 };
 
@@ -197,11 +224,14 @@ export const updateDay = async (req: Request, res: Response) => {
     const dayId = Number(req.params.dayId);
     const { name, date, order } = req.body;
 
-    const { authorized, conference, error } = await checkConferenceAccess(req, conferenceId);
-    if (!authorized) {
-      res.status(error === 'Conference not found' ? 404 : 403).json({ message: error });
+    const access = await checkConferenceAccess(req, conferenceId);
+    if (!access.authorized) {
+      res
+        .status(access.error === 'Conference not found' ? 404 : 403)
+        .json({ message: access.error });
       return;
     }
+    const conference = access.conference;
 
     const existingDay = await prisma.day.findFirst({
       where: { id: dayId, conferenceId },
@@ -212,12 +242,16 @@ export const updateDay = async (req: Request, res: Response) => {
     }
 
     // Build update data
-    const updateData: any = {};
+    const updateData: { name?: string; order?: number; date?: Date } = {};
     if (name !== undefined) updateData.name = name;
     if (order !== undefined) updateData.order = order;
 
     if (date !== undefined) {
       const dayDate = new Date(date);
+      if (Number.isNaN(dayDate.getTime())) {
+        res.status(500).json({ message: 'Invalid date format' });
+        return;
+      }
       dayDate.setUTCHours(0, 0, 0, 0);
 
       // Validate within conference range
@@ -257,9 +291,9 @@ export const updateDay = async (req: Request, res: Response) => {
       order: day.order,
       sessionsCount: day._count.sections,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating day:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getErrorMessage(error) });
   }
 };
 
@@ -270,9 +304,11 @@ export const deleteDay = async (req: Request, res: Response) => {
     const dayId = Number(req.params.dayId);
     const { force } = req.query;
 
-    const { authorized, error } = await checkConferenceAccess(req, conferenceId);
-    if (!authorized) {
-      res.status(error === 'Conference not found' ? 404 : 403).json({ message: error });
+    const access = await checkConferenceAccess(req, conferenceId);
+    if (!access.authorized) {
+      res
+        .status(access.error === 'Conference not found' ? 404 : 403)
+        .json({ message: access.error });
       return;
     }
 
@@ -328,9 +364,9 @@ export const deleteDay = async (req: Request, res: Response) => {
       message: 'Day deleted successfully',
       deletedSections: day.sections.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting day:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getErrorMessage(error) });
   }
 };
 
@@ -345,9 +381,11 @@ export const reorderDays = async (req: Request, res: Response) => {
       return;
     }
 
-    const { authorized, error } = await checkConferenceAccess(req, conferenceId);
-    if (!authorized) {
-      res.status(error === 'Conference not found' ? 404 : 403).json({ message: error });
+    const access = await checkConferenceAccess(req, conferenceId);
+    if (!access.authorized) {
+      res
+        .status(access.error === 'Conference not found' ? 404 : 403)
+        .json({ message: access.error });
       return;
     }
 
@@ -362,9 +400,9 @@ export const reorderDays = async (req: Request, res: Response) => {
     );
 
     res.json({ message: 'Days reordered successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error reordering days:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getErrorMessage(error) });
   }
 };
 
@@ -373,9 +411,11 @@ export const getProgramStats = async (req: Request, res: Response) => {
   try {
     const conferenceId = Number(req.params.id);
 
-    const { authorized, error } = await checkConferenceAccess(req, conferenceId);
-    if (!authorized) {
-      res.status(error === 'Conference not found' ? 404 : 403).json({ message: error });
+    const access = await checkConferenceAccess(req, conferenceId);
+    if (!access.authorized) {
+      res
+        .status(access.error === 'Conference not found' ? 404 : 403)
+        .json({ message: access.error });
       return;
     }
 
@@ -420,8 +460,8 @@ export const getProgramStats = async (req: Request, res: Response) => {
         {}
       ),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting program stats:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getErrorMessage(error) });
   }
 };

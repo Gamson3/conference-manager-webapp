@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { TreeViewState, TreeDay } from "../types";
 
 interface UseTreeNavigationProps {
@@ -15,6 +15,20 @@ export function useTreeNavigation({ days, highlightPresentationId }: UseTreeNavi
     highlightedPresentationId: null,
     selectedPresentationId: null,
   });
+  const hasInitialized = useRef(false);
+
+  // Expand all by default on first load
+  useEffect(() => {
+    if (hasInitialized.current || days.length === 0) return;
+    const allDayIds = new Set(days.map((day) => day.id));
+    const allSessionIds = new Set(days.flatMap((day) => day.sessions.map((session) => session.id)));
+    setState((prev) => ({
+      ...prev,
+      expandedDays: allDayIds,
+      expandedSessions: allSessionIds,
+    }));
+    hasInitialized.current = true;
+  }, [days]);
 
   // Auto-expand when highlight is requested
   useEffect(() => {
