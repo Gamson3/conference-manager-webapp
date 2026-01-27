@@ -1172,6 +1172,8 @@ export const saveSchedule = async (req: Request, res: Response) => {
     // Process the schedule transactionally
     await prisma.$transaction(
       async (tx) => {
+      const ORDER_OFFSET = 10000;
+
       const payloadDayIds = schedulePayload.days.map((d) => d.id);
       const payloadSessionIds = schedulePayload.days.flatMap((d) => d.sessions.map((s) => s.id));
 
@@ -1199,13 +1201,6 @@ export const saveSchedule = async (req: Request, res: Response) => {
         where: { section: { conferenceId } },
         select: { id: true, sectionId: true, status: true, lockedById: true, order: true }
       });
-
-      // Dynamic order offset: must not collide with any existing orders in these sessions
-      // (including locked rows that are excluded from the updateMany below).
-      const maxOrderInTouchedSessions = existingPresentations
-        .filter((p) => validSessionIds.includes(p.sectionId))
-        .reduce((max, p) => (p.order > max ? p.order : max), 0);
-      const ORDER_OFFSET = maxOrderInTouchedSessions + 1000;
 
       const existingPresentationById = new Map<number, { id: number; sectionId: number; status: string; lockedById: number | null; order: number }>(
         existingPresentations.map((p) => [p.id, p])

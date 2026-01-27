@@ -432,9 +432,7 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
           type: section.type,
           order: section.order || 0,
           chairs: undefined,
-          presentations: section.presentations
-            .filter((p) => p.status === 'scheduled' || p.status === 'locked')
-            .map((p) => ({
+          presentations: section.presentations.map((p) => ({
             id: p.id,
             title: p.title,
             order: p.order || 0,
@@ -471,9 +469,7 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
       days.forEach(day => {
         day.sessions.forEach(session => {
           session.presentations.forEach(p => {
-            if (p.status === 'scheduled' || p.status === 'locked') {
-              scheduledIds.add(p.id);
-            }
+            scheduledIds.add(p.id);
           });
         });
       });
