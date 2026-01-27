@@ -595,7 +595,7 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
     }
   }, [buildPayload, conferenceId]);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (): Promise<boolean> => {
     setSaving(true);
     try {
       const payload = buildPayload();
@@ -628,6 +628,8 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
         if (data.warnings && data.warnings.length > 0) {
           data.warnings.forEach(warning => toast.warning(warning));
         }
+
+        return true;
       } else {
         dispatch({ type: "SET_CONFLICTS", payload: data.conflicts });
 
@@ -635,11 +637,14 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
           setConflictsOpen(true);
         }
         toast.error(data.message || "Failed to save schedule");
+
+        return false;
       }
     } catch (err: unknown) {
       console.error("Save error:", err);
       const error = err as { response?: { data?: { message?: string } } };
       toast.error(error?.response?.data?.message || "Failed to save schedule");
+      return false;
     } finally {
       setSaving(false);
     }
@@ -650,7 +655,12 @@ export default function ScheduleBuilder({ conferenceId }: ScheduleBuilderProps) 
     try {
       // First save if there are unsaved changes
       if (state.unsavedChanges) {
-        await handleSave();
+        const savedOk = await handleSave();
+        if (!savedOk) {
+          toast.error('Cannot publish: schedule save failed');
+          setPublishing(false);
+          return;
+        }
       }
 
       // Validate before publishing

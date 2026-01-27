@@ -42,7 +42,7 @@ type SeedUserInput = {
 type SeedConferenceIds = {
   primaryPublishedConferenceId: number;
   publishedConferenceIds: number[];
-  draftConferenceId: number;
+  draftConferenceIds: number[];
 };
 
 type AuthorEntryInput = {
@@ -52,6 +52,26 @@ type AuthorEntryInput = {
   affiliations: string[];
   isPresenter: boolean;
   order: number;
+};
+
+type IvanyiSessionSkeleton = {
+  room: string;
+  title: string;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+};
+
+type IvanyiPaper = {
+  number: number;
+  title: string;
+  authors: string[];
+};
+
+type IvanyiSessionDetails = {
+  chairs: string[];
+  papers: IvanyiPaper[];
 };
 
 const DEFAULT_ORG_COGNITO_ID = 'e384f882-8001-70d2-4e57-6f7134a64db1';
@@ -68,8 +88,221 @@ const SEED_PUBLISHED_SLUGS: string[] = [
   'robotics-workshop-2026',
 ];
 
-const SEED_DRAFT_SLUG = 'manual-test-draft-2026';
-const SEED_DRAFT_SLUGS: string[] = [SEED_DRAFT_SLUG, 'manual-test-draft-setup-2026'];
+const SEED_DRAFT_SLUG = 'mikles-ivanyi-symposium-2025-draft';
+const SEED_DRAFT_ALT_SLUG = 'mikles-ivanyi-symposium-2025-draft-variant';
+const SEED_DRAFT_LEGACY_SLUGS: string[] = ['manual-test-draft-2026', 'manual-test-draft-setup-2026'];
+const SEED_DRAFT_SLUGS: string[] = [SEED_DRAFT_SLUG, SEED_DRAFT_ALT_SLUG, ...SEED_DRAFT_LEGACY_SLUGS];
+
+const IVANYI_PROGRAM_MARKDOWN = `---
+
+**Programme**
+
+**The 21st Miklés Ivanyi International
+PhD and DLA Symposium**
+
+---
+
+**How to find a paper**
+
+The abstracts are published in the Book of Abstracts, electronically. In this programme the
+letters immediately preceding a paper title refer to the paper or lecture. For example P-2 refers
+to the second paper.
+
+---
+
+**A note for authors presenting papers and chairmen**
+
+All authors should meet at the front of the meeting room for their session at least 5–10 minutes before the session starts.
+Each paper has been allocated **15 minutes** for presentation and questions. Chairmen should indicate when 10 minutes
+have passed and again after 12 minutes that the presenter should immediately finish. Three minutes are available for
+questions and comments.
+
+Authors are kindly asked to keep to the time allocated to them by the Chairmen. Authors are discouraged from using
+their own laptops for presentation unless absolutely necessary, in which case they should ensure that they can quickly
+and efficiently start their presentation when requested by the Chairmen.
+
+Chairmen are requested to keep to the timetable. Changes to the programme will be indicated on the copies of the
+programme displayed on the conference timetable board and at the entrance to each of the rooms.
+
+As a courtesy and in politeness to all speakers and other participants, please turn off your mobile phone whenever you
+enter any of the meeting and lecture rooms.
+
+---
+
+**Issue submission**
+Procedures for submitting conference papers for *Periodica*, please visit:
+pte.hu/publication
+
+---
+
+### **Day 1: Monday 27 Oct 2025**
+
+08:00–15:00\tRegistration desk open
+09:00–10:00\tConference opening and invited lectures
+10:00–10:30\tCoffee / Tea Break
+10:30–12:00\tConference session
+12:00–13:00\tLunch (Room A008, ground floor) – admission by ticket
+13:00–15:00\tConference session
+15:00–15:30\tCoffee / Tea Break
+15:30–17:30\tConference session
+18:30\t\t\tConference dinner (Boszorkany str. 2) – admission by ticket
+
+---
+
+### **Conference program**
+
+**Day 1, Monday**
+
+| Time        | Room A007                            | Room A019           | Room A017              | Room A015              |
+| ----------- | ------------------------------------ | ------------------- | ---------------------- | ---------------------- |
+| 09:00–10:05 | Conference opening, Plenary lectures |                     |                        |                        |
+| 10:30–12:00 | Civil engineering 1                  | Civil engineering 2 | Mechanical Engineering | –                      |
+| 12:00–13:00 | Lunch – admission by ticket          |                     |                        |                        |
+| 13:00–15:00 | Architecture 1                       | Architecture 2      | Architecture 3         | Information Technology |
+| 15:30–17:30 | Architecture 4                       | Architecture 5      | Architecture 6         | –                      |
+
+---
+
+### **Day 1: Monday, 27 Oct 2025 – AM, Room A007**
+
+09:00–10:05
+
+**Conference opening**
+Professor **Péter Ivanyi** – University of Pécs
+Professor **Gabriella Medvegy** – Dean of the Faculty of Engineering and Information Technology, University of Pécs
+
+**Plenary lecture**
+*Introduction to the Discrete Bacterial Memetic Algorithm*
+Prof. **Kéczy T. László**
+
+---
+
+### **Day 1: Monday, 27 Oct 2025 – AM, Room A007**
+
+10:30–12:00\t**Civil Engineering 1**
+Chaired by **Prof. Radomir Folic** and **Prof. Janos Lógó**
+
+P-43\tAutomated Optimization of Steel Trusses with Elasto-Plastic Behaviour Using a Neural Network–Genetic Algorithm Method
+		P. Grubits, M. Movahedi Rad
+
+P-44\tSymmetry Measure of Truss Structures Based on Group Representation Theory
+		M. Médis, F. Kovács
+
+P-45\tReliability Assessment of SHM Strain Measurements in the Southern Danube Railway Bridge
+		A. L. Mansi, L. Dunai
+
+P-46\tDetermination of the Angle of Shear Strength for Bond at Concrete Interface Using Element Deletion
+		S. Orbán
+
+---
+
+### **Day 1: Monday, 27 Oct 2025 – AM, Room A019**
+
+10:30–12:00\t**Civil Engineering 2**
+Chaired by **Prof. Andrej Soltész** and **Prof. Csaba Koren**
+
+P-49\tHydraulic Modeling and Water Level Dynamics: A Case Study of Sliiava Reservoir, Slovakia
+		D. Pavloy, L. Cubanové
+
+P-50\tFlood Protection of the Municipality in the Little Carpathians
+		N. Biléiková, M. Cerveitanská
+
+P-51\tExperimental Investigations of Downstream Water Level Effect on the Discharge Capacity of the Weir at the Cunovo Water Structure
+		Y. Veliskova
+
+P-52\tCyclists and Smart Vehicles: How Do Cyclists Perceive Autonomous Vehicles?
+
+---
+
+### **Day 1: Monday, 27 Oct 2025 – AM, Room A017**
+
+10:30–12:00\t**Mechanical Engineering**
+Chaired by **Prof. Jaroslav Kruis**
+
+P-65\tOptimal Supply Temperature for Fan-Coil Heating Systems Considering Thermal Comfort
+		Z. Tamisik, G. Loch, L. Budulski, A. Ozdi, B. Cákó
+
+P-66\tDynamic Comfort Mapping and PMV Estimation with Neural Networks and On-Site Measurements
+		A. Ozdi, B. Cákó, L. Budulski, G. Loch, Z. Tamásik
+
+P-67\tInvestigation of the Compensating Effect of Terminal Heating Units near Cold Glazed Surfaces
+		G. Loch, L. Budulski, A. Ozdi, Z. Tamisik, A. Borsos, B. Cákó
+
+P-68\tMethods to Support a Fuzzy Decision Tree Model
+		B. Cákó, J. Gyergyák
+
+---
+
+### **Day 1: Monday, 27 Oct 2025 – PM, Room A007**
+
+13:00–15:00\t**Architecture 1**
+Chaired by **Prof. Mirjana Devetakovic**
+
+P-1\tCurating the Immersive Field: The Integration of Fashion, Craft and Culture in Space
+		T. Chen, G. Medvegy, X. Jin
+
+P-2\tA Study on Architectural Design Practice Based on the Concept of Futurism
+		H. Cao, K. Guo
+
+P-3\tThe Meaning of Home at a Civilizational Scale: A Framework for Architectural Design in Multicultural Societies
+		N. Golshani
+
+P-4\tThe Role of Multimedia Spaces in Museum Narration from the Perspective of Cross-Cultural Communication
+
+---
+
+### **Day 1: Monday, 27 Oct 2025 – PM, Room A015**
+
+13:00–15:00\t**Information Technology**
+Chaired by **Prof. Barry H. V. Topping** and **Prof. Péter Ivanyi**
+
+P-56\tMeasuring the Effectiveness of Simulated Data for Depth Map Generation
+		B. Sebok-Tornai, G. Vrády, L. Czinkósi
+
+P-57\tTowards Robust and Generalizable Video Anomaly Detection Via Data Balancing
+		M. L. D. Almurumudhe, O. Hornyák
+
+P-58\tMathematical Background of the Construction and Application of 3D Meshes for Wound Reconstruction
+		S. Molnár-Zékiny
+
+P-59\tSemantic Analysis of Unsequenced Variable Accesses in the Clang Static Analyzer
+
+---
+`;
+
+const IVANYI_PROGRAM_MARKDOWN_VARIANT = `---
+
+**Programme**
+
+**Ivanyi Symposium — Draft Variant (Demo Programme)**
+
+---
+
+This draft variant keeps the same structure (day/rooms/slots) but uses different wording and sample paper titles so you can choose which dataset looks better on camera.
+
+### **Day 1: Monday 27 Oct 2025**
+
+08:00–15:00\tRegistration desk open
+09:00–10:05\tOpening & invited lecture block
+10:00–10:30\tCoffee / Tea Break
+10:30–12:00\tParallel sessions
+12:00–13:00\tLunch – admission by ticket
+13:00–15:00\tParallel sessions
+15:00–15:30\tCoffee / Tea Break
+15:30–17:30\tParallel sessions
+
+### **Conference program (variant)**
+
+| Time        | Room A007                    | Room A019                 | Room A017                     | Room A015                 |
+| ----------- | ---------------------------- | ------------------------- | ----------------------------- | ------------------------- |
+| 09:00–10:05 | Opening + plenary            | –                         | –                             | –                         |
+| 10:30–12:00 | Structural Engineering Track | Hydraulics & Transport    | Mechanical Systems            | –                         |
+| 12:00–13:00 | Lunch – admission by ticket  | –                         | –                             | –                         |
+| 13:00–15:00 | Architecture & Design        | Built Environment Methods | Interiors & Community Design  | Software & Data Systems   |
+| 15:30–17:30 | Architecture: Acoustics      | Architecture: Urban Cases | Architecture: Heritage & BIM  | –                         |
+
+---
+`;
 
 function envString(name: string, fallback: string): string {
   const value = process.env[name];
@@ -102,6 +335,439 @@ function addUtcDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setUTCDate(d.getUTCDate() + days);
   return d;
+}
+
+function fixedUtc(year: number, month: number, day: number, hours: number, minutes: number): Date {
+  return new Date(Date.UTC(year, month - 1, day, hours, minutes, 0, 0));
+}
+
+function isoDate(date: Date): string {
+  return utcMidnight(date).toISOString().slice(0, 10);
+}
+
+function parseTimeRange(value: string):
+  | { startHour: number; startMinute: number; endHour: number; endMinute: number }
+  | null {
+  const match = value.match(/(\d{2}):(\d{2})\s*[–-]\s*(\d{2}):(\d{2})/);
+  if (!match) return null;
+  const [, sh, sm, eh, em] = match;
+  return {
+    startHour: Number(sh),
+    startMinute: Number(sm),
+    endHour: Number(eh),
+    endMinute: Number(em),
+  };
+}
+
+function parseIvanyiProgrammeTableSessions(markdown: string): IvanyiSessionSkeleton[] {
+  const lines = markdown.split(/\r?\n/);
+  const headerIndex = lines.findIndex((line) => line.includes('| Time') && line.includes('Room'));
+  if (headerIndex < 0) return [];
+
+  const headerCells = lines[headerIndex]
+    .split('|')
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
+  const rooms = headerCells.slice(1);
+
+  const sessions: IvanyiSessionSkeleton[] = [];
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim().startsWith('|')) break;
+    if (line.includes('---')) continue;
+
+    const cells = line
+      .split('|')
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0);
+    if (cells.length < 2) continue;
+    const timeCell = cells[0];
+    const range = parseTimeRange(timeCell);
+    if (!range) continue;
+
+    for (let colIndex = 0; colIndex < rooms.length; colIndex++) {
+      const title = cells[colIndex + 1];
+      if (!title) continue;
+      if (title === '–' || title === '-') continue;
+
+      sessions.push({
+        room: rooms[colIndex],
+        title,
+        ...range,
+      });
+    }
+  }
+
+  return sessions;
+}
+
+function parseIvanyiProgrammeDetails(markdown: string): Map<string, IvanyiSessionDetails> {
+  const lines = markdown.split(/\r?\n/);
+  const detailsBySlot = new Map<string, IvanyiSessionDetails>();
+
+  const roomRegex = /Room\s+(A\d{3})/;
+  const sessionLineRegex = /^(\d{2}:\d{2}\s*[–-]\s*\d{2}:\d{2}).*?\*\*(.+?)\*\*/;
+  const paperLineRegex = /^P-(\d+)\s+(.+)$/;
+  const boldRegex = /\*\*([^*]+)\*\*/g;
+
+  let currentRoom: string | null = null;
+  let currentSlotKey: string | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const line = rawLine.trimEnd();
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('###')) {
+      const match = rawLine.match(roomRegex);
+      currentRoom = match ? `Room ${match[1]}` : null;
+      currentSlotKey = null;
+      continue;
+    }
+
+    if (!currentRoom) continue;
+    if (trimmed === '---') {
+      currentSlotKey = null;
+      continue;
+    }
+
+    const sessionMatch = trimmed.match(sessionLineRegex);
+    if (sessionMatch) {
+      const range = parseTimeRange(sessionMatch[1]);
+      if (!range) continue;
+      currentSlotKey = `${currentRoom}|${range.startHour}:${range.startMinute}|${range.endHour}:${range.endMinute}`;
+      if (!detailsBySlot.has(currentSlotKey)) {
+        detailsBySlot.set(currentSlotKey, { chairs: [], papers: [] });
+      }
+      continue;
+    }
+
+    if (!currentSlotKey) continue;
+    const currentDetails = detailsBySlot.get(currentSlotKey);
+    if (!currentDetails) continue;
+
+    if (trimmed.startsWith('Chaired by')) {
+      const chairs: string[] = [];
+      for (const match of trimmed.matchAll(boldRegex)) {
+        const name = match[1]?.trim();
+        if (name) chairs.push(name);
+      }
+      currentDetails.chairs = chairs;
+      continue;
+    }
+
+    const paperMatch = trimmed.match(paperLineRegex);
+    if (!paperMatch) continue;
+    const number = Number(paperMatch[1]);
+    const title = paperMatch[2].trim();
+
+    const authors: string[] = [];
+    const nextLine = lines[i + 1] ?? '';
+    const nextTrimmed = nextLine.trim();
+    const nextIsMeta = nextTrimmed.startsWith('---') || nextTrimmed.startsWith('###') || nextTrimmed.startsWith('P-');
+    const nextLooksLikeAuthors = nextTrimmed.length > 0 && !nextIsMeta && /[A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű]/.test(nextTrimmed);
+
+    if (nextLooksLikeAuthors) {
+      const splitByComma = nextTrimmed
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      if (splitByComma.length > 1) {
+        authors.push(...splitByComma);
+        i++;
+      } else if (nextTrimmed.includes(' and ')) {
+        const splitByAnd = nextTrimmed
+          .split(' and ')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+        if (splitByAnd.length > 1) {
+          authors.push(...splitByAnd);
+          i++;
+        }
+      } else {
+        authors.push(nextTrimmed);
+        i++;
+      }
+    }
+
+    currentDetails.papers.push({ number, title, authors });
+  }
+
+  return detailsBySlot;
+}
+
+async function createIvanyiDraftProgram(input: {
+  conferenceId: number;
+  dayDate: Date;
+  variant: 'exact' | 'variant';
+}): Promise<{ keynotePresentationId: number; samplePresentationId: number; poolPresentationId: number }> {
+  const scheduleMarkdown = input.variant === 'exact' ? IVANYI_PROGRAM_MARKDOWN : IVANYI_PROGRAM_MARKDOWN_VARIANT;
+  const programmeTableSessions = parseIvanyiProgrammeTableSessions(scheduleMarkdown);
+  const programmeDetailsBySlot = parseIvanyiProgrammeDetails(IVANYI_PROGRAM_MARKDOWN);
+
+  const day = await prisma.day.create({
+    data: {
+      conferenceId: input.conferenceId,
+      name: `Day 1 (Demo): ${isoDate(input.dayDate)}`,
+      date: utcMidnight(input.dayDate),
+      order: 1,
+    },
+    select: { id: true },
+  });
+
+  const opening = await prisma.section.create({
+    data: {
+      conferenceId: input.conferenceId,
+      dayId: day.id,
+      name: input.variant === 'exact' ? 'Conference opening, Plenary lectures' : 'Opening + plenary',
+      type: SectionType.keynote,
+      order: 1,
+      room: 'Room A007',
+      startTime: atUtc(input.dayDate, 9, 0),
+      endTime: atUtc(input.dayDate, 10, 5),
+    },
+    select: { id: true },
+  });
+
+  const coffee1 = await prisma.section.create({
+    data: {
+      conferenceId: input.conferenceId,
+      dayId: day.id,
+      name: 'Coffee / Tea Break',
+      type: SectionType.break,
+      order: 2,
+      room: 'Lobby',
+      startTime: atUtc(input.dayDate, 10, 0),
+      endTime: atUtc(input.dayDate, 10, 30),
+    },
+    select: { id: true },
+  });
+  void coffee1;
+
+  // Create programme sessions from the embedded table so the schedule structure matches the programme text.
+  // Details (chairs + papers) are then applied from the detailed blocks in the exact programme markdown.
+  const createdSections: Array<{ id: number; room: string | null; startTime: Date | null; endTime: Date | null; type: SectionType }> = [];
+  let nextOrder = 3;
+
+  const earlySessions = programmeTableSessions.filter(
+    (s) => s.startHour < 15 || (s.startHour === 15 && s.startMinute === 0)
+  );
+  const lateSessions = programmeTableSessions.filter(
+    (s) => s.startHour > 15 || (s.startHour === 15 && s.startMinute >= 30)
+  );
+
+  for (const session of earlySessions) {
+    const startTime = atUtc(input.dayDate, session.startHour, session.startMinute);
+    const endTime = atUtc(input.dayDate, session.endHour, session.endMinute);
+    const normalizedTitle = session.title.trim();
+    const isOpeningSlot = session.room === 'Room A007' && session.startHour === 9 && session.startMinute === 0;
+    const isLunchSlot = normalizedTitle.toLowerCase().includes('lunch');
+
+    if (isOpeningSlot) continue; // already created as `opening`
+
+    const type: SectionType = isLunchSlot ? SectionType.break : SectionType.presentation;
+    const created = await prisma.section.create({
+      data: {
+        conferenceId: input.conferenceId,
+        dayId: day.id,
+        name: normalizedTitle,
+        type,
+        order: nextOrder,
+        room: type === SectionType.break ? 'Room A008 (ground floor)' : session.room,
+        startTime,
+        endTime,
+      },
+      select: { id: true },
+    });
+    createdSections.push({ id: created.id, room: type === SectionType.break ? 'Room A008 (ground floor)' : session.room, startTime, endTime, type });
+    nextOrder++;
+  }
+
+  const coffee2 = await prisma.section.create({
+    data: {
+      conferenceId: input.conferenceId,
+      dayId: day.id,
+      name: 'Coffee / Tea Break',
+      type: SectionType.break,
+      order: nextOrder,
+      room: 'Lobby',
+      startTime: atUtc(input.dayDate, 15, 0),
+      endTime: atUtc(input.dayDate, 15, 30),
+    },
+    select: { id: true },
+  });
+
+  createdSections.push({
+    id: coffee2.id,
+    room: 'Lobby',
+    startTime: atUtc(input.dayDate, 15, 0),
+    endTime: atUtc(input.dayDate, 15, 30),
+    type: SectionType.break,
+  });
+  nextOrder++;
+
+  for (const session of lateSessions) {
+    const startTime = atUtc(input.dayDate, session.startHour, session.startMinute);
+    const endTime = atUtc(input.dayDate, session.endHour, session.endMinute);
+    const normalizedTitle = session.title.trim();
+    const type: SectionType = SectionType.presentation;
+
+    const created = await prisma.section.create({
+      data: {
+        conferenceId: input.conferenceId,
+        dayId: day.id,
+        name: normalizedTitle,
+        type,
+        order: nextOrder,
+        room: session.room,
+        startTime,
+        endTime,
+      },
+      select: { id: true },
+    });
+    createdSections.push({ id: created.id, room: session.room, startTime, endTime, type });
+    nextOrder++;
+  }
+
+  const pool = await prisma.section.create({
+    data: {
+      conferenceId: input.conferenceId,
+      dayId: day.id,
+      name: 'Unscheduled Pool (for drag/drop demo)',
+      type: SectionType.presentation,
+      order: 99,
+      room: null,
+      startTime: null,
+      endTime: null,
+      description: 'Seeded section to keep a few presentations unassigned for schedule builder drag-and-drop demonstrations.',
+    },
+    select: { id: true },
+  });
+
+  const keynotePresentation = await prisma.presentation.create({
+    data: {
+      sectionId: opening.id,
+      title:
+        input.variant === 'exact'
+          ? 'Plenary: Introduction to the Discrete Bacterial Memetic Algorithm'
+          : 'Plenary: Discrete Bacterial Memetic Algorithm (overview)',
+      abstract:
+        'Seeded plenary entry for a realistic programme. This is an external talk to populate the schedule before publication.',
+      keywords: ['plenary', 'invited', 'symposium', 'seed', 'demo'],
+      affiliations: ['University of Pécs'],
+      duration: 60,
+      order: 1,
+      status: PresentationStatus.scheduled,
+      submissionType: SubmissionType.external,
+      authors: {
+        create: [
+          {
+            authorName: 'Prof. Kéczy T. László',
+            authorEmail: null,
+            affiliation: 'University of Pécs',
+            isPresenter: true,
+            isExternal: true,
+            order: 0,
+          },
+        ],
+      },
+    },
+    select: { id: true },
+  });
+
+  // Apply chairs + papers from the detailed programme blocks.
+  // Matching uses (room + start + end) so the variant schedule table can still receive the full paper list.
+  const presentationSections = createdSections.filter((s) => s.type === SectionType.presentation);
+  let samplePresentationId: number | null = null;
+
+  for (const section of presentationSections) {
+    if (!section.startTime || !section.endTime || !section.room) continue;
+    const startKey = `${section.startTime.getUTCHours()}:${section.startTime.getUTCMinutes()}`;
+    const endKey = `${section.endTime.getUTCHours()}:${section.endTime.getUTCMinutes()}`;
+    const slotKey = `${section.room}|${startKey}|${endKey}`;
+    const details = programmeDetailsBySlot.get(slotKey);
+    if (!details) continue;
+
+    if (details.chairs.length > 0) {
+      await prisma.section.update({
+        where: { id: section.id },
+        data: { chairs: details.chairs satisfies Prisma.InputJsonValue },
+        select: { id: true },
+      });
+    }
+
+    for (let order = 0; order < details.papers.length; order++) {
+      const paper = details.papers[order];
+      const created = await prisma.presentation.create({
+        data: {
+          sectionId: section.id,
+          title: `P-${paper.number} ${paper.title}`,
+          abstract: null,
+          keywords: [],
+          affiliations: [],
+          duration: 15,
+          order: order + 1,
+          status: PresentationStatus.scheduled,
+          submissionType: SubmissionType.external,
+          authors:
+            paper.authors.length > 0
+              ? {
+                  create: paper.authors.map((authorName, authorIndex) => ({
+                    authorName,
+                    authorEmail: null,
+                    affiliation: null,
+                    isPresenter: authorIndex === 0,
+                    isExternal: true,
+                    order: authorIndex,
+                  })),
+                }
+              : undefined,
+        },
+        select: { id: true },
+      });
+
+      if (samplePresentationId === null && paper.number === 43) {
+        samplePresentationId = created.id;
+      }
+      if (samplePresentationId === null) {
+        samplePresentationId = created.id;
+      }
+    }
+  }
+
+  const poolPresentation = await prisma.presentation.create({
+    data: {
+      sectionId: pool.id,
+      title: 'Unscheduled: P-59 Semantic Analysis of Unsequenced Variable Accesses in the Clang Static Analyzer',
+      abstract:
+        'Seeded unscheduled item for drag-and-drop demonstrations in the schedule builder (move into a time slot, then re-order).',
+      keywords: ['software', 'static analysis', 'clang', 'seed', 'demo'],
+      affiliations: ['Conference Programme'],
+      duration: 15,
+      order: 1,
+      status: PresentationStatus.draft,
+      submissionType: SubmissionType.external,
+      authors: {
+        create: [
+          {
+            authorName: 'S. Molnár-Zékiny',
+            authorEmail: null,
+            affiliation: null,
+            isPresenter: true,
+            isExternal: true,
+            order: 0,
+          },
+        ],
+      },
+    },
+    select: { id: true },
+  });
+
+  return {
+    keynotePresentationId: keynotePresentation.id,
+    samplePresentationId: samplePresentationId ?? keynotePresentation.id,
+    poolPresentationId: poolPresentation.id,
+  };
 }
 
 function listConferenceDays(startDate: Date, endDate: Date): Date[] {
@@ -212,7 +878,7 @@ async function deleteConferenceBySlug(slug: string): Promise<void> {
   await prisma.conference.delete({ where: { id: conferenceId } });
 }
 
-async function createConferences(organizerId: number): Promise<SeedConferenceIds> {
+async function createConferences(organizerId: number, ivanyiDayDate: Date): Promise<SeedConferenceIds> {
   for (const slug of [...SEED_PUBLISHED_SLUGS, ...SEED_DRAFT_SLUGS]) {
     await deleteConferenceBySlug(slug);
   }
@@ -406,60 +1072,90 @@ async function createConferences(organizerId: number): Promise<SeedConferenceIds
 
   const primaryPublishedConferenceId = publishedConferenceIds[0];
 
-  const draftStart = daysFromBase(20);
-  const draftEnd = daysFromBase(21);
+  // Keep the Ivanyi demo conference dates in the future so the UI reads as "upcoming".
+  // Programme markdown remains the exact provided sample text.
+  const day1 = fixedUtc(2026, 2, 9, 8, 0);
+  const day1End = fixedUtc(2026, 2, 9, 18, 45);
 
-  const draft = await prisma.conference.create({
+  const draftA = await prisma.conference.create({
     data: {
-      name: envString('SEED_DRAFT_CONFERENCE_NAME', 'Workshop Sandbox (Draft) 2026'),
+      name: 'The 21st Miklés Ivanyi International PhD and DLA Symposium',
       slug: SEED_DRAFT_SLUG,
-      description: 'Draft conference for testing organizer setup flows (not public).',
-      startDate: atUtc(draftStart, 9, 0),
-      endDate: atUtc(draftEnd, 17, 0),
-      timezone: 'UTC',
-      location: 'Online',
-      venue: 'Virtual Venue',
-      status: ConferenceStatus.draft,
-      isPublic: false,
-      createdById: organizerId,
-      submissionsVisibility: SubmissionsVisibility.invite_only,
-      submissionInviteCode: 'THESIS2026',
-      registrationEnabled: false,
-      organizerName: DEFAULT_ORG_NAME,
-      organizerEmail: DEFAULT_ORG_EMAIL,
-      websiteUrl: 'https://example.test/draft-sandbox',
-      submissionPortalUrl: 'https://example.test/draft-sandbox/submit',
-    },
-    select: { id: true },
-  });
-
-  const draft2Start = daysFromBase(35);
-  const draft2End = daysFromBase(36);
-  await prisma.conference.create({
-    data: {
-      name: 'Thesis Demo Draft Conference 2026',
-      slug: 'manual-test-draft-setup-2026',
-      description: 'Second draft conference to validate multi-conference organizer navigation and setup workflows.',
-      startDate: atUtc(draft2Start, 9, 0),
-      endDate: atUtc(draft2End, 17, 0),
+      description:
+        'Draft demo conference for deterministic recordings. Full programme text is available under the “For Authors” tab; the structured schedule appears under “Program”.',
+      startDate: day1,
+      endDate: day1End,
       timezone: 'UTC',
       location: 'Pécs, Hungary',
-      venue: 'Thesis Hall A',
+      venue: 'Faculty of Engineering and Information Technology (Rooms A007/A019/A017/A015)',
       status: ConferenceStatus.draft,
       isPublic: false,
       createdById: organizerId,
+      topics: ['Symposium', 'Engineering', 'Architecture', 'IT'],
       submissionsVisibility: SubmissionsVisibility.invite_only,
       submissionInviteCode: 'THESIS2026',
       registrationEnabled: false,
       organizerName: DEFAULT_ORG_NAME,
       organizerEmail: DEFAULT_ORG_EMAIL,
-      websiteUrl: 'https://example.test/thesis-draft-2026',
-      submissionPortalUrl: 'https://example.test/thesis-draft-2026/submit',
+      websiteUrl: 'https://example.test/ivanyi-symposium-2025',
+      submissionPortalUrl: 'https://example.test/ivanyi-symposium-2025/submit',
+      organizerNotes: 'Seeded draft conference for video demos. Publish when ready to demonstrate public discovery.',
     },
     select: { id: true },
   });
 
-  return { primaryPublishedConferenceId, publishedConferenceIds, draftConferenceId: draft.id };
+  const draftB = await prisma.conference.create({
+    data: {
+      name: 'Ivanyi Symposium (Draft Variant) — Demo Conference',
+      slug: SEED_DRAFT_ALT_SLUG,
+      description:
+        'Draft variant with the same structure but different wording/titles (for camera-friendly demos). Full programme text is under the “For Authors” tab; the structured schedule is under “Program”.',
+      startDate: day1,
+      endDate: day1End,
+      timezone: 'UTC',
+      location: 'Pécs, Hungary',
+      venue: 'Faculty of Engineering and Information Technology (Rooms A007/A019/A017/A015)',
+      status: ConferenceStatus.draft,
+      isPublic: false,
+      createdById: organizerId,
+      topics: ['Symposium', 'Demo', 'Draft'],
+      submissionsVisibility: SubmissionsVisibility.invite_only,
+      submissionInviteCode: 'THESIS2026',
+      registrationEnabled: false,
+      organizerName: DEFAULT_ORG_NAME,
+      organizerEmail: DEFAULT_ORG_EMAIL,
+      websiteUrl: 'https://example.test/ivanyi-symposium-variant-2025',
+      submissionPortalUrl: 'https://example.test/ivanyi-symposium-variant-2025/submit',
+      organizerNotes: 'Seeded draft variant for alternative demo recordings.',
+    },
+    select: { id: true },
+  });
+
+  await prisma.conferenceWebsiteContentBlock.createMany({
+    data: [
+      {
+        conferenceId: draftA.id,
+        area: WebsiteContentArea.cfp,
+        title: 'Programme (seeded)',
+        markdown: IVANYI_PROGRAM_MARKDOWN,
+        order: 1,
+      },
+      {
+        conferenceId: draftB.id,
+        area: WebsiteContentArea.cfp,
+        title: 'Programme (seeded variant)',
+        markdown: IVANYI_PROGRAM_MARKDOWN_VARIANT,
+        order: 1,
+      },
+    ],
+    skipDuplicates: true,
+  });
+
+  return {
+    primaryPublishedConferenceId,
+    publishedConferenceIds,
+    draftConferenceIds: [draftA.id, draftB.id],
+  };
 }
 
 async function createConferenceSetupData(conferenceId: number): Promise<{
@@ -496,9 +1192,29 @@ async function createConferenceSetupData(conferenceId: number): Promise<{
     select: { id: true },
   });
 
-  await prisma.submissionRequirement.create({
-    data: {
+  await prisma.submissionRequirement.upsert({
+    where: { conferenceId },
+    create: {
       conferenceId,
+      minKeywords: 5,
+      maxKeywords: 8,
+      abstractMinLength: 50,
+      abstractMaxLength: 3000,
+      authorsEnabled: true,
+      collectAuthorEmail: true,
+      collectAuthorAffiliation: true,
+      collectAuthorPhone: true,
+      collectAuthorOrcid: false,
+      requiresOrcid: false,
+      abstractUploadMode: AbstractUploadMode.BOTH,
+      fileFieldLabel: 'Add Abstract File (optional)',
+      fileFieldRequired: false,
+      maxFileSizeMB: 10,
+      allowedFileTypes: ['application/pdf'],
+      collectFullText: true,
+      fullTextTiming: FullTextTiming.afterAcceptance,
+    },
+    update: {
       minKeywords: 5,
       maxKeywords: 8,
       abstractMinLength: 50,
@@ -519,26 +1235,33 @@ async function createConferenceSetupData(conferenceId: number): Promise<{
     },
   });
 
-  await prisma.conferenceWebsiteContentBlock.createMany({
-    data: [
-      {
-        conferenceId,
-        area: WebsiteContentArea.cfp,
-        title: 'Call for Papers',
-        markdown:
-          'We invite submissions on applied AI across research and industry. Public pages show abstract text only.',
-        order: 1,
-      },
-      {
-        conferenceId,
-        area: WebsiteContentArea.cfp,
-        title: 'Submission Guidelines',
-        markdown:
-          'Submissions require an abstract and keywords. File uploads are available to authors and organizers only.',
-        order: 2,
-      },
-    ],
+  const existingCfpBlocks = await prisma.conferenceWebsiteContentBlock.count({
+    where: { conferenceId, area: WebsiteContentArea.cfp },
   });
+
+  // If CFP blocks already exist (e.g., seeded programme content), preserve them.
+  if (existingCfpBlocks === 0) {
+    await prisma.conferenceWebsiteContentBlock.createMany({
+      data: [
+        {
+          conferenceId,
+          area: WebsiteContentArea.cfp,
+          title: 'Call for Papers',
+          markdown:
+            'We invite submissions on applied AI across research and industry. Public pages show abstract text only.',
+          order: 1,
+        },
+        {
+          conferenceId,
+          area: WebsiteContentArea.cfp,
+          title: 'Submission Guidelines',
+          markdown:
+            'Submissions require an abstract and keywords. File uploads are available to authors and organizers only.',
+          order: 2,
+        },
+      ],
+    });
+  }
 
   await prisma.registrationQuestion.createMany({
     data: [
@@ -1173,7 +1896,8 @@ async function main(): Promise<void> {
     userIds.push(await upsertUser(u));
   }
 
-  const conferences = await createConferences(organizerId);
+  const ivanyiDayDate = fixedUtc(2026, 2, 9, 0, 0);
+  const conferences = await createConferences(organizerId, ivanyiDayDate);
   const setupByConferenceId = new Map<number, { categoryIds: number[]; typeIds: number[] }>();
 
   for (const conferenceId of conferences.publishedConferenceIds) {
@@ -1211,6 +1935,37 @@ async function main(): Promise<void> {
     await seedParticipants(conferenceId, [organizerId, secondaryOrganizerId, ...userIds]);
   }
 
+  // Seed the new draft demo conferences (programme + workflow submissions + favourites).
+  for (let i = 0; i < conferences.draftConferenceIds.length; i++) {
+    const draftConferenceId = conferences.draftConferenceIds[i];
+    setupByConferenceId.set(draftConferenceId, await createConferenceSetupData(draftConferenceId));
+    await seedParticipants(draftConferenceId, [organizerId, secondaryOrganizerId, ...userIds]);
+
+    const programme = await createIvanyiDraftProgram({
+      conferenceId: draftConferenceId,
+      dayDate: ivanyiDayDate,
+      variant: i === 0 ? 'exact' : 'variant',
+    });
+
+    // Add deterministic favourites so "optional personalization" can be demonstrated quickly.
+    await prisma.conferenceFavorite.createMany({
+      data: [
+        { userId: organizerId, conferenceId: draftConferenceId },
+        { userId: userIds[2], conferenceId: draftConferenceId },
+      ],
+      skipDuplicates: true,
+    });
+
+    await prisma.presentationFavorite.createMany({
+      data: [
+        { userId: organizerId, presentationId: programme.keynotePresentationId },
+        { userId: userIds[2], presentationId: programme.samplePresentationId },
+        { userId: userIds[2], presentationId: programme.poolPresentationId },
+      ],
+      skipDuplicates: true,
+    });
+  }
+
   const keynotePresentation = await prisma.presentation.create({
     data: {
       sectionId: schedule.sectionIds.keynote,
@@ -1241,6 +1996,74 @@ async function main(): Promise<void> {
 
   const dummyPdf = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
   const keywords: string[] = ['ai', 'ml', 'nlp', 'systems', 'testing'];
+
+  // Workflow submissions for the primary draft demo conference (used for the thesis-defense demo videos).
+  const draftDemoConferenceId = conferences.draftConferenceIds[0];
+  const draftDemoSetup = setupByConferenceId.get(draftDemoConferenceId);
+  if (!draftDemoSetup) {
+    throw new Error(`Draft demo conference setup missing for ${draftDemoConferenceId}`);
+  }
+
+  const demoDraftSubmissionId = await createSubmissionWithAuthors({
+    conferenceId: draftDemoConferenceId,
+    authorId: userIds[0],
+    title: 'Demo Submission (Draft → Submit)',
+    abstract:
+      'Seeded draft submission for demo recording. This starts in draft so you can submit it live (draft → submitted).',
+    keywords: ['symposium', 'demo', 'draft', 'submission', 'workflow'],
+    status: SubmissionStatus.draft,
+    categoryId: draftDemoSetup.categoryIds[0],
+    typeId: draftDemoSetup.typeIds[0],
+    authorEmail: 'author.one@conference.test',
+    authorAffiliation: 'Conference Master Demo',
+    authors: [
+      {
+        firstName: 'Author',
+        lastName: 'One',
+        email: 'author.one@conference.test',
+        affiliations: ['Conference Master Demo'],
+        isPresenter: true,
+        order: 0,
+      },
+    ],
+  });
+
+  const demoRevisionRequestedSubmissionId = await createSubmissionWithAuthors({
+    conferenceId: draftDemoConferenceId,
+    authorId: userIds[1],
+    title: 'Demo Submission (Revision Requested → Resubmit → Accept)',
+    abstract:
+      'Seeded submission in revision_requested state so you can demonstrate resubmission and organizer acceptance during recording.',
+    keywords: ['symposium', 'demo', 'revision', 'workflow', 'evidence'],
+    status: SubmissionStatus.revision_requested,
+    categoryId: draftDemoSetup.categoryIds[1],
+    typeId: draftDemoSetup.typeIds[0],
+    authorEmail: 'author.two@conference.test',
+    authorAffiliation: 'Conference Master Demo',
+    revision: {
+      requestedAt: atUtc(addUtcDays(ivanyiDayDate, -7), 12, 0),
+      feedback:
+        'Please clarify methods and update the abstract to reflect the final experimental setup. Then resubmit for acceptance.',
+    },
+    file: {
+      abstractFile: {
+        url: dummyPdf,
+        name: 'demo-abstract.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 13264,
+      },
+    },
+    authors: [
+      {
+        firstName: 'Author',
+        lastName: 'Two',
+        email: 'author.two@conference.test',
+        affiliations: ['Conference Master Demo'],
+        isPresenter: true,
+        order: 0,
+      },
+    ],
+  });
 
   const draftSubmissionId = await createSubmissionWithAuthors({
     conferenceId: conferences.primaryPublishedConferenceId,
@@ -1545,12 +2368,15 @@ async function main(): Promise<void> {
   console.log(`   Admin DB user id: ${adminId}`);
   console.log(`   Organizer DB user id: ${organizerId}`);
   console.log(`   Primary published conference slug: ${SEED_PRIMARY_PUBLISHED_SLUG}`);
-  console.log(`   Draft conference slug: ${SEED_DRAFT_SLUG}`);
+  console.log(`   Draft conference slugs: ${SEED_DRAFT_SLUG}, ${SEED_DRAFT_ALT_SLUG}`);
   console.log(
     `   Example submission ids: draft=${draftSubmissionId}, submitted=${submittedSubmissionId}, under_review=${underReviewSubmissionId}`
   );
   console.log(
     `   Example workflow submission ids: revision_requested=${revisionRequestedSubmissionId}, accepted_scheduled=${acceptedScheduledSubmissionId}, accepted_unscheduled=${acceptedUnscheduledSubmissionId}`
+  );
+  console.log(
+    `   Draft-demo workflow submission ids: draft_demo=${demoDraftSubmissionId}, revision_requested_demo=${demoRevisionRequestedSubmissionId}`
   );
   console.log(`   Other statuses: rejected=${rejectedSubmissionId}, withdrawn=${withdrawnSubmissionId}`);
 }

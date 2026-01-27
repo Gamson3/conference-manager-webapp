@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import prisma from '../lib/prisma';
 import { getUserId, isAdmin } from '../utils/authHelper';
 import { ensurePresentationForAcceptedSubmission, SubmissionWithAuthor } from '../utils/submissionToPresentation';
@@ -434,9 +435,10 @@ export const addPresentationToFavorites = async (req: Request, res: Response) =>
         }
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error adding presentation to favorites:", error);
-    res.status(500).json({ message: "Failed to add to favorites", error: error.message });
+    const message = error instanceof Error ? error.message : 'Failed to add to favorites';
+    res.status(500).json({ message: "Failed to add to favorites", error: message });
   }
 };
 
@@ -487,9 +489,10 @@ export const removePresentationFromFavorites = async (req: Request, res: Respons
     });
 
     res.json({ message: "Removed from favorites", isFavorite: false });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error removing presentation from favorites:", error);
-    res.status(500).json({ message: "Failed to remove from favorites", error: error.message });
+    const message = error instanceof Error ? error.message : 'Failed to remove from favorites';
+    res.status(500).json({ message: "Failed to remove from favorites", error: message });
   }
 };
 
@@ -586,9 +589,10 @@ export const togglePresentationFavorite = async (req: Request, res: Response) =>
         }
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error toggling presentation favorite:", error);
-    res.status(500).json({ message: "Failed to toggle favorite", error: error.message });
+    const message = error instanceof Error ? error.message : 'Failed to toggle favorite';
+    res.status(500).json({ message: "Failed to toggle favorite", error: message });
   }
 };
 
@@ -670,9 +674,10 @@ export const getUserFavoriteePresentations = async (req: Request, res: Response)
       }));
 
     res.json({ favorites: formattedFavorites });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching favorite presentations:', error);
-    res.status(500).json({ message: 'Failed to fetch favorites', error: error.message });
+    const message = error instanceof Error ? error.message : 'Failed to fetch favorites';
+    res.status(500).json({ message: 'Failed to fetch favorites', error: message });
   }
 };
 
@@ -817,9 +822,10 @@ export const getConferenceSpeakers = async (req: Request, res: Response) => {
       department: a.department,
       country: a.country
     })));
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching speakers:', error);
-    res.status(500).json({ message: 'Failed to fetch speakers', error: error.message });
+    const message = error instanceof Error ? error.message : 'Failed to fetch speakers';
+    res.status(500).json({ message: 'Failed to fetch speakers', error: message });
   }
 };
 
@@ -868,6 +874,89 @@ interface SchedulePayload {
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) return error.message;
   return 'Unknown error';
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null;
+};
+
+const isSchedulePayload = (value: unknown): value is SchedulePayload => {
+  if (!isRecord(value)) return false;
+  if (typeof value.conferenceId !== 'number') return false;
+  if (!Array.isArray(value.days)) return false;
+
+  return value.days.every((day) => {
+    if (!isRecord(day)) return false;
+    if (typeof day.id !== 'number') return false;
+    if (typeof day.date !== 'string') return false;
+    if (!Array.isArray(day.sessions)) return false;
+
+    return day.sessions.every((session) => {
+      if (!isRecord(session)) return false;
+      if (typeof session.id !== 'number') return false;
+      if (typeof session.name !== 'string') return false;
+      if (!Array.isArray(session.presentations)) return false;
+
+      return session.presentations.every((p) => {
+        if (!isRecord(p)) return false;
+        if (typeof p.id !== 'number') return false;
+        if (typeof p.order !== 'number') return false;
+        if (p.durationMins !== undefined && typeof p.durationMins !== 'number') return false;
+        if (p.presenters !== undefined && !Array.isArray(p.presenters)) return false;
+        return true;
+      });
+    });
+  });
+};
+
+const normalizeDateToYyyyMmDd = (dateStr: string): string | null => {
+  const candidate = dateStr.includes('T') ? (dateStr.split('T')[0] ?? dateStr) : dateStr;
+  return /^\d{4}-\d{2}-\d{2}$/.test(candidate) ? candidate : null;
+};
+
+const parseUtcDateTime = (dayDateStr: string, timeStr: string | undefined): Date | null => {
+  if (!timeStr) return null;
+  const datePart = normalizeDateToYyyyMmDd(dayDateStr);
+  if (!datePart) return null;
+
+  const hhmm = normalizeTimeForValidation(timeStr);
+  if (!hhmm) return null;
+
+  const dt = new Date(`${datePart}T${hhmm}:00.000Z`);
+  return Number.isFinite(dt.getTime()) ? dt : null;
+};
+
+const isPrismaKnownRequestError = (error: unknown): error is Prisma.PrismaClientKnownRequestError => {
+  return error instanceof Prisma.PrismaClientKnownRequestError;
+};
+
+const toSafeSaveErrorMessage = (error: unknown): { message: string; code?: string } => {
+  if (isPrismaKnownRequestError(error)) {
+    if (error.code === 'P2002') {
+      return {
+        message: 'Schedule save failed due to a duplicate ordering conflict. Please try saving again.',
+        code: error.code,
+      };
+    }
+    if (error.code === 'P2003') {
+      return {
+        message: 'Schedule save failed due to invalid references (some items no longer exist). Reload the page and try again.',
+        code: error.code,
+      };
+    }
+
+    if (error.code === 'P2028') {
+      return {
+        message:
+          'Schedule save timed out while updating many items. Please try again (or save smaller changes). If this keeps happening, contact support.',
+        code: error.code,
+      };
+    }
+
+    return { message: 'Schedule save failed due to a database error. Please try again.', code: error.code };
+  }
+
+  return { message: 'Failed to save schedule' };
 };
 
 const normalizeTimeForValidation = (timeStr: string): string | null => {
@@ -1025,13 +1114,29 @@ export const saveSchedule = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = getUserId(req);
-    const schedulePayload: SchedulePayload = req.body;
+    const scheduleBody: unknown = req.body;
+    if (!isSchedulePayload(scheduleBody)) {
+      res.status(400).json({
+        saved: false,
+        message: 'Invalid schedule payload',
+        conflicts: [],
+      });
+      return;
+    }
+
+    const schedulePayload: SchedulePayload = scheduleBody;
+
+    const conferenceId = Number(id);
+    if (!Number.isFinite(conferenceId) || conferenceId <= 0) {
+      res.status(400).json({ saved: false, message: 'Invalid conference id', conflicts: [] });
+      return;
+    }
 
     console.log(`[DEBUG] Saving schedule for conference ${id}, user ${userId}`);
 
     // Check authorization
     const conference = await prisma.conference.findUnique({
-      where: { id: Number(id) },
+      where: { id: conferenceId },
       select: { id: true, createdById: true, timezone: true }
     });
 
@@ -1046,6 +1151,11 @@ export const saveSchedule = async (req: Request, res: Response) => {
       return;
     }
 
+    if (schedulePayload.conferenceId !== conference.id) {
+      res.status(400).json({ saved: false, message: 'Conference id mismatch in payload', conflicts: [] });
+      return;
+    }
+
     // Validate the payload first
     const conflicts = validateSchedulePayload(schedulePayload);
 
@@ -1057,14 +1167,41 @@ export const saveSchedule = async (req: Request, res: Response) => {
     const warnings: string[] = [];
 
     // Process the schedule transactionally
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(
+      async (tx) => {
       const ORDER_OFFSET = 10000;
+
+      const payloadDayIds = schedulePayload.days.map((d) => d.id);
+      const payloadSessionIds = schedulePayload.days.flatMap((d) => d.sessions.map((s) => s.id));
+
+      const validDays = payloadDayIds.length
+        ? await tx.day.findMany({
+            where: { conferenceId, id: { in: payloadDayIds } },
+            select: { id: true },
+          })
+        : [];
+      const validDayIds = new Set<number>(validDays.map((d) => d.id));
+
+      const validSessions = payloadSessionIds.length
+        ? await tx.section.findMany({
+            where: { conferenceId, id: { in: payloadSessionIds } },
+            select: { id: true, startTime: true, endTime: true, room: true },
+          })
+        : [];
+      const sessionById = new Map<number, { id: number; startTime: Date | null; endTime: Date | null; room: string | null }>(
+        validSessions.map((s) => [s.id, s])
+      );
+      const validSessionIds = validSessions.map((s) => s.id);
 
       // Get all current presentations for this conference to track assignments
       const existingPresentations = await tx.presentation.findMany({
-        where: { section: { conferenceId: Number(id) } },
+        where: { section: { conferenceId } },
         select: { id: true, sectionId: true, status: true, lockedById: true, order: true }
       });
+
+      const existingPresentationById = new Map<number, { id: number; sectionId: number; status: string; lockedById: number | null; order: number }>(
+        existingPresentations.map((p) => [p.id, p])
+      );
 
       const lockedPresentationIds = new Set(
         existingPresentations
@@ -1083,7 +1220,18 @@ export const saveSchedule = async (req: Request, res: Response) => {
 
       // Phase 1: temporarily offset unlocked orders to avoid @@unique collisions
       // Phase 2: write final contiguous ordering
-      const offsetAppliedSessionIds = new Set<number>();
+      if (validSessionIds.length > 0) {
+        await tx.presentation.updateMany({
+          where: {
+            sectionId: { in: validSessionIds },
+            lockedById: null,
+            NOT: { status: 'locked' },
+          },
+          data: {
+            order: { increment: ORDER_OFFSET },
+          },
+        });
+      }
 
       // Track which presentations are being assigned in this payload
       const assignedPresentationIds = new Set<number>();
@@ -1091,11 +1239,7 @@ export const saveSchedule = async (req: Request, res: Response) => {
       // Process each day
       for (const dayPayload of schedulePayload.days) {
         // Verify day belongs to this conference
-        const day = await tx.day.findFirst({
-          where: { id: dayPayload.id, conferenceId: Number(id) }
-        });
-
-        if (!day) {
+        if (!validDayIds.has(dayPayload.id)) {
           console.log(`[DEBUG] Day ${dayPayload.id} not found for conference ${id}, skipping`);
           continue;
         }
@@ -1103,29 +1247,10 @@ export const saveSchedule = async (req: Request, res: Response) => {
         // Process each session in this day
         for (const sessionPayload of dayPayload.sessions) {
           // Verify session belongs to this conference
-          const session = await tx.section.findFirst({
-            where: { id: sessionPayload.id, conferenceId: Number(id) }
-          });
-
+          const session = sessionById.get(sessionPayload.id);
           if (!session) {
             console.log(`[DEBUG] Session ${sessionPayload.id} not found for conference ${id}, skipping`);
             continue;
-          }
-
-          // Apply a temporary order offset for unlocked presentations in this session.
-          // This prevents unique constraint failures during reordering (sectionId, order).
-          if (!offsetAppliedSessionIds.has(sessionPayload.id)) {
-            await tx.presentation.updateMany({
-              where: {
-                sectionId: sessionPayload.id,
-                lockedById: null,
-                NOT: { status: 'locked' },
-              },
-              data: {
-                order: { increment: ORDER_OFFSET },
-              },
-            });
-            offsetAppliedSessionIds.add(sessionPayload.id);
           }
 
           const usedOrders = new Set<number>(lockedOrdersBySessionId.get(sessionPayload.id) ?? []);
@@ -1137,36 +1262,20 @@ export const saveSchedule = async (req: Request, res: Response) => {
             let endTime = session.endTime;
             
             if (sessionPayload.startTime !== undefined && sessionPayload.startTime !== null && sessionPayload.startTime !== '') {
-              // Extract time part if sent as ISO timestamp (e.g., '2026-06-15T08:00:00.000Z' -> '08:00:00')
-              let timeStr = sessionPayload.startTime;
-              if (timeStr.includes('T')) {
-                // Full ISO timestamp - extract time part
-                timeStr = timeStr.split('T')[1]?.replace('Z', '') || timeStr;
-              }
-              
-              const startDateStr = `${dayPayload.date}T${timeStr}`;
-              const parsedStart = new Date(startDateStr);
-              if (!isNaN(parsedStart.getTime())) {
+              const parsedStart = parseUtcDateTime(dayPayload.date, sessionPayload.startTime);
+              if (parsedStart) {
                 startTime = parsedStart;
               } else {
-                console.warn(`[WARN] Invalid startTime for session ${sessionPayload.id}: '${sessionPayload.startTime}' (extracted: '${timeStr}', parsed: '${startDateStr}')`);
+                console.warn(`[WARN] Invalid startTime for session ${sessionPayload.id}: '${sessionPayload.startTime}' (day: '${dayPayload.date}')`);
               }
             }
             
             if (sessionPayload.endTime !== undefined && sessionPayload.endTime !== null && sessionPayload.endTime !== '') {
-              // Extract time part if sent as ISO timestamp
-              let timeStr = sessionPayload.endTime;
-              if (timeStr.includes('T')) {
-                // Full ISO timestamp - extract time part
-                timeStr = timeStr.split('T')[1]?.replace('Z', '') || timeStr;
-              }
-              
-              const endDateStr = `${dayPayload.date}T${timeStr}`;
-              const parsedEnd = new Date(endDateStr);
-              if (!isNaN(parsedEnd.getTime())) {
+              const parsedEnd = parseUtcDateTime(dayPayload.date, sessionPayload.endTime);
+              if (parsedEnd) {
                 endTime = parsedEnd;
               } else {
-                console.warn(`[WARN] Invalid endTime for session ${sessionPayload.id}: '${sessionPayload.endTime}' (extracted: '${timeStr}', parsed: '${endDateStr}')`);
+                console.warn(`[WARN] Invalid endTime for session ${sessionPayload.id}: '${sessionPayload.endTime}' (day: '${dayPayload.date}')`);
               }
             }
             
@@ -1189,11 +1298,7 @@ export const saveSchedule = async (req: Request, res: Response) => {
             }
 
             // Check if presentation exists before updating
-            const presentationExists = await tx.presentation.findUnique({
-              where: { id: presPayload.id }
-            });
-
-            if (!presentationExists) {
+            if (!existingPresentationById.has(presPayload.id)) {
               console.warn(`[WARN] Presentation ${presPayload.id} not found, skipping`);
               skippedPresentations.push({ id: presPayload.id, reason: 'Presentation not found in database' });
               continue;
@@ -1234,7 +1339,13 @@ export const saveSchedule = async (req: Request, res: Response) => {
           data: { status: 'submitted' }
         });
       }
-    });
+      },
+      {
+        // The scheduler save can touch many rows; increase timeouts to prevent P2028 on slower DBs.
+        maxWait: 10_000,
+        timeout: 60_000,
+      }
+    );
 
     const lastSavedAt = new Date().toISOString();
 
@@ -1261,11 +1372,12 @@ export const saveSchedule = async (req: Request, res: Response) => {
           }
         : { name: 'UnknownError', message: getErrorMessage(error) }
     );
+    const safe = toSafeSaveErrorMessage(error);
     res.status(500).json({
       saved: false,
-      message: 'Failed to save schedule',
-      error: getErrorMessage(error),
-      conflicts: []
+      message: safe.message,
+      code: safe.code,
+      conflicts: [],
     });
   }
 };
